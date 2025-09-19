@@ -21,6 +21,7 @@ class BedGeometry:
     material: str = "steel"
     roughness: float = 0.0  # metros
 
+# estrutura de dados para parametros das tampas
 @dataclass
 class Lids:
     #configuracao das tampas
@@ -30,6 +31,7 @@ class Lids:
     bottom_thickness: float = 0.003  # metros
     seal_clearance: float = 0.0      # metros
 
+# estrutura de dados para parametros das particulas
 @dataclass
 class Particles:
     #propriedades das particulas
@@ -46,6 +48,7 @@ class Particles:
     angular_damping: float = 0.1     # 0.0 a 1.0
     seed: int = 42                   # seed para reproducibilidade
 
+# estrutura de dados para parametros do empacotamento fisico
 @dataclass
 class Packing:
     #configuracao do empacotamento fisico
@@ -58,6 +61,7 @@ class Packing:
     max_time: float = 10.0           # segundos
     collision_margin: float = 0.001  # metros
 
+# estrutura de dados para parametros de exportacao
 @dataclass
 class Export:
     #configuracao de exportacao
@@ -73,6 +77,7 @@ class Export:
         if self.formats is None:
             self.formats = ["stl_binary"]
 
+# estrutura de dados para parametros opcionais para CFD
 @dataclass
 class CFD:
     #parametros opcionais para CFD
@@ -84,6 +89,7 @@ class CFD:
     convergence_criteria: float = 1e-6
     write_fields: bool = True
 
+# estrutura de dados para parametros completos do leito
 @dataclass
 class BedParameters:
     #estrutura completa dos parametros do leito
@@ -94,10 +100,12 @@ class BedParameters:
     export: Export
     cfd: Optional[CFD] = None
     
+    # metadados: versao e hash
     # metadados
     version: str = "1.0"
     hash: str = ""
     
+    # metodos: calcular hash e validar parametros
     def calculate_hash(self) -> str:
         #calcula hash dos parametros para versionamento
         # converter para dict e remover hash atual
@@ -110,6 +118,7 @@ class BedParameters:
         # calcular hash sha256
         return hashlib.sha256(json_str.encode()).hexdigest()[:16]
 
+# classe compilador para linguagem .bed
 class BedCompiler:
     #compilador para linguagem .bed
     
@@ -117,6 +126,7 @@ class BedCompiler:
         self.errors: List[str] = []
         self.warnings: List[str] = []
     
+    # metodo para fazer parsing de um arquivo .bed
     def parse_bed_file(self, filepath: str) -> Optional[BedParameters]:
 
         #faz parsing de um arquivo .bed e retorna parametros
@@ -263,6 +273,7 @@ class BedCompiler:
         
         return number * conversions.get(unit, 1.0)
     
+    # metodo para fazer parsing da secao bed
     def _parse_bed_section(self, content: str, bed: BedGeometry):
         #faz parsing da secao bed
         for line in content.split('\n'):
@@ -283,6 +294,7 @@ class BedCompiler:
             elif prop_name == 'roughness':
                 bed.roughness = self._parse_number_with_unit(prop_value)
     
+    # metodo para fazer parsing da secao lids
     def _parse_lids_section(self, content: str, lids: Lids):
         #faz parsing da secao lids
         for line in content.split('\n'):
@@ -301,6 +313,7 @@ class BedCompiler:
             elif prop_name == 'seal_clearance':
                 lids.seal_clearance = self._parse_number_with_unit(prop_value)
     
+    # metodo para fazer parsing da secao particles
     def _parse_particles_section(self, content: str, particles: Particles):
         #faz parsing da secao particles
         for line in content.split('\n'):
@@ -333,6 +346,7 @@ class BedCompiler:
             elif prop_name == 'seed':
                 particles.seed = int(prop_value)
     
+    # metodo para fazer parsing da secao packing
     def _parse_packing_section(self, content: str, packing: Packing):
         #faz parsing da secao packing
         for line in content.split('\n'):
@@ -357,6 +371,7 @@ class BedCompiler:
             elif prop_name == 'collision_margin':
                 packing.collision_margin = self._parse_number_with_unit(prop_value)
     
+    # metodo para fazer parsing da secao export
     def _parse_export_section(self, content: str, export: Export):
         #faz parsing da secao export
         for line in content.split('\n'):
@@ -381,6 +396,7 @@ class BedCompiler:
             elif prop_name == 'merge_distance':
                 export.merge_distance = self._parse_number_with_unit(prop_value)
     
+    # metodo para fazer parsing da secao cfd
     def _parse_cfd_section(self, content: str, cfd: CFD):
         #faz parsing da secao cfd
         for line in content.split('\n'):
@@ -403,6 +419,7 @@ class BedCompiler:
             elif prop_name == 'write_fields':
                 cfd.write_fields = prop_value.lower() == 'true'
     
+    # metodo para validar os parametros do leito
     def _validate_parameters(self, params: BedParameters) -> bool:
         #valida os parametros do leito
         valid = True
@@ -435,6 +452,7 @@ class BedCompiler:
         
         return valid
     
+    # metodo para compilar parametros para arquivo params.json
     def compile_to_json(self, params: BedParameters, output_path: str) -> bool:
         #compila parametros para arquivo params.json
         
@@ -459,6 +477,7 @@ class BedCompiler:
             self.errors.append(f"erro ao escrever json: {e}")
             return False
 
+# metodo principal do compilador
 def main():
     #funcao principal do compilador
     parser = argparse.ArgumentParser(description='compilador para linguagem .bed')
@@ -500,3 +519,4 @@ def main():
 
 if __name__ == '__main__':
     exit(main())
+#===================================================================================

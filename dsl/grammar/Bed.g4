@@ -1,6 +1,7 @@
+// gramatica para arquivos .bed
 grammar Bed;
 
-// regra principal - um arquivo .bed
+// regra principal: um arquivo .bed
 bedFile: section+ EOF;
 
 // secoes principais do arquivo .bed
@@ -11,7 +12,7 @@ section: bedSection
        | exportSection 
        | cfdSection;
 
-// secao bed - define geometria do leito cilindrico
+// secao bed: define geometria do leito cilindrico
 bedSection: 'bed' '{' bedProperty+ '}';
 bedProperty: 'diameter' '=' NUMBER UNIT ';'         # bedDiameter
            | 'height' '=' NUMBER UNIT ';'           # bedHeight  
@@ -20,7 +21,7 @@ bedProperty: 'diameter' '=' NUMBER UNIT ';'         # bedDiameter
            | 'material' '=' STRING ';'              # bedMaterial
            | 'roughness' '=' NUMBER UNIT ';'        # bedRoughness;
 
-// secao lids - define tampas superior e inferior
+// secao lids: define tampas superior e inferior
 lidsSection: 'lids' '{' lidsProperty+ '}';
 lidsProperty: 'top_type' '=' lidType ';'            # lidsTopType
             | 'bottom_type' '=' lidType ';'         # lidsBottomType
@@ -30,7 +31,7 @@ lidsProperty: 'top_type' '=' lidType ';'            # lidsTopType
 
 lidType: 'flat' | 'hemispherical' | 'none';
 
-// secao particles - define particulas e suas propriedades
+// secao particles: define particulas e suas propriedades
 particlesSection: 'particles' '{' particlesProperty+ '}';
 particlesProperty: 'kind' '=' particleKind ';'          # particlesKind
                  | 'diameter' '=' NUMBER UNIT ';'       # particlesDiameter
@@ -47,7 +48,7 @@ particlesProperty: 'kind' '=' particleKind ';'          # particlesKind
 
 particleKind: 'sphere' | 'cube' | 'cylinder';
 
-// secao packing - controle do empacotamento fisico
+// secao packing: controle do empacotamento fisico
 packingSection: 'packing' '{' packingProperty+ '}';
 packingProperty: 'method' '=' packingMethod ';'        # packingMethod
                | 'gravity' '=' NUMBER UNIT ';'         # packingGravity
@@ -60,7 +61,7 @@ packingProperty: 'method' '=' packingMethod ';'        # packingMethod
 
 packingMethod: 'rigid_body';
 
-// secao export - configuracao de exportacao
+// secao export: configuracao de exportacao
 exportSection: 'export' '{' exportProperty+ '}';
 exportProperty: 'formats' '=' '[' formatList ']' ';'   # exportFormats
               | 'units' '=' STRING ';'                 # exportUnits
@@ -70,30 +71,46 @@ exportProperty: 'formats' '=' '[' formatList ']' ';'   # exportFormats
               | 'manifold_check' '=' BOOLEAN ';'       # exportManifoldCheck
               | 'merge_distance' '=' NUMBER UNIT ';'   # exportMergeDistance;
 
-formatList: STRING (',' STRING)*;
-wallMode: 'surface' | 'solid';
-fluidMode: 'none' | 'cavity';
+formatList: STRING (',' STRING)*; // lista de formatos de saida
+wallMode: 'surface' | 'solid'; // superfice ou solido
+fluidMode: 'none' | 'cavity'; // sem cavidade ou com cavidade
 
-// secao cfd - parametros opcionais para CFD
-cfdSection: 'cfd' '{' cfdProperty+ '}';
-cfdProperty: 'regime' '=' cfdRegime ';'                # cfdRegime
-           | 'inlet_velocity' '=' NUMBER UNIT ';'      # cfdInletVelocity
-           | 'fluid_density' '=' NUMBER UNIT ';'       # cfdFluidDensity
-           | 'fluid_viscosity' '=' NUMBER UNIT ';'     # cfdFluidViscosity
-           | 'max_iterations' '=' INTEGER ';'          # cfdMaxIterations
-           | 'convergence_criteria' '=' NUMBER ';'     # cfdConvergenceCriteria
-           | 'write_fields' '=' BOOLEAN ';'            # cfdWriteFields;
+// secao cfd: parametros opcionais para CFD
+cfdSection: 'cfd' '{' cfdProperty+ '}'; // secao cfd
+cfdProperty: 'regime' '=' cfdRegime ';'                # cfdRegime // regime laminar ou turbulento
+           | 'inlet_velocity' '=' NUMBER UNIT ';'      # cfdInletVelocity // velocidade de entrada
+           | 'fluid_density' '=' NUMBER UNIT ';'       # cfdFluidDensity // densidade do fluido
+           | 'fluid_viscosity' '=' NUMBER UNIT ';'     # cfdFluidViscosity // viscosidade do fluido
+           | 'max_iterations' '=' INTEGER ';'          # cfdMaxIterations // iteracoes maximas
+           | 'convergence_criteria' '=' NUMBER ';'     # cfdConvergenceCriteria // criterio de convergencia
+           | 'write_fields' '=' BOOLEAN ';'            # cfdWriteFields; // escrever campos
 
-cfdRegime: 'laminar' | 'turbulent_rans';
+cfdRegime: 'laminar' | 'turbulent_rans'; // regime laminar ou turbulento
 
-// tokens lexicos
-NUMBER: [0-9]+ ('.' [0-9]+)?;
-INTEGER: [0-9]+;
-UNIT: 'm' | 'cm' | 'mm' | 'kg' | 'g' | 's' | 'Pa' | 'N' | 'm/s' | 'kg/m3' | 'Pa.s';
-STRING: '"' (~["\r\n])* '"';
-BOOLEAN: 'true' | 'false';
+// tokens lexicos: numeros, unidades, strings e booleanos
+// numeros: numeros com ou sem ponto decimal
+// inteiros: numeros inteiros
+// unidades: unidades de medida
+// strings: strings entre aspas
+// booleanos: true ou false
 
-// ignorar espacos e comentarios
+// numeros
+NUMBER: [0-9]+ ('.' [0-9]+)?; // numeros com ou sem ponto decimal
+INTEGER: [0-9]+; // numeros inteiros
+UNIT: 'm' | 'cm' | 'mm' | 'kg' | 'g' | 's' | 'Pa' | 'N' | 'm/s' | 'kg/m3' | 'Pa.s' | 'm/s2' | 'm/s²'; // unidades de medida
+STRING: '"' (~["\r\n])* '"'; // strings entre aspas
+BOOLEAN: 'true' | 'false'; // booleanos
+
+// ignorar espacos e comentarios: espacos, comentarios e blocos de comentarios
+// espacos: espacos, tabulacoes e quebras de linha
+// comentarios: comentarios de linha e blocos de comentarios
+// blocos de comentarios: comentarios de bloco
+
+// espacos
 WS: [ \t\r\n]+ -> skip;
+
+// comentarios
 COMMENT: '//' ~[\r\n]* -> skip;
+
+// blocos de comentarios
 BLOCK_COMMENT: '/*' .*? '*/' -> skip;
