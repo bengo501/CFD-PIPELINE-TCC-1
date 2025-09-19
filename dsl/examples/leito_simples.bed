@@ -1,0 +1,42 @@
+// exemplo basico de leito empacotado
+// leito cilindrico com esferas
+
+bed {
+    diameter = 0.05 m;           // 5 cm de diametro
+    height = 0.1 m;              // 10 cm de altura
+    wall_thickness = 0.002 m;    // 2 mm de espessura
+    clearance = 0.01 m;          // 1 cm de folga superior
+    material = "steel";          // material da parede
+}
+
+lids {
+    top_type = "flat";           // tampa plana superior
+    bottom_type = "flat";        // tampa plana inferior  
+    top_thickness = 0.003 m;     // 3 mm
+    bottom_thickness = 0.003 m;  // 3 mm
+}
+
+particles {
+    kind = "sphere";             // particulas esfericas
+    diameter = 0.005 m;          // 5 mm de diametro
+    count = 100;                 // 100 particulas
+    density = 2500.0 kg/m3;      // densidade do material
+    restitution = 0.3;           // elasticidade
+    friction = 0.5;              // atrito
+    seed = 42;                   // seed para reproducibilidade
+}
+
+packing {
+    method = "rigid_body";       // empacotamento por fisica rigida
+    gravity = -9.81 m/s2;        // gravidade normal
+    substeps = 10;               // precisao da simulacao
+    max_time = 5.0 s;            // tempo maximo de simulacao
+    rest_velocity = 0.01 m/s;    // criterio de repouso
+}
+
+export {
+    formats = ["stl_binary", "obj"];  // formatos de exportacao
+    wall_mode = "surface";            // exportar superficie interna
+    fluid_mode = "none";              // sem cavidade de fluido
+    manifold_check = true;            // verificar manifold
+}

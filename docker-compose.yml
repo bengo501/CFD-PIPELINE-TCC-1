@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Banco de dados PostgreSQL
+  # banco de dados PostgreSQL
   postgres:
     image: postgres:16-alpine
     container_name: tcc-postgres
@@ -38,7 +38,7 @@ services:
       timeout: 20s
       retries: 3
 
-  # Redis para filas de tarefas
+  # redis para filas de tarefas
   redis:
     image: redis:7-alpine
     container_name: tcc-redis
@@ -52,7 +52,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # API Backend (FastAPI)
+  # API backend (FastAPI)
   backend:
     build: 
       context: .
@@ -79,7 +79,7 @@ services:
       - ./temp:/app/temp
       - ./scripts:/app/scripts
 
-  # Frontend React
+  # frontend React
   frontend:
     build: 
       context: ./frontend
@@ -93,7 +93,7 @@ services:
     depends_on:
       - backend
 
-  # Worker para processamento de simulações
+  # worker para processamento de simulacoes
   worker:
     build: 
       context: .
@@ -118,7 +118,7 @@ services:
       - ./temp:/app/temp
       - ./scripts:/app/scripts
 
-  # Blender para geração de geometrias
+  # blender para geracao de geometrias
   blender:
     build: .
     container_name: tcc-blender

@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-
 # script independente para geracao de leito de extracao
 # funciona fora do Blender usando modo headless
-
-
 import sys
 import os
 import math
@@ -320,20 +317,20 @@ if __name__ == "__main__":
         # Encontrar Blender
         blender_path = self.encontrar_blender()
         if not blender_path:
-            raise RuntimeError("Blender não encontrado. Instale o Blender ou adicione ao PATH.")
+            raise RuntimeError("Blender nao encontrado. Instale o Blender ou adicione ao PATH")
         
         print(f"Usando Blender: {blender_path}")
         
-        # Criar arquivo de parâmetros
+        # criar arquivo de parametros
         params_file = self.criar_parametros_json(**kwargs)
         
-        # Criar arquivo de script temporário
+        # criar arquivo de script temporario
         script_file = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
         script_file.write(self.script_content)
         script_file.close()
         
         try:
-            # Executar Blender em modo headless
+            # executar Blender em modo headless
             cmd = [
                 blender_path,
                 '--background',  # Modo headless
@@ -346,15 +343,15 @@ if __name__ == "__main__":
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             
             if result.returncode == 0:
-                print("✅ Leito gerado com sucesso!")
+                print(" Leito gerado com sucesso")
                 print(f"📁 Arquivo salvo: {kwargs.get('output_file', 'leito_gerado.blend')}")
             else:
-                print("❌ Erro ao gerar leito:")
+                print(" Erro ao gerar leito:")
                 print(result.stderr)
                 raise RuntimeError("Falha na execução do Blender")
                 
         finally:
-            # Limpar arquivos temporários
+            # limpar arquivos temporarios
             try:
                 os.unlink(params_file)
                 os.unlink(script_file)
@@ -362,36 +359,36 @@ if __name__ == "__main__":
                 pass  # Ignora erros na limpeza
 
 def main():
-    """Função principal com interface de linha de comando"""
+    # funcao principal com interface de linha de comando
     parser = argparse.ArgumentParser(description='Gerador de Leito de Extração Standalone')
     
-    # Parâmetros do leito
+    # parametros do leito
     parser.add_argument('--altura', type=float, default=0.1, 
-                       help='Altura do leito em metros (padrão: 0.1)')
+                       help='Altura do leito em metros (padrao: 0.1)')
     parser.add_argument('--diametro', type=float, default=0.025, 
-                       help='Diâmetro do leito em metros (padrão: 0.025)')
+                       help='Diametro do leito em metros (padrao: 0.025)')
     parser.add_argument('--espessura-parede', type=float, default=0.002, 
-                       help='Espessura da parede em metros (padrão: 0.002)')
+                       help='Espessura da parede em metros (padrao: 0.002)')
     
-    # Parâmetros das partículas
+    # parametros das particulas
     parser.add_argument('--num-particulas', type=int, default=30, 
-                       help='Número de partículas (padrão: 30)')
+                       help='Numero de particulas (padrao: 30)')
     parser.add_argument('--tamanho-particula', type=float, default=0.001, 
-                       help='Tamanho das partículas em metros (padrão: 0.001)')
+                       help='Tamanho das particulas em metros (padrao: 0.001)')
     parser.add_argument('--massa-particula', type=float, default=0.1, 
-                       help='Massa das partículas em kg (padrão: 0.1)')
+                       help='Massa das particulas em kg (padrao: 0.1)')
     parser.add_argument('--tipo-particula', choices=['esferas', 'cilindros', 'cubos'], 
-                       default='esferas', help='Tipo de partícula (padrão: esferas)')
+                       default='esferas', help='Tipo de particula (padrao: esferas)')
     
     # Aparência
     parser.add_argument('--cor-leito', choices=['azul', 'vermelho', 'verde', 'amarelo', 'laranja', 'roxo'], 
-                       default='azul', help='Cor do leito (padrão: azul)')
+                       default='azul', help='Cor do leito (padrao: azul)')
     parser.add_argument('--cor-particulas', choices=['azul', 'vermelho', 'verde', 'amarelo', 'laranja', 'roxo'], 
-                       default='verde', help='Cor das partículas (padrão: verde)')
+                       default='verde', help='Cor das particulas (padrao: verde)')
     
     # Saída
     parser.add_argument('--output', '-o', default='leito_gerado.blend', 
-                       help='Arquivo de saída (padrão: leito_gerado.blend)')
+                       help='Arquivo de saida (padrao: leito_gerado.blend)')
     
     args = parser.parse_args()
     

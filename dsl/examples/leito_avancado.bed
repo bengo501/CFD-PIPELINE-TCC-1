@@ -1,0 +1,63 @@
+// exemplo avancado com CFD
+// leito maior com mais particulas e configuracao CFD
+
+bed {
+    diameter = 0.1 m;            // 10 cm de diametro
+    height = 0.2 m;              // 20 cm de altura  
+    wall_thickness = 0.005 m;    // 5 mm de espessura
+    clearance = 0.02 m;          // 2 cm de folga superior
+    material = "aluminum";       // material da parede
+    roughness = 0.0001 m;        // rugosidade da superficie
+}
+
+lids {
+    top_type = "hemispherical";  // tampa hemisferica superior
+    bottom_type = "flat";        // tampa plana inferior
+    top_thickness = 0.005 m;     // 5 mm
+    bottom_thickness = 0.005 m;  // 5 mm
+    seal_clearance = 0.001 m;    // folga de vedacao
+}
+
+particles {
+    kind = "sphere";             // particulas esfericas
+    diameter = 0.008 m;          // 8 mm de diametro
+    target_porosity = 0.4;       // porosidade alvo de 40%
+    density = 2700.0 kg/m3;      // densidade do aluminio
+    restitution = 0.2;           // baixa elasticidade
+    friction = 0.6;              // alto atrito
+    rolling_friction = 0.1;      // atrito de rolamento
+    linear_damping = 0.1;        // amortecimento linear
+    angular_damping = 0.1;       // amortecimento angular
+    seed = 123;                  // seed diferente
+}
+
+packing {
+    method = "rigid_body";       // empacotamento por fisica rigida
+    gravity = -9.81 m/s2;        // gravidade normal
+    substeps = 15;               // maior precisao
+    iterations = 20;             // mais iteracoes
+    damping = 0.2;               // amortecimento global
+    max_time = 10.0 s;           // tempo maximo maior
+    rest_velocity = 0.005 m/s;   // criterio de repouso mais rigoroso
+    collision_margin = 0.0005 m; // margem de colisao
+}
+
+export {
+    formats = ["stl_binary", "obj", "fbx"];  // multiplos formatos
+    units = "m";                             // unidades em metros
+    scale = 1.0;                             // escala 1:1
+    wall_mode = "surface";                   // superficie interna
+    fluid_mode = "cavity";                   // gerar cavidade do fluido
+    manifold_check = true;                   // verificar manifold
+    merge_distance = 0.0001 m;               // distancia de merge
+}
+
+cfd {
+    regime = "turbulent_rans";      // regime turbulento
+    inlet_velocity = 0.5 m/s;       // velocidade de entrada
+    fluid_density = 1000.0 kg/m3;   // densidade da agua
+    fluid_viscosity = 1e-6 Pa.s;    // viscosidade da agua
+    max_iterations = 2000;          // iteracoes maximas
+    convergence_criteria = 1e-5;    // criterio de convergencia
+    write_fields = true;            // escrever campos de velocidade
+}

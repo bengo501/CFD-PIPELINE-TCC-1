@@ -1,28 +1,26 @@
 #!/usr/bin/env python3
-
-# exemplo de uso do script standalone para gerar leitos de extração
-
-# importa o script standalone
+# exemplo de uso do script standalone para gerar leitos de extracao
+#importa o script standalone
 from leito_standalone import LeitoStandalone
 
 def exemplo_basico():
-    # exemplo básico com parâmetros padrão
-    print("===== Exemplo Básico =====")
+    # exemplo basico com parametros padrao
+    print("=====Exemplo Basico=====")
     
     gerador = LeitoStandalone()
     
-    # Gerar leito com parâmetros padrão
+    # gerar leito com parametros padrao
     gerador.gerar_leito(
         output_file="leito_basico.blend"
     )
 
 def exemplo_personalizado():
-    # exemplo com parâmetros personalizados
+    # exemplo com parametros personalizados
     print("======Exemplo Personalizado=====")
     
     gerador = LeitoStandalone()
     
-    # Gerar leito personalizado
+    # gerar leito personalizado
     gerador.gerar_leito(
         altura=0.15,              # 15 cm de altura
         diametro=0.03,            # 3 cm de diâmetro
@@ -38,11 +36,11 @@ def exemplo_personalizado():
 
 def exemplo_multiplos():
     # exemplo gerando múltiplos leitos
-        print("======Exemplo Múltiplos Leitos=====")
+        print("======Exemplo Multiplos Leitos=====")
     
     gerador = LeitoStandalone()
     
-    # Configurações diferentes
+    #configurações diferentes
     configs = [
         {
             "nome": "leito_pequeno",

@@ -1,15 +1,11 @@
-# Dockerfile para Containerização do Projeto TCC
-# Geração de Leitos de Extração com Blender
-
+#dockerfile para containerização do projeto TCC
+#geração de Leitos de extração com Blender
 FROM ubuntu:22.04
-
-# Evitar prompts interativos durante a instalação
+# evitar prompts interativos durante a instalação
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Definir diretório de trabalho
+# definir diretório de trabalho
 WORKDIR /app
-
-# Instalar dependências do sistema
+#instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -47,15 +43,12 @@ RUN apt-get update && apt-get install -y \
     libxcb-xkb1 \
     libxkbcommon-x11-0 \
     && rm -rf /var/lib/apt/lists/*
-
-# Criar usuário não-root
+#criar usuario nao-root
 RUN useradd -m -s /bin/bash blender_user
 USER blender_user
-
-# Definir variáveis de ambiente
+# definir variaveis de ambiente
 ENV HOME=/home/blender_user
 ENV PATH="/home/blender_user/.local/bin:$PATH"
-
 # Instalar Blender
 RUN mkdir -p /home/blender_user/blender && \
     cd /home/blender_user/blender && \
@@ -63,24 +56,17 @@ RUN mkdir -p /home/blender_user/blender && \
     tar -xf blender-4.0.2-linux-x64.tar.xz && \
     rm blender-4.0.2-linux-x64.tar.xz && \
     ln -s /home/blender_user/blender/blender-4.0.2-linux-x64/blender /home/blender_user/.local/bin/blender
-
-# Copiar arquivos do projeto
+# copiar arquivos do projeto
 COPY --chown=blender_user:blender_user . /app/
-
-# Instalar dependências Python
+#instalar dependências Python
 RUN pip3 install --user argparse pathlib
-
 # Configurar PATH
 ENV PATH="/home/blender_user/.local/bin:$PATH"
-
 # Verificar instalação do Blender
 RUN blender --version
-
 # Executar setup automático
 RUN python3 scripts/setup_project.py --no-auto-install --no-sample
-
 # Expor porta (se necessário para interface web)
 EXPOSE 8000
-
 # Comando padrão
 CMD ["python3", "scripts/leito_standalone.py", "--help"]
