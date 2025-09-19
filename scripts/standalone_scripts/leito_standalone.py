@@ -11,10 +11,16 @@ import tempfile # para criar arquivos temporarios
 import json # para ler e escrever arquivos JSON
 from pathlib import Path # para manipular caminhos de arquivos
 
+# =======================
+# class LeitoStandalone =
+# =========================================================================================
 class LeitoStandalone:
     def __init__(self):
         self.script_content = self.get_blender_script()
     
+# ====================
+# get_blender_script =
+# =========================================================================================
     def get_blender_script(self):
         # retorna o script Python que sera executado no Blender
         return '''

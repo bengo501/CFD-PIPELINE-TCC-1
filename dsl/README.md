@@ -188,12 +188,12 @@ O compilador gera um arquivo JSON estruturado:
 
 O compilador verifica automaticamente:
 
-- ✅ Valores positivos para dimensões
-- ✅ Espessura da parede não excede raio
-- ✅ Partículas cabem no leito
-- ✅ Exclusividade entre `count` e `target_porosity`
-- ✅ Coeficientes físicos em faixas válidas
-- ✅ Consistência geométrica
+- Valores positivos para dimensões
+- Espessura da parede não excede raio
+- Partículas cabem no leito
+- Exclusividade entre `count` e `target_porosity`
+- Coeficientes físicos em faixas válidas
+- Consistência geométrica
 
 ## Fluxo Completo
 
@@ -206,11 +206,11 @@ O compilador verifica automaticamente:
 
 ## Vantagens da DSL
 
-- 🎯 **Declarativa** - descreve "o que" ao invés de "como"
-- 🔄 **Reprodutível** - mesmos parâmetros = mesmos resultados
-- 📝 **Legível** - sintaxe simples e intuitiva
-- ✅ **Validada** - verificações automáticas de consistência
-- 🏷️ **Versionada** - hash único para cada configuração
-- 🔧 **Extensível** - fácil adicionar novos parâmetros
+- **Declarativa** - descreve "o que" ao invés de "como"
+- **Reprodutível** - mesmos parâmetros = mesmos resultados
+- **Legível** - sintaxe simples e intuitiva
+- **Validada** - verificações automáticas de consistência
+- **Versionada** - hash único para cada configuração
+- **Extensível** - fácil adicionar novos parâmetros
 
 Esta DSL implementa exatamente o que foi proposto no TCC: uma linguagem específica do domínio que padroniza a entrada, facilita a reprodutibilidade e reduz erros na configuração de simulações CFD de leitos empacotados.
