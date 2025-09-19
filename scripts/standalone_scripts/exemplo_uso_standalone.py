@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""
-Exemplo de uso do script standalone para gerar leitos de extração
-"""
 
+# exemplo de uso do script standalone para gerar leitos de extração
+
+# importa o script standalone
 from leito_standalone import LeitoStandalone
 
 def exemplo_basico():
-    """Exemplo básico com parâmetros padrão"""
-    print("=== Exemplo Básico ===")
+    # exemplo básico com parâmetros padrão
+    print("===== Exemplo Básico =====")
     
     gerador = LeitoStandalone()
     
@@ -17,8 +17,8 @@ def exemplo_basico():
     )
 
 def exemplo_personalizado():
-    """Exemplo com parâmetros personalizados"""
-    print("=== Exemplo Personalizado ===")
+    # exemplo com parâmetros personalizados
+    print("======Exemplo Personalizado=====")
     
     gerador = LeitoStandalone()
     
@@ -37,8 +37,8 @@ def exemplo_personalizado():
     )
 
 def exemplo_multiplos():
-    """Exemplo gerando múltiplos leitos"""
-    print("=== Exemplo Múltiplos Leitos ===")
+    # exemplo gerando múltiplos leitos
+        print("======Exemplo Múltiplos Leitos=====")
     
     gerador = LeitoStandalone()
     
@@ -68,7 +68,7 @@ def exemplo_multiplos():
     ]
     
     for config in configs:
-        print(f"Gerando {config['nome']}...")
+        print(f"Gerando {config['nome']}")
         gerador.gerar_leito(
             altura=config["altura"],
             diametro=config["diametro"],
@@ -78,48 +78,45 @@ def exemplo_multiplos():
         )
 
 def exemplo_estudo_parametros():
-    """Exemplo para estudo de parâmetros"""
-    print("=== Exemplo Estudo de Parâmetros ===")
+    # exemplo para estudo de parâmetros
+    print("======Exemplo Estudo de Parametros=====")
     
     gerador = LeitoStandalone()
     
-    # Vary number of particles
+    # variar numero de particulas
     for num_parts in [10, 30, 50, 100]:
-        print(f"Gerando leito com {num_parts} partículas...")
+        print(f"Gerando leito com {num_parts} particulas")
         gerador.gerar_leito(
             num_particulas=num_parts,
             output_file=f"leito_{num_parts}particulas.blend"
         )
-    
-    # Vary particle size
+
+
     for tamanho in [0.0005, 0.001, 0.002, 0.005]:
-        print(f"Gerando leito com partículas de {tamanho*1000:.1f}mm...")
+            print(f"Gerando leito com particulas de {tamanho*1000:.1f}mm")
         gerador.gerar_leito(
             tamanho_particula=tamanho,
             output_file=f"leito_particula_{tamanho*1000:.1f}mm.blend"
         )
 
 if __name__ == "__main__":
-    print("🚀 Iniciando exemplos de uso do gerador standalone...")
+    print("iniciando exemplos de uso do gerador standalone")
     print()
     
     try:
-        # Executar exemplos
+        # executar exemplos
         exemplo_basico()
         print()
-        
         exemplo_personalizado()
         print()
-        
         exemplo_multiplos()
         print()
-        
         exemplo_estudo_parametros()
         print()
         
-        print("✅ Todos os exemplos executados com sucesso!")
-        print("📁 Verifique os arquivos .blend gerados na pasta atual.")
+        print("todos os exemplos executados com sucesso")
+        print("verifique os arquivos .blend gerados na pasta atual")
         
     except Exception as e:
-        print(f"❌ Erro durante a execução: {e}")
-        print("💡 Certifique-se de que o Blender está instalado e acessível.")
+        print(f"erro durante a execucao: {e}")
+        print("certifique-se de que o Blender está instalado e acessivel")

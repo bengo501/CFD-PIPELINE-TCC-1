@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Script de Automação Completa para Configurar o Projeto
-Ideal para containerização e CI/CD
 """
 
 import os
@@ -18,37 +17,37 @@ class ProjectSetup:
     
     def check_python_version(self):
         """Verifica a versão do Python"""
-        print("🐍 Verificando versão do Python...")
+        print(" Verificando versão do Python...")
         
         version = sys.version_info
         if version.major < 3 or (version.major == 3 and version.minor < 6):
-            print(f"❌ Python {version.major}.{version.minor} não é suportado")
-            print("💡 Requer Python 3.6 ou superior")
+            print(f"  Python {version.major}.{version.minor} não é suportado")
+            print(" Requer Python 3.6 ou superior")
             return False
         
-        print(f"✅ Python {version.major}.{version.minor}.{version.micro}")
+        print(f"   Python {version.major}.{version.minor}.{version.micro}")
         return True
     
     def check_blender_installation(self):
         """Verifica se o Blender está instalado"""
-        print("🔍 Verificando instalação do Blender...")
+        print("  Verificando instalação do Blender...")
         
         try:
             result = subprocess.run(['blender', '--version'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 version = result.stdout.split()[1]
-                print(f"✅ Blender {version} encontrado")
+                print(f"   Blender {version} encontrado")
                 return True
         except:
             pass
         
-        print("❌ Blender não encontrado no PATH")
+        print("  Blender não encontrado no PATH")
         return False
     
     def install_blender(self):
         """Instala o Blender automaticamente"""
-        print("📦 Instalando Blender...")
+        print(" Instalando Blender...")
         
         try:
             # Importar e executar o instalador
@@ -59,19 +58,19 @@ class ProjectSetup:
             success = installer.install()
             
             if success:
-                print("✅ Blender instalado com sucesso")
+                print("   Blender instalado com sucesso")
                 return True
             else:
-                print("❌ Falha na instalação do Blender")
+                print("  Falha na instalação do Blender")
                 return False
                 
         except Exception as e:
-            print(f"❌ Erro na instalação: {e}")
+            print(f"  Erro na instalação: {e}")
             return False
     
     def setup_blender_path(self):
         """Configura o Blender no PATH"""
-        print("🔧 Configurando Blender no PATH...")
+        print(" Configurando Blender no PATH...")
         
         try:
             # Importar e executar o setup do PATH
@@ -82,19 +81,19 @@ class ProjectSetup:
             success = setup.setup()
             
             if success:
-                print("✅ Blender configurado no PATH")
+                print("   Blender configurado no PATH")
                 return True
             else:
-                print("❌ Falha na configuração do PATH")
+                print("  Falha na configuração do PATH")
                 return False
                 
         except Exception as e:
-            print(f"❌ Erro na configuração: {e}")
+            print(f"  Erro na configuração: {e}")
             return False
     
     def test_blender_script(self):
         """Testa o script standalone do Blender"""
-        print("🧪 Testando script standalone...")
+        print("  Testando script standalone...")
         
         try:
             result = subprocess.run([
@@ -104,19 +103,19 @@ class ProjectSetup:
             ], capture_output=True, text=True, timeout=30)
             
             if result.returncode == 0:
-                print("✅ Script standalone funcionando")
+                print("   Script standalone funcionando")
                 return True
             else:
-                print("❌ Script standalone com problemas")
+                print("  Script standalone com problemas")
                 return False
                 
         except Exception as e:
-            print(f"❌ Erro no teste: {e}")
+            print(f"  Erro no teste: {e}")
             return False
     
     def create_directories(self):
         """Cria diretórios necessários"""
-        print("📁 Criando diretórios do projeto...")
+        print(" Criando diretórios do projeto...")
         
         directories = [
             "models",
@@ -128,11 +127,11 @@ class ProjectSetup:
         for dir_name in directories:
             dir_path = self.project_root / dir_name
             dir_path.mkdir(exist_ok=True)
-            print(f"✅ Diretório criado: {dir_name}")
+            print(f"   Diretório criado: {dir_name}")
     
     def create_config_file(self):
         """Cria arquivo de configuração"""
-        print("⚙️  Criando arquivo de configuração...")
+        print("  Criando arquivo de configuração...")
         
         config_content = '''# Configuração do Projeto TCC
 # Arquivo gerado automaticamente
@@ -164,11 +163,11 @@ cor_particulas = verde
         with open(config_file, 'w') as f:
             f.write(config_content)
         
-        print("✅ Arquivo de configuração criado: config.ini")
+        print("   Arquivo de configuração criado: config.ini")
     
     def run_tests(self):
         """Executa testes básicos"""
-        print("🧪 Executando testes básicos...")
+        print("  Executando testes básicos...")
         
         tests = [
             ("Teste do Blender", self.check_blender_installation),
@@ -177,18 +176,18 @@ cor_particulas = verde
         
         all_passed = True
         for test_name, test_func in tests:
-            print(f"\n🔍 {test_name}...")
+            print(f"\n  {test_name}...")
             if test_func():
-                print(f"✅ {test_name} passou")
+                print(f"   {test_name} passou")
             else:
-                print(f"❌ {test_name} falhou")
+                print(f"  {test_name} falhou")
                 all_passed = False
         
         return all_passed
     
     def generate_sample(self):
         """Gera um exemplo de leito"""
-        print("🎨 Gerando exemplo de leito...")
+        print(" Gerando exemplo de leito...")
         
         try:
             result = subprocess.run([
@@ -201,21 +200,21 @@ cor_particulas = verde
             ], capture_output=True, text=True, timeout=60)
             
             if result.returncode == 0:
-                print("✅ Exemplo gerado com sucesso")
+                print("   Exemplo gerado com sucesso")
                 return True
             else:
-                print("❌ Falha na geração do exemplo")
+                print("  Falha na geração do exemplo")
                 return False
                 
         except Exception as e:
-            print(f"❌ Erro na geração: {e}")
+            print(f"  Erro na geração: {e}")
             return False
     
     def setup(self, auto_install=True, run_tests=True, generate_sample=True):
         """Configura o projeto completo"""
-        print("🚀 Iniciando configuração automática do projeto...")
-        print(f"🖥️  Sistema: {self.system}")
-        print(f"📁 Diretório do projeto: {self.project_root}")
+        print(" Iniciando configuração automática do projeto...")
+        print(f"  Sistema: {self.system}")
+        print(f" Diretório do projeto: {self.project_root}")
         
         # Verificar Python
         if not self.check_python_version():
@@ -228,16 +227,16 @@ cor_particulas = verde
         blender_ok = self.check_blender_installation()
         
         if not blender_ok and auto_install:
-            print("\n📦 Blender não encontrado. Instalando automaticamente...")
+            print("\n   Blender não encontrado. Instalando automaticamente...")
             if not self.install_blender():
-                print("❌ Falha na instalação automática do Blender")
-                print("💡 Instale manualmente e execute novamente")
+                print("  Falha na instalação automática do Blender")
+                print(" Instale manualmente e execute novamente")
                 return False
         
         # Configurar PATH
         if not blender_ok:
             if not self.setup_blender_path():
-                print("❌ Falha na configuração do PATH")
+                print("  Falha na configuração do PATH")
                 return False
         
         # Criar arquivo de configuração
@@ -246,22 +245,22 @@ cor_particulas = verde
         # Executar testes
         if run_tests:
             if not self.run_tests():
-                print("❌ Alguns testes falharam")
+                print("  Alguns testes falharam")
                 return False
         
         # Gerar exemplo
         if generate_sample:
             self.generate_sample()
         
-        print("\n🎉 Configuração concluída com sucesso!")
-        print("\n📋 Resumo:")
-        print("✅ Python verificado")
-        print("✅ Diretórios criados")
-        print("✅ Blender configurado")
-        print("✅ Scripts testados")
-        print("✅ Arquivo de configuração criado")
+        print("\n Configuração concluída com sucesso!")
+        print("\n Resumo:")
+        print("   Python verificado")
+        print("   Diretórios criados")
+        print("   Blender configurado")
+        print("   Scripts testados")
+        print("   Arquivo de configuração criado")
         
-        print("\n🚀 Próximos passos:")
+        print("\n Próximos passos:")
         print("1. Teste: blender --version")
         print("2. Gere um leito: python scripts/leito_standalone.py")
         print("3. Veja exemplos: python scripts/exemplo_uso_standalone.py")
@@ -295,10 +294,10 @@ def main():
     )
     
     if success:
-        print("\n✅ Projeto configurado com sucesso!")
-        print("🎯 Pronto para usar!")
+        print("\n   Projeto configurado com sucesso!")
+        print(" Pronto para usar!")
     else:
-        print("\n❌ Configuração falhou!")
+        print("\n  Configuração falhou!")
         if not args.force:
             sys.exit(1)
 

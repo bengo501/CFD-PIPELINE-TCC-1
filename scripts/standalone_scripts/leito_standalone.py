@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
-"""
-Script Independente para Geração de Leito de Extração
-Funciona fora do Blender usando modo headless
-"""
+
+# script independente para geracao de leito de extracao
+# funciona fora do Blender usando modo headless
+
 
 import sys
 import os
 import math
-import random
-import argparse
-import subprocess
-import tempfile
-import json
-from pathlib import Path
+import random 
+import argparse # para argumentos de linha de comando
+import subprocess # para executar o Blender em modo headless
+import tempfile # para criar arquivos temporarios
+import json # para ler e escrever arquivos JSON
+from pathlib import Path # para manipular caminhos de arquivos
 
 class LeitoStandalone:
     def __init__(self):
         self.script_content = self.get_blender_script()
     
     def get_blender_script(self):
-        """Retorna o script Python que será executado no Blender"""
+        # retorna o script Python que sera executado no Blender
         return '''
 import bpy
 import bmesh
@@ -29,12 +29,12 @@ import json
 import sys
 
 def limpar_cena():
-    """Remove todos os objetos da cena"""
+    # remove todos os objetos da cena
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
 
 def criar_leito_extracao(altura, diametro_externo, espessura_parede):
-    """Cria o leito de extração principal"""
+    # cria o leito de extracao principal
     raio_externo = diametro_externo / 2
     raio_interno = raio_externo - espessura_parede
     
@@ -69,7 +69,7 @@ def criar_leito_extracao(altura, diametro_externo, espessura_parede):
     return cilindro_externo
 
 def criar_tampa_superior(altura, diametro, espessura=0.003):
-    """Cria a tampa superior"""
+    # cria a tampa superior
     bpy.ops.mesh.primitive_cylinder_add(
         radius=diametro/2,
         depth=espessura,
@@ -80,7 +80,7 @@ def criar_tampa_superior(altura, diametro, espessura=0.003):
     return tampa_superior
 
 def criar_tampa_inferior(diametro, espessura=0.003):
-    """Cria a tampa inferior"""
+    # cria a tampa inferior
     bpy.ops.mesh.primitive_cylinder_add(
         radius=diametro/2,
         depth=espessura,
@@ -91,7 +91,7 @@ def criar_tampa_inferior(diametro, espessura=0.003):
     return tampa_inferior
 
 def criar_particulas(num_particulas, raio_leito, altura_leito, tamanho, tipo):
-    """Cria as partículas especificadas"""
+    # cria as particulas especificadas
     particulas = []
     
     for i in range(num_particulas):
@@ -126,7 +126,7 @@ def criar_particulas(num_particulas, raio_leito, altura_leito, tamanho, tipo):
     return particulas
 
 def aplicar_fisica_colisao(objeto, tipo, massa=0.1):
-    """Aplica física de colisão"""
+    # aplica fisica de colisao
     bpy.context.view_layer.objects.active = objeto
     bpy.ops.rigidbody.object_add(type=tipo)
     
@@ -141,7 +141,7 @@ def aplicar_fisica_colisao(objeto, tipo, massa=0.1):
             objeto.rigid_body.restitution = 0.1
 
 def aplicar_materiais(cor_leito, cor_particulas):
-    """Aplica materiais coloridos"""
+    # aplica materiais coloridos
     cores = {
         "azul": (0.2, 0.4, 0.8, 1.0),
         "vermelho": (0.8, 0.2, 0.2, 1.0),
@@ -179,7 +179,7 @@ def aplicar_materiais(cor_leito, cor_particulas):
             obj.data.materials.append(mat_particulas)
 
 def configurar_cena():
-    """Configura a cena"""
+    # configura a cena
     # Iluminação
     bpy.ops.object.light_add(type='SUN', location=(5, 5, 10))
     sun = bpy.context.active_object
@@ -196,16 +196,16 @@ def configurar_cena():
     bpy.context.scene.cycles.samples = 128
 
 def main():
-    """Função principal"""
+    # funcao principal
     # Ler parâmetros do arquivo JSON
     try:
         with open(sys.argv[-1], 'r') as f:
             params = json.load(f)
     except:
-        print("Erro ao ler parâmetros")
+        print("erro ao ler parametros")
         return
     
-    # Extrair parâmetros
+    # Extrair parametros
     altura = params.get('altura', 0.1)
     diametro = params.get('diametro', 0.025)
     espessura_parede = params.get('espessura_parede', 0.002)
@@ -217,10 +217,10 @@ def main():
     cor_particulas = params.get('cor_particulas', 'verde')
     output_file = params.get('output_file', 'leito_gerado.blend')
     
-    print(f"Criando leito com parâmetros:")
+    print(f"Criando leito com parametros:")
     print(f"  Altura: {altura}m")
     print(f"  Diâmetro: {diametro}m")
-    print(f"  Partículas: {num_particulas} {tipo_particula}")
+    print(f"  Particulas: {num_particulas} {tipo_particula}")
     
     # Limpar cena
     limpar_cena()
@@ -232,11 +232,11 @@ def main():
     tampa_superior = criar_tampa_superior(altura, diametro)
     tampa_inferior = criar_tampa_inferior(diametro)
     
-    # Criar partículas
+    # Criar particulas
     particulas = criar_particulas(num_particulas, diametro/2, altura, 
                                  tamanho_particula, tipo_particula)
     
-    # Aplicar física
+    # Aplicar fisica
     aplicar_fisica_colisao(leito, "PASSIVE")
     aplicar_fisica_colisao(tampa_superior, "PASSIVE")
     aplicar_fisica_colisao(tampa_inferior, "PASSIVE")

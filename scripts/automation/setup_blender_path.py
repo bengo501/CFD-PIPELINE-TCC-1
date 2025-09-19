@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Script de Automação para Configurar Blender no PATH
-Ideal para containerização e automação de projetos
 """
 
 import os
@@ -44,14 +43,14 @@ class BlenderPathSetup:
     
     def find_blender_installation(self):
         """Encontra a instalação do Blender"""
-        print("🔍 Procurando instalação do Blender...")
+        print(" Procurando instalação do Blender...")
         
         # Verificar se blender já está no PATH
         try:
             result = subprocess.run(['blender', '--version'], 
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
-                print("✅ Blender já está no PATH!")
+                print("  Blender já está no PATH!")
                 return True
         except:
             pass
@@ -64,10 +63,10 @@ class BlenderPathSetup:
                 blender_exe = os.path.join(path, "blender")
             
             if os.path.exists(blender_exe):
-                print(f"✅ Blender encontrado em: {path}")
+                print(f"  Blender encontrado em: {path}")
                 return path
         
-        print("❌ Blender não encontrado nos locais padrão")
+        print("   Blender não encontrado nos locais padrão")
         return None
     
     def add_to_path_windows(self, blender_path):
@@ -85,7 +84,7 @@ class BlenderPathSetup:
             
             # Verificar se já está no PATH
             if blender_path in current_path:
-                print("✅ Blender já está no PATH do sistema")
+                print("  Blender já está no PATH do sistema")
                 winreg.CloseKey(key)
                 return True
             
@@ -94,12 +93,12 @@ class BlenderPathSetup:
             winreg.SetValueEx(key, "Path", 0, winreg.REG_EXPAND_SZ, new_path)
             winreg.CloseKey(key)
             
-            print(f"✅ Blender adicionado ao PATH: {blender_path}")
+            print(f"  Blender adicionado ao PATH: {blender_path}")
             return True
             
         except Exception as e:
-            print(f"❌ Erro ao modificar PATH do sistema: {e}")
-            print("💡 Execute como administrador para modificar o PATH do sistema")
+            print(f"   Erro ao modificar PATH do sistema: {e}")
+            print("Execute como administrador para modificar o PATH do sistema")
             return False
     
     def add_to_path_user_windows(self, blender_path):
@@ -120,7 +119,7 @@ class BlenderPathSetup:
             
             # Verificar se já está no PATH
             if blender_path in current_path:
-                print("✅ Blender já está no PATH do usuário")
+                print("  Blender já está no PATH do usuário")
                 winreg.CloseKey(key)
                 return True
             
@@ -133,11 +132,11 @@ class BlenderPathSetup:
             winreg.SetValueEx(key, "Path", 0, winreg.REG_EXPAND_SZ, new_path)
             winreg.CloseKey(key)
             
-            print(f"✅ Blender adicionado ao PATH do usuário: {blender_path}")
+            print(f"  Blender adicionado ao PATH do usuário: {blender_path}")
             return True
             
         except Exception as e:
-            print(f"❌ Erro ao modificar PATH do usuário: {e}")
+            print(f"   Erro ao modificar PATH do usuário: {e}")
             return False
     
     def add_to_path_linux_mac(self, blender_path):
@@ -166,20 +165,20 @@ class BlenderPathSetup:
             # Verificar se já está no PATH
             export_line = f'export PATH="{blender_path}:$PATH"'
             if export_line in content:
-                print("✅ Blender já está no PATH")
+                print("  Blender já está no PATH")
                 return True
             
             # Adicionar ao arquivo de perfil
             with open(profile_file, 'a') as f:
                 f.write(f'\n# Blender PATH\n{export_line}\n')
             
-            print(f"✅ Blender adicionado ao PATH: {blender_path}")
-            print(f"📝 Modificação salva em: {profile_file}")
-            print("🔄 Reinicie o terminal ou execute: source " + profile_file)
+            print(f"  Blender adicionado ao PATH: {blender_path}")
+            print(f"Modificação salva em: {profile_file}")
+            print("Reinicie o terminal ou execute: source " + profile_file)
             return True
             
         except Exception as e:
-            print(f"❌ Erro ao modificar PATH: {e}")
+            print(f"   Erro ao modificar PATH: {e}")
             return False
     
     def setup_environment_variable(self, blender_path):
@@ -189,12 +188,12 @@ class BlenderPathSetup:
             current_path = os.environ.get('PATH', '')
             if blender_path not in current_path:
                 os.environ['PATH'] = blender_path + os.pathsep + current_path
-                print(f"✅ Blender adicionado ao PATH da sessão atual: {blender_path}")
+                print(f"  Blender adicionado ao PATH da sessão atual: {blender_path}")
             else:
-                print("✅ Blender já está no PATH da sessão atual")
+                print("  Blender já está no PATH da sessão atual")
             return True
         except Exception as e:
-            print(f"❌ Erro ao configurar variável de ambiente: {e}")
+            print(f"   Erro ao configurar variável de ambiente: {e}")
             return False
     
     def verify_installation(self):
@@ -203,14 +202,14 @@ class BlenderPathSetup:
             result = subprocess.run(['blender', '--version'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
-                print("✅ Verificação: Blender está funcionando!")
-                print(f"📋 Versão: {result.stdout.split()[1]}")
+                print("  Verificação: Blender está funcionando!")
+                print(f"   Versão: {result.stdout.split()[1]}")
                 return True
             else:
-                print("❌ Verificação falhou")
+                print("   Verificação falhou")
                 return False
         except Exception as e:
-            print(f"❌ Erro na verificação: {e}")
+            print(f"   Erro na verificação: {e}")
             return False
     
     def create_symlink_linux_mac(self, blender_path):
@@ -226,21 +225,21 @@ class BlenderPathSetup:
                 os.remove(symlink_path)
             
             os.symlink(blender_exe, symlink_path)
-            print(f"✅ Symlink criado: {symlink_path} -> {blender_exe}")
+            print(f"  Symlink criado: {symlink_path} -> {blender_exe}")
             return True
         except Exception as e:
-            print(f"❌ Erro ao criar symlink: {e}")
+            print(f"   Erro ao criar symlink: {e}")
             return False
     
     def setup(self, force=False):
         """Configura o Blender no PATH"""
-        print("🚀 Iniciando configuração automática do Blender...")
-        print(f"🖥️  Sistema operacional: {self.system}")
+        print("    Iniciando configuração automática do Blender...")
+        print(f"     Sistema operacional: {self.system}")
         
         # Encontrar Blender
         blender_path = self.find_blender_installation()
         if not blender_path:
-            print("❌ Blender não encontrado. Instale o Blender primeiro.")
+            print("   Blender não encontrado. Instale o Blender primeiro.")
             return False
         
         if blender_path is True:  # Já está no PATH
@@ -274,21 +273,21 @@ class BlenderPathSetup:
                     success = self.setup_environment_variable(blender_path)
         
         if success:
-            print("\n🎉 Configuração concluída!")
-            print("🔄 Para aplicar as mudanças:")
+            print("\n Configuração concluída!")
+            print("Para aplicar as mudanças:")
             if self.system == "Windows":
                 print("   - Reinicie o terminal ou o computador")
             else:
                 print("   - Execute: source ~/.bashrc (ou ~/.zshrc)")
             
             # Verificar instalação
-            print("\n🔍 Verificando instalação...")
+            print("\n Verificando instalação...")
             self.verify_installation()
             
             return True
         else:
-            print("\n❌ Configuração falhou!")
-            print("💡 Tente executar como administrador/sudo")
+            print("\n   Configuração falhou!")
+            print("Tente executar como administrador/sudo")
             return False
 
 def main():
@@ -299,17 +298,17 @@ def main():
     force = "--force" in sys.argv
     
     if force:
-        print("🔄 Modo forçado ativado")
+        print("Modo forçado ativado")
     
     # Executar configuração
     success = setup.setup(force=force)
     
     if success:
-        print("\n✅ Configuração concluída com sucesso!")
-        print("🚀 Agora você pode usar o comando 'blender' diretamente")
+        print("\n  Configuração concluída com sucesso!")
+        print("    Agora você pode usar o comando 'blender' diretamente")
     else:
-        print("\n❌ Configuração falhou!")
-        print("💡 Verifique se o Blender está instalado e tente novamente")
+        print("\n   Configuração falhou!")
+        print("Verifique se o Blender está instalado e tente novamente")
         sys.exit(1)
 
 if __name__ == "__main__":

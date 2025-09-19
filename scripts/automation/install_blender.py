@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Script de Instalação Automática do Blender
-Ideal para containerização e CI/CD
 """
 
 import os
@@ -57,20 +56,20 @@ class BlenderInstaller:
     
     def download_file(self, url, filename):
         """Baixa um arquivo da URL especificada"""
-        print(f"📥 Baixando Blender de: {url}")
+        print(f" Baixando Blender de: {url}")
         
         try:
             urllib.request.urlretrieve(url, filename)
-            print(f"✅ Download concluído: {filename}")
+            print(f"   Download concluído: {filename}")
             return True
         except Exception as e:
-            print(f"❌ Erro no download: {e}")
+            print(f"   Erro no download: {e}")
             return False
     
     def extract_windows(self, filename):
         """Extrai arquivo ZIP no Windows"""
         try:
-            print("📦 Extraindo arquivo...")
+            print("   Extraindo arquivo...")
             
             # Criar diretório de instalação
             os.makedirs(self.install_dir, exist_ok=True)
@@ -78,16 +77,16 @@ class BlenderInstaller:
             with zipfile.ZipFile(filename, 'r') as zip_ref:
                 zip_ref.extractall(self.install_dir)
             
-            print("✅ Extração concluída")
+            print("   Extração concluída")
             return True
         except Exception as e:
-            print(f"❌ Erro na extração: {e}")
+            print(f"   Erro na extração: {e}")
             return False
     
     def extract_linux(self, filename):
         """Extrai arquivo TAR no Linux"""
         try:
-            print("📦 Extraindo arquivo...")
+            print("   Extraindo arquivo...")
             
             # Criar diretório de instalação
             os.makedirs(self.install_dir, exist_ok=True)
@@ -95,17 +94,17 @@ class BlenderInstaller:
             with tarfile.open(filename, 'r:xz') as tar_ref:
                 tar_ref.extractall(self.install_dir)
             
-            print("✅ Extração concluída")
+            print("   Extração concluída")
             return True
         except Exception as e:
-            print(f"❌ Erro na extração: {e}")
+            print(f"   Erro na extração: {e}")
             return False
     
     def install_windows(self):
         """Instala Blender no Windows"""
         url = self.get_download_url()
         if not url:
-            print("❌ URL de download não suportada")
+            print("   URL de download não suportada")
             return False
         
         filename = f"blender-{self.blender_version}-windows.zip"
@@ -121,14 +120,14 @@ class BlenderInstaller:
         # Limpar arquivo temporário
         os.remove(filename)
         
-        print(f"✅ Blender instalado em: {self.install_dir}")
+        print(f"   Blender instalado em: {self.install_dir}")
         return True
     
     def install_linux(self):
         """Instala Blender no Linux"""
         url = self.get_download_url()
         if not url:
-            print("❌ URL de download não suportada")
+            print("   URL de download não suportada")
             return False
         
         filename = f"blender-{self.blender_version}-linux.tar.xz"
@@ -157,20 +156,20 @@ class BlenderInstaller:
                     os.remove(symlink_path)
                 
                 os.symlink(blender_exe, symlink_path)
-                print(f"✅ Symlink criado: {symlink_path}")
+                print(f"   Symlink criado: {symlink_path}")
         except Exception as e:
-            print(f"⚠️  Aviso: Não foi possível criar symlink: {e}")
-        
+            print(f"  Aviso: Não foi possível criar symlink: {e}")
+
         # Limpar arquivo temporário
         os.remove(filename)
         
-        print(f"✅ Blender instalado em: {self.install_dir}")
+        print(f"   Blender instalado em: {self.install_dir}")
         return True
     
     def install_macos(self):
         """Instala Blender no macOS"""
-        print("🍎 Instalação no macOS requer download manual")
-        print("💡 Baixe o DMG de: https://www.blender.org/download/")
+        print(" Instalação no macOS requer download manual")
+        print(" Baixe o DMG de: https://www.blender.org/download/")
         return False
     
     def install_system_package(self):
@@ -188,34 +187,34 @@ class BlenderInstaller:
                 
                 for manager, package in package_managers:
                     try:
-                        print(f"🔧 Tentando instalar com {manager}...")
+                        print(f"   Tentando instalar com {manager}...")
                         result = subprocess.run([manager, "install", "-y", package], 
                                               capture_output=True, text=True, timeout=300)
                         if result.returncode == 0:
-                            print(f"✅ Blender instalado com {manager}")
+                            print(f"   Blender instalado com {manager}")
                             return True
                     except FileNotFoundError:
                         continue
                 
-                print("❌ Nenhum gerenciador de pacotes encontrado")
+                print("   Nenhum gerenciador de pacotes encontrado")
                 return False
             
             elif self.system == "Darwin":  # macOS
                 try:
-                    print("🔧 Tentando instalar com Homebrew...")
+                    print("   Tentando instalar com Homebrew...")
                     result = subprocess.run(["brew", "install", "blender"], 
                                           capture_output=True, text=True, timeout=300)
                     if result.returncode == 0:
-                        print("✅ Blender instalado com Homebrew")
+                        print("   Blender instalado com Homebrew")
                         return True
                 except FileNotFoundError:
-                    print("❌ Homebrew não encontrado")
+                    print("   Homebrew não encontrado")
                     return False
             
             return False
             
         except Exception as e:
-            print(f"❌ Erro na instalação do sistema: {e}")
+            print(f"   Erro na instalação do sistema: {e}")
             return False
     
     def verify_installation(self):
@@ -224,36 +223,36 @@ class BlenderInstaller:
             result = subprocess.run(['blender', '--version'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
-                print("✅ Verificação: Blender está funcionando!")
-                print(f"📋 Versão: {result.stdout.split()[1]}")
+                print("   Verificação: Blender está funcionando!")
+                print(f" Versão: {result.stdout.split()[1]}")
                 return True
             else:
-                print("❌ Verificação falhou")
+                print("   Verificação falhou")
                 return False
         except Exception as e:
-            print(f"❌ Erro na verificação: {e}")
+            print(f"   Erro na verificação: {e}")
             return False
     
     def install(self, use_system_package=True):
         """Instala o Blender"""
-        print("🚀 Iniciando instalação automática do Blender...")
-        print(f"🖥️  Sistema: {self.system}")
-        print(f"🏗️  Arquitetura: {self.architecture}")
-        print(f"📦 Versão: {self.blender_version}")
+        print(" Iniciando instalação automática do Blender...")
+        print(f"  Sistema: {self.system}")
+        print(f"  Arquitetura: {self.architecture}")
+        print(f"   Versão: {self.blender_version}")
         
         # Verificar se já está instalado
         try:
             result = subprocess.run(['blender', '--version'], 
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
-                print("✅ Blender já está instalado!")
+                print("   Blender já está instalado!")
                 return True
         except:
             pass
         
         # Tentar instalação do sistema primeiro
         if use_system_package:
-            print("🔧 Tentando instalação via gerenciador de pacotes...")
+            print("   Tentando instalação via gerenciador de pacotes...")
             if self.install_system_package():
                 return True
         
@@ -265,7 +264,7 @@ class BlenderInstaller:
         elif self.system == "Darwin":
             return self.install_macos()
         else:
-            print(f"❌ Sistema não suportado: {self.system}")
+            print(f"   Sistema não suportado: {self.system}")
             return False
 
 def main():
@@ -293,20 +292,20 @@ def main():
     success = installer.install(use_system_package=not args.no_system_package)
     
     if success:
-        print("\n🎉 Instalação concluída com sucesso!")
+        print("\n Instalação concluída com sucesso!")
         
         # Verificar instalação
-        print("\n🔍 Verificando instalação...")
+        print("\n    Verificando instalação...")
         installer.verify_installation()
-        
-        print("\n🚀 Próximos passos:")
+
+        print("\n Próximos passos:")
         print("1. Execute: python scripts/setup_blender_path.py")
         print("2. Teste: blender --version")
         print("3. Use: python scripts/leito_standalone.py")
         
     else:
-        print("\n❌ Instalação falhou!")
-        print("💡 Tente instalar manualmente ou verifique os logs")
+        print("\n   Instalação falhou!")
+        print(" Tente instalar manualmente ou verifique os logs")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -1,84 +1,114 @@
 import bpy
-
 def limpar_cena():
-    """Remove todos os objetos da cena"""
+    #remove todos os objetos da cena
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
+    print("cena limpa")
 
-def criar_cubo_oco():
-    """Cria um cubo oco com bordas ultra-finas - apenas faces externas"""
-    # Criar cubo externo
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
-    cubo = bpy.context.active_object
-    cubo.name = "Cubo_Oco"
+def criar_cubo_oco(tamanho=1.0, espessura_parede=0.1):
+    # cria um cubo oco com espessura especifica nas paredes
+    # parametros: tamanho: tamanho do cubo externo
+    #             espessura_parede: espessura das 4 faces laterais
+    # criar cubo externo
+    bpy.ops.mesh.primitive_cube_add(size=tamanho, location=(0, 0, 0))
+    cubo_externo = bpy.context.active_object
+    cubo_externo.name = "cubo_oco"
     
-    # Criar cubo interno MUITO grande para bordas ultra-finas
-    bpy.ops.mesh.primitive_cube_add(size=0.98, location=(0, 0, 0))
+    # calcular tamanho do cubo interno
+    # subtrair 2x a espessura (uma para cada lado)
+    tamanho_interno = tamanho - (2 * espessura_parede)
+    
+    # criar cubo interno para fazer o furo
+    bpy.ops.mesh.primitive_cube_add(size=tamanho_interno, location=(0, 0, 0))
     cubo_interno = bpy.context.active_object
+    cubo_interno.name = "furo_temporario"
     
-    # Aplicar diferença booleana
-    bool_mod = cubo.modifiers.new(name="Boolean", type='BOOLEAN')
+    # aplicar operacao booleana (subtracao)
+    bool_mod = cubo_externo.modifiers.new(name="Boolean", type='BOOLEAN')
     bool_mod.operation = 'DIFFERENCE'
     bool_mod.object = cubo_interno
     
-    # Aplicar o modificador
-    bpy.context.view_layer.objects.active = cubo
+    # aplicar o modificador
+    bpy.context.view_layer.objects.active = cubo_externo
     bpy.ops.object.modifier_apply(modifier="Boolean")
     
-    # Remover cubo interno
+    # remover cubo interno temporario
     bpy.data.objects.remove(cubo_interno, do_unlink=True)
     
-    # Remover face superior
+    # remover face superior para deixar aberto
+    remover_face_superior(cubo_externo, tamanho)
+    
+    print(f"cubo oco criado: tamanho={tamanho}, espessura paredes={espessura_parede}")
+    return cubo_externo
+
+def remover_face_superior(cubo, tamanho):
+    #remove a face superior do cubo para deixar aberto
+    # entrar em modo de edicao
     bpy.context.view_layer.objects.active = cubo
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    # Selecionar face superior
+    # selecionar face superior baseado na posicao z
+    limite_superior = (tamanho / 2) - 0.01  # um pouco abaixo do topo
+    
     for face in cubo.data.polygons:
-        if face.center.z > 0.4:
+        if face.center.z > limite_superior:
             face.select = True
     
-    # Deletar face superior
+    # deletar face superior selecionada
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.delete(type='FACE')
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    return cubo
+    print("face superior removida - cubo agora esta aberto")
 
-def criar_tampa():
-    """Cria tampa independente"""
-    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0.5))
+def criar_tampa(tamanho=1.0, espessura=0.05, altura_tampa=None):
+    #cria uma tampa separada para o cubo
+    #parametros: tamanho: tamanho da tampa (deve coincidir com cubo)
+    #            espessura: espessura da tampa
+    #            altura_tampa: altura onde posicionar (se None, usa metade do tamanho do cubo)
+    if altura_tampa is None:
+        altura_tampa = (tamanho / 2) + (espessura / 2)
+    
+    # criar tampa como cilindro achatado (mais realista)
+    bpy.ops.mesh.primitive_cylinder_add(
+        radius=tamanho/2,
+        depth=espessura,
+        location=(0, 0, altura_tampa)
+    )
     tampa = bpy.context.active_object
-    tampa.name = "Tampa"
+    tampa.name = "tampa"
+    
+    print(f"tampa criada na altura z={altura_tampa}")
     return tampa
 
-def aplicar_materiais():
-    """Aplica materiais simples"""
-    # Material cubo (azul)
-    mat_cubo = bpy.data.materials.new(name="Cubo")
-    mat_cubo.use_nodes = True
-    mat_cubo.node_tree.nodes["Principled BSDF"].inputs[0].default_value = (0.2, 0.6, 1.0, 1.0)
+def main():
+    #funcao principal - cria cubo oco com tampa
+    print("=====criando cubo oco=====")
     
-    # Material tampa (vermelho)
-    mat_tampa = bpy.data.materials.new(name="Tampa")
-    mat_tampa.use_nodes = True
-    mat_tampa.node_tree.nodes["Principled BSDF"].inputs[0].default_value = (1.0, 0.3, 0.3, 1.0)
+    # limpar tudo
+    limpar_cena()
     
-    # Aplicar materiais
-    cubo = bpy.data.objects.get("Cubo_Oco")
-    tampa = bpy.data.objects.get("Tampa")
+    # parametros
+    tamanho_cubo = 1.0      # 1 unidade de lado
+    espessura = 0.1         # 0.1 unidades de espessura nas paredes
     
-    if cubo:
-        cubo.data.materials.append(mat_cubo)
-    if tampa:
-        tampa.data.materials.append(mat_tampa)
+    # criar geometria
+    print("criando cubo oco")
+    cubo = criar_cubo_oco(tamanho_cubo, espessura)
+    
+    print("criando tampa")
+    tampa = criar_tampa(tamanho_cubo)
+    
+    print()
+        print("===pronto===")
+        print(f"cubo oco criado:")
+        print(f"tamanho externo: {tamanho_cubo} u")
+        print(f"espessura das paredes: {espessura} u")
+        print(f"aberto na parte superior")
+        print(f"tampa separada incluida")
 
-# Executar script
-print("Criando cubo oco com bordas ultra-finas...")
-limpar_cena()
-cubo = criar_cubo_oco()
-tampa = criar_tampa()
-aplicar_materiais()
-print("Pronto! Cubo oco com bordas ultra-finas criado.")
-print("Bordas: 0.01 unidades de espessura (mínimo possível)")
+# executar
+if __name__ == "__main__":
+    main()
