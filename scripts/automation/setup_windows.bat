@@ -61,9 +61,9 @@ if errorlevel 1 (
 )
 
 echo.
-echo ========================================
-echo    CONFIGURACAO CONCLUIDA!
-echo ========================================
+echo ======================================
+echo =======CONFIGURACAO CONCLUIDA=========
+echo ======================================
 echo.
 echo Proximos passos:
 echo 1. Teste: blender --version

@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
-"""
-Script de Instalação Automática do Blender
-"""
-
+# script de instalacao automatica do blender
 import os
 import sys
-import subprocess
-import platform
+import subprocess # para executar comandos do sistema
+import platform # para verificar o sistema operacional
 import urllib.request
-import zipfile
-import tarfile
+import zipfile # para extrair arquivos ZIP
+import tarfile # para extrair arquivos TAR
 from pathlib import Path
 
-class BlenderInstaller:
+class BlenderInstaller: 
+    # classe para instalar o blender
     def __init__(self):
         self.system = platform.system()
         self.architecture = platform.machine()
-        self.blender_version = "4.0.2"  # Versão padrão
+        self.blender_version = "4.0.2"  # versao padrao do blender
         self.install_dir = self.get_install_directory()
     
     def get_install_directory(self):
-        """Retorna o diretório de instalação baseado no sistema"""
+        #retorna o diretorio de instalacao baseado no sistema
         if self.system == "Windows":
             return r"C:\Program Files\Blender Foundation"
         elif self.system == "Linux":
@@ -31,7 +29,7 @@ class BlenderInstaller:
             return "/usr/local/blender"
     
     def get_download_url(self):
-        """Retorna a URL de download do Blender"""
+        #retorna a URL de download do Blender
         base_url = "https://download.blender.org/release/Blender"
         
         if self.system == "Windows":
@@ -55,7 +53,7 @@ class BlenderInstaller:
         return None
     
     def download_file(self, url, filename):
-        """Baixa um arquivo da URL especificada"""
+        #baixa um arquivo da URL especificada
         print(f" Baixando Blender de: {url}")
         
         try:
@@ -67,7 +65,7 @@ class BlenderInstaller:
             return False
     
     def extract_windows(self, filename):
-        """Extrai arquivo ZIP no Windows"""
+        #extrai arquivo ZIP no Windows
         try:
             print("   Extraindo arquivo...")
             
@@ -84,7 +82,7 @@ class BlenderInstaller:
             return False
     
     def extract_linux(self, filename):
-        """Extrai arquivo TAR no Linux"""
+        #extrai arquivo TAR no Linux
         try:
             print("   Extraindo arquivo...")
             
@@ -101,7 +99,7 @@ class BlenderInstaller:
             return False
     
     def install_windows(self):
-        """Instala Blender no Windows"""
+        #instala Blender no Windows
         url = self.get_download_url()
         if not url:
             print("   URL de download não suportada")
@@ -124,7 +122,7 @@ class BlenderInstaller:
         return True
     
     def install_linux(self):
-        """Instala Blender no Linux"""
+        #instala Blender no Linux
         url = self.get_download_url()
         if not url:
             print("   URL de download não suportada")
@@ -167,13 +165,13 @@ class BlenderInstaller:
         return True
     
     def install_macos(self):
-        """Instala Blender no macOS"""
+        #instala Blender no macOS
         print(" Instalação no macOS requer download manual")
         print(" Baixe o DMG de: https://www.blender.org/download/")
         return False
     
     def install_system_package(self):
-        """Instala Blender usando gerenciador de pacotes do sistema"""
+        #instala Blender usando gerenciador de pacotes do sistema
         try:
             if self.system == "Linux":
                 # Tentar diferentes gerenciadores de pacotes
@@ -218,7 +216,7 @@ class BlenderInstaller:
             return False
     
     def verify_installation(self):
-        """Verifica se a instalação foi bem-sucedida"""
+        #verifica se a instalação foi bem-sucedida
         try:
             result = subprocess.run(['blender', '--version'], 
                                   capture_output=True, text=True, timeout=10)
@@ -234,7 +232,7 @@ class BlenderInstaller:
             return False
     
     def install(self, use_system_package=True):
-        """Instala o Blender"""
+        #instala o Blender
         print(" Iniciando instalação automática do Blender...")
         print(f"  Sistema: {self.system}")
         print(f"  Arquitetura: {self.architecture}")
@@ -268,7 +266,7 @@ class BlenderInstaller:
             return False
 
 def main():
-    """Função principal"""
+    #funcao principal
     import argparse
     
     parser = argparse.ArgumentParser(description='Instalador Automático do Blender')

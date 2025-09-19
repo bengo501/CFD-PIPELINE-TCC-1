@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # script de automacao completa para configurar o projeto
-
 import os
 import sys
-import subprocess
+import subprocess # para executar comandos do sistema
 import platform
 from pathlib import Path
 
