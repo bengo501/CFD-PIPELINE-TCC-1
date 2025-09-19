@@ -18,7 +18,7 @@ try:
     from antlr4.error.ErrorListener import ErrorListener
     
     # importar parser gerado (sera criado pelo setup_antlr.py)
-    sys.path.append(str(Path(__file__).parent.parent / "generated"))
+    sys.path.append(str(Path(__file__).parent.parent / "generated" / "grammar"))
     from BedLexer import BedLexer
     from BedParser import BedParser
     from BedListener import BedListener
@@ -112,11 +112,11 @@ class BedCompilerListener(BedListener):
     
     # lids section
     def exitLidsTopType(self, ctx):
-        lid_type = ctx.lidType().getText()
+        lid_type = ctx.lidType().getText().strip('"')
         self.bed_params.lids.top_type = lid_type
     
     def exitLidsBottomType(self, ctx):
-        lid_type = ctx.lidType().getText()
+        lid_type = ctx.lidType().getText().strip('"')
         self.bed_params.lids.bottom_type = lid_type
     
     def exitLidsTopThickness(self, ctx):
@@ -136,7 +136,7 @@ class BedCompilerListener(BedListener):
     
     # particles section
     def exitParticlesKind(self, ctx):
-        kind = ctx.particleKind().getText()
+        kind = ctx.particleKind().getText().strip('"')
         self.bed_params.particles.kind = kind
     
     def exitParticlesDiameter(self, ctx):
@@ -145,7 +145,7 @@ class BedCompilerListener(BedListener):
         self.bed_params.particles.diameter = self._parse_number_with_unit(number, unit)
     
     def exitParticlesCount(self, ctx):
-        count = int(ctx.INTEGER().getText())
+        count = int(float(ctx.NUMBER().getText()))
         self.bed_params.particles.count = count
         self.bed_params.particles.target_porosity = None  # exclusivo
     
@@ -180,11 +180,11 @@ class BedCompilerListener(BedListener):
         self.bed_params.particles.angular_damping = float(ctx.NUMBER().getText())
     
     def exitParticlesSeed(self, ctx):
-        self.bed_params.particles.seed = int(ctx.INTEGER().getText())
+        self.bed_params.particles.seed = int(float(ctx.NUMBER().getText()))
     
     # packing section
-    def exitPackingMethod(self, ctx):
-        method = ctx.packingMethod().getText()
+    def exitPackingMethodProp(self, ctx):
+        method = ctx.packingMethod().getText().strip('"')
         self.bed_params.packing.method = method
     
     def exitPackingGravity(self, ctx):
@@ -193,10 +193,10 @@ class BedCompilerListener(BedListener):
         self.bed_params.packing.gravity = self._parse_number_with_unit(number, unit)
     
     def exitPackingSubsteps(self, ctx):
-        self.bed_params.packing.substeps = int(ctx.INTEGER().getText())
+        self.bed_params.packing.substeps = int(float(ctx.NUMBER().getText()))
     
     def exitPackingIterations(self, ctx):
-        self.bed_params.packing.iterations = int(ctx.INTEGER().getText())
+        self.bed_params.packing.iterations = int(float(ctx.NUMBER().getText()))
     
     def exitPackingDamping(self, ctx):
         self.bed_params.packing.damping = float(ctx.NUMBER().getText())
@@ -233,11 +233,11 @@ class BedCompilerListener(BedListener):
         self.bed_params.export.scale = float(ctx.NUMBER().getText())
     
     def exitExportWallMode(self, ctx):
-        wall_mode = ctx.wallMode().getText()
+        wall_mode = ctx.wallMode().getText().strip('"')
         self.bed_params.export.wall_mode = wall_mode
     
     def exitExportFluidMode(self, ctx):
-        fluid_mode = ctx.fluidMode().getText()
+        fluid_mode = ctx.fluidMode().getText().strip('"')
         self.bed_params.export.fluid_mode = fluid_mode
     
     def exitExportManifoldCheck(self, ctx):
@@ -255,9 +255,9 @@ class BedCompilerListener(BedListener):
         if self.bed_params.cfd is None:
             self.bed_params.cfd = CFD()
     
-    def exitCfdRegime(self, ctx):
+    def exitCfdRegimeProp(self, ctx):
         if self.bed_params.cfd:
-            regime = ctx.cfdRegime().getText()
+            regime = ctx.cfdRegime().getText().strip('"')
             self.bed_params.cfd.regime = regime
     
     def exitCfdInletVelocity(self, ctx):
@@ -280,7 +280,7 @@ class BedCompilerListener(BedListener):
     
     def exitCfdMaxIterations(self, ctx):
         if self.bed_params.cfd:
-            self.bed_params.cfd.max_iterations = int(ctx.INTEGER().getText())
+            self.bed_params.cfd.max_iterations = int(float(ctx.NUMBER().getText()))
     
     def exitCfdConvergenceCriteria(self, ctx):
         if self.bed_params.cfd:

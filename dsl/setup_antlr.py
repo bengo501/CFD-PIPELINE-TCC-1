@@ -63,8 +63,30 @@ def generate_parser():
     
     # gerar parser
     try:
+        # tentar encontrar java
+        java_paths = [
+            "java",  # se estiver no PATH
+            "C:\\Program Files\\Microsoft\\jdk-17.0.16.8-hotspot\\bin\\java.exe",
+            "C:\\Program Files\\Java\\jdk-17\\bin\\java.exe",
+            "C:\\Program Files\\Java\\jre-17\\bin\\java.exe"
+        ]
+        
+        java_cmd = None
+        for java_path in java_paths:
+            try:
+                subprocess.check_call([java_path, "-version"], 
+                                    stdout=subprocess.DEVNULL, 
+                                    stderr=subprocess.DEVNULL)
+                java_cmd = java_path
+                break
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                continue
+        
+        if not java_cmd:
+            raise FileNotFoundError("Java não encontrado")
+        
         cmd = [
-            "java", "-jar", antlr_jar,
+            java_cmd, "-jar", antlr_jar,
             "-Dlanguage=Python3",
             "-o", str(output_dir),
             str(grammar_file)
