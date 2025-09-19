@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: tcc-postgres
+    environment:
+      POSTGRES_DB: cfd_dashboard
+      POSTGRES_USER: cfd_user
+      POSTGRES_PASSWORD: cfd_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cfd_user -d cfd_dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO para armazenamento de arquivos
+  minio:
+    image: minio/minio:latest
+    container_name: tcc-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Redis para filas de tarefas
+  redis:
+    image: redis:7-alpine
+    container_name: tcc-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Backend (FastAPI)
+  backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: tcc-backend
+    environment:
+      - DATABASE_URL=postgresql://cfd_user:cfd_password@postgres:5432/cfd_dashboard
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./models:/app/models
+      - ./exports:/app/exports
+      - ./temp:/app/temp
+      - ./scripts:/app/scripts
+
+  # Frontend React
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tcc-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_ENVIRONMENT=production
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  # Worker para processamento de simulações
+  worker:
+    build: 
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: tcc-worker
+    environment:
+      - DATABASE_URL=postgresql://cfd_user:cfd_password@postgres:5432/cfd_dashboard
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./models:/app/models
+      - ./exports:/app/exports
+      - ./temp:/app/temp
+      - ./scripts:/app/scripts
+
+  # Blender para geração de geometrias
+  blender:
+    build: .
+    container_name: tcc-blender
+    volumes:
+      - ./models:/app/models
+      - ./exports:/app/exports
+      - ./temp:/app/temp
+      - ./scripts:/app/scripts
+    environment:
+      - DISPLAY=${DISPLAY}
+      - PYTHONPATH=/app/scripts
+    working_dir: /app
+    command: ["python3", "scripts/leito_standalone.py", "--help"]
+
+volumes:
+  postgres_data:
+  minio_data:
+  redis_data:
+  models:
+  exports:
+  temp:
