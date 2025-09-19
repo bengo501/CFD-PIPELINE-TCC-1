@@ -145,16 +145,32 @@ def aplicar_fisica(objeto, eh_movel=True):
 def configurar_simulacao_fisica():
     #configura parametros globais da simulacao fisica
     scene = bpy.context.scene
+    
     # configurar mundo da fisica
     if not scene.rigidbody_world:
         bpy.ops.rigidbody.world_add()
-    # configurar gravidade (particulas vao cair)
-    scene.rigidbody_world.gravity = (0, 0, -9.81)  # gravidade normal
-    # configurar qualidade da simulacao
-    scene.rigidbody_world.substeps_per_frame = 10  # mais precisao
-    scene.rigidbody_world.solver_iterations = 10   # mais estabilidade
     
-    print("simulacao fisica configurada")
+    # configurar propriedades do mundo da fisica
+    if scene.rigidbody_world:
+        try:
+            # tentar configurar gravidade (pode variar entre versoes do blender)
+            if hasattr(scene.rigidbody_world, 'gravity'):
+                scene.rigidbody_world.gravity = (0, 0, -9.81)
+            
+            # configurar qualidade da simulacao
+            if hasattr(scene.rigidbody_world, 'substeps_per_frame'):
+                scene.rigidbody_world.substeps_per_frame = 10
+            
+            if hasattr(scene.rigidbody_world, 'solver_iterations'):
+                scene.rigidbody_world.solver_iterations = 10
+                
+            print("simulacao fisica configurada")
+            
+        except AttributeError as e:
+            print(f"aviso: nao foi possivel configurar todas as propriedades da fisica: {e}")
+            print("usando configuracao padrao do blender")
+    else:
+        print("erro: nao foi possivel criar mundo da fisica")
 # =========================================================================================
 
 # ======
@@ -188,16 +204,16 @@ def main():
         aplicar_fisica(particula, eh_movel=True)
     
     print()
-        print("=====pronto=====")
-        print("para ver a simulacao:")
-        print("1. pressione spacebar para iniciar animacao")
-        print("2. ou pressione alt + a ")
-        print("3. as particulas vao cair e se acomodar no leito")
-        print()
-        print(f"objetos criados:")
-        print(f"- leito cilindrico oco")
-        print(f"- 2 tampas")
-        print(f"- {len(particulas)} particulas com fisica")
+    print("=====pronto=====")
+    print("para ver a simulacao:")
+    print("1. pressione spacebar para iniciar animacao")
+    print("2. ou pressione alt + a ")
+    print("3. as particulas vao cair e se acomodar no leito")
+    print()
+    print(f"objetos criados:")
+    print(f"- leito cilindrico oco")
+    print(f"- 2 tampas")
+    print(f"- {len(particulas)} particulas com fisica")
 
 if __name__ == "__main__":
     main()
