@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Script de Automação Completa para Configurar o Projeto
-"""
+# script de automacao completa para configurar o projeto
 
 import os
 import sys
@@ -16,7 +14,7 @@ class ProjectSetup:
         self.scripts_dir = self.project_root / "scripts"
     
     def check_python_version(self):
-        """Verifica a versão do Python"""
+        # verifica a versao do Python
         print(" Verificando versão do Python...")
         
         version = sys.version_info
@@ -29,7 +27,7 @@ class ProjectSetup:
         return True
     
     def check_blender_installation(self):
-        """Verifica se o Blender está instalado"""
+        # verifica se o Blender esta instalado
         print("  Verificando instalação do Blender...")
         
         try:
@@ -46,7 +44,7 @@ class ProjectSetup:
         return False
     
     def install_blender(self):
-        """Instala o Blender automaticamente"""
+        # instala o Blender automaticamente
         print(" Instalando Blender...")
         
         try:
@@ -69,7 +67,7 @@ class ProjectSetup:
             return False
     
     def setup_blender_path(self):
-        """Configura o Blender no PATH"""
+        # configura o Blender no PATH
         print(" Configurando Blender no PATH...")
         
         try:
@@ -92,7 +90,7 @@ class ProjectSetup:
             return False
     
     def test_blender_script(self):
-        """Testa o script standalone do Blender"""
+        # testa o script standalone do Blender
         print("  Testando script standalone...")
         
         try:
@@ -114,7 +112,7 @@ class ProjectSetup:
             return False
     
     def create_directories(self):
-        """Cria diretórios necessários"""
+        # cria diretorios necessarios
         print(" Criando diretórios do projeto...")
         
         directories = [
@@ -130,7 +128,7 @@ class ProjectSetup:
             print(f"   Diretório criado: {dir_name}")
     
     def create_config_file(self):
-        """Cria arquivo de configuração"""
+        # cria arquivo de configuracao
         print("  Criando arquivo de configuração...")
         
         config_content = '''# Configuração do Projeto TCC
@@ -166,7 +164,7 @@ cor_particulas = verde
         print("   Arquivo de configuração criado: config.ini")
     
     def run_tests(self):
-        """Executa testes básicos"""
+        # executa testes basicos
         print("  Executando testes básicos...")
         
         tests = [
@@ -186,7 +184,7 @@ cor_particulas = verde
         return all_passed
     
     def generate_sample(self):
-        """Gera um exemplo de leito"""
+        #gera um exemplo de leito
         print(" Gerando exemplo de leito...")
         
         try:
@@ -211,56 +209,56 @@ cor_particulas = verde
             return False
     
     def setup(self, auto_install=True, run_tests=True, generate_sample=True):
-        """Configura o projeto completo"""
+        #configura o projeto completo
         print(" Iniciando configuração automática do projeto...")
         print(f"  Sistema: {self.system}")
         print(f" Diretório do projeto: {self.project_root}")
         
-        # Verificar Python
+        # verificar Python
         if not self.check_python_version():
             return False
         
-        # Criar diretórios
+        # criar diretorios
         self.create_directories()
         
-        # Verificar Blender
+        # verificar Blender
         blender_ok = self.check_blender_installation()
         
         if not blender_ok and auto_install:
-            print("\n   Blender não encontrado. Instalando automaticamente...")
+            print("\n   Blender nao encontrado. Instalando automaticamente...")
             if not self.install_blender():
                 print("  Falha na instalação automática do Blender")
                 print(" Instale manualmente e execute novamente")
                 return False
         
-        # Configurar PATH
+            # configurar PATH
         if not blender_ok:
             if not self.setup_blender_path():
                 print("  Falha na configuração do PATH")
                 return False
         
-        # Criar arquivo de configuração
+        # criar arquivo de configuracao
         self.create_config_file()
         
-        # Executar testes
+        # executar testes
         if run_tests:
             if not self.run_tests():
                 print("  Alguns testes falharam")
                 return False
         
-        # Gerar exemplo
+        # gerar exemplo
         if generate_sample:
             self.generate_sample()
         
-        print("\n Configuração concluída com sucesso!")
+        print("\n Configuracao concluida com sucesso!")
         print("\n Resumo:")
         print("   Python verificado")
-        print("   Diretórios criados")
+        print("   Diretorios criados")
         print("   Blender configurado")
         print("   Scripts testados")
-        print("   Arquivo de configuração criado")
+        print("   Arquivo de configuracao criado")
         
-        print("\n Próximos passos:")
+        print("\n Proximos passos:")
         print("1. Teste: blender --version")
         print("2. Gere um leito: python scripts/leito_standalone.py")
         print("3. Veja exemplos: python scripts/exemplo_uso_standalone.py")
@@ -268,25 +266,25 @@ cor_particulas = verde
         return True
 
 def main():
-    """Função principal"""
+    # funcao principal
     import argparse
     
-    parser = argparse.ArgumentParser(description='Configurador Automático do Projeto')
+    parser = argparse.ArgumentParser(description='Configurador Automatico do Projeto')
     parser.add_argument('--no-auto-install', action='store_true',
-                       help='Não instalar Blender automaticamente')
+                       help='Nao instalar Blender automaticamente')
     parser.add_argument('--no-tests', action='store_true',
-                       help='Não executar testes')
+                       help='Nao executar testes')
     parser.add_argument('--no-sample', action='store_true',
-                       help='Não gerar exemplo')
+                       help='Nao gerar exemplo')
     parser.add_argument('--force', action='store_true',
-                       help='Forçar configuração mesmo com erros')
+                       help='Forcar configuracao mesmo com erros')
     
     args = parser.parse_args()
     
-    # Criar setup
+    # criar setup
     setup = ProjectSetup()
     
-    # Executar configuração
+    # executar configuracao
     success = setup.setup(
         auto_install=not args.no_auto_install,
         run_tests=not args.no_tests,
@@ -294,10 +292,10 @@ def main():
     )
     
     if success:
-        print("\n   Projeto configurado com sucesso!")
+        print("\n   Projeto configurado com sucesso")
         print(" Pronto para usar!")
     else:
-        print("\n  Configuração falhou!")
+        print("\n  Configuracao falhou")
         if not args.force:
             sys.exit(1)
 
