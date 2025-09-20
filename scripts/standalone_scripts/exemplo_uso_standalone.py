@@ -11,7 +11,7 @@ def exemplo_basico():
     
     # gerar leito com parametros padrao
     gerador.gerar_leito(
-        output_file="leito_basico.blend"
+        output_file="leito_basico.blend" r
     )
 
 def exemplo_personalizado():
