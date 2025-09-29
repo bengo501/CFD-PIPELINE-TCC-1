@@ -2,279 +2,301 @@
 """
 wizard interativo para criar arquivos .bed
 permite ao usuario parametrizar leitos empacotados de duas formas:
-1. questionario interativo
-2. edicao de template padrao
+1. questionario interativo - usuario responde perguntas passo a passo
+2. edicao de template padrao - usuario edita um arquivo template
+este wizard gera arquivos .bed que sao compilados pelo antlr
 """
 
-import os
-import sys
-import subprocess
-import tempfile
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+# importar bibliotecas necessarias
+import os  # para operacoes do sistema operacional (limpar tela, arquivos)
+import sys  # para acessar argumentos e sair do programa
+import subprocess  # para executar comandos externos (editores, compilador)
+import tempfile  # para criar arquivos temporarios
+from pathlib import Path  # para trabalhar com caminhos de arquivos
+from typing import Dict, Any, List, Optional  # para tipagem de variaveis
 
 class BedWizard:
-    """wizard para criacao de arquivos .bed"""
+    """classe principal do wizard para criacao de arquivos .bed"""
     
     def __init__(self):
-        self.params = {}
-        self.output_file = None
+        """inicializar wizard com parametros vazios"""
+        self.params = {}  # dicionario para armazenar parametros do leito
+        self.output_file = None  # nome do arquivo de saida
         
     def clear_screen(self):
-        """limpar tela do terminal"""
+        """limpar tela do terminal para melhor visualizacao"""
+        # usar comando apropriado para windows (cls) ou unix (clear)
         os.system('cls' if os.name == 'nt' else 'clear')
     
     def print_header(self, title: str):
-        """imprimir cabecalho"""
+        """imprimir cabecalho formatado com titulo"""
         print("=" * 60)
         print(f"  {title}")
         print("=" * 60)
         print()
     
     def print_section(self, title: str):
-        """imprimir secao"""
+        """imprimir titulo de secao formatado"""
         print(f"\n--- {title} ---")
     
     def get_input(self, prompt: str, default: str = "", required: bool = True) -> str:
-        """obter entrada do usuario"""
+        """obter entrada de texto do usuario com validacao"""
         while True:
+            # formatar prompt com valor padrao se disponivel
             if default:
                 full_prompt = f"{prompt} [{default}]: "
             else:
                 full_prompt = f"{prompt}: "
             
+            # obter entrada do usuario e remover espacos
             value = input(full_prompt).strip()
             
+            # validar entrada
             if value:
-                return value
+                return value  # retornar valor se fornecido
             elif default and not required:
-                return default
+                return default  # retornar padrao se nao obrigatorio
             elif not required:
-                return ""
+                return ""  # retornar vazio se nao obrigatorio
             else:
-                print("  ⚠️  Campo obrigatorio!")
+                print("  aviso: campo obrigatorio!")  # avisar se obrigatorio
     
     def get_number_input(self, prompt: str, default: str = "", unit: str = "", required: bool = True) -> str:
-        """obter entrada numerica com unidade"""
+        """obter entrada numerica com unidade e validacao"""
         while True:
+            # formatar prompt com valor padrao e unidade se disponivel
             if default:
                 full_prompt = f"{prompt} [{default} {unit}]: "
             else:
                 full_prompt = f"{prompt} ({unit}): "
             
+            # obter entrada do usuario e remover espacos
             value = input(full_prompt).strip()
             
+            # validar entrada
             if value:
                 try:
+                    # tentar converter para float para validar se e numero
                     float(value)
-                    return value
+                    return value  # retornar valor se valido
                 except ValueError:
-                    print("  ⚠️  Digite um numero valido!")
+                    print("  aviso: digite um numero valido!")  # avisar se nao for numero
                     continue
             elif default and not required:
-                return default
+                return default  # retornar padrao se nao obrigatorio
             elif not required:
-                return ""
+                return ""  # retornar vazio se nao obrigatorio
             else:
-                print("  ⚠️  Campo obrigatorio!")
+                print("  aviso: campo obrigatorio!")  # avisar se obrigatorio
     
     def get_choice(self, prompt: str, options: List[str], default: int = 0) -> str:
-        """obter escolha do usuario"""
+        """obter escolha do usuario de uma lista de opcoes"""
         print(f"\n{prompt}")
+        # mostrar todas as opcoes numeradas
         for i, option in enumerate(options):
             print(f"  {i + 1}. {option}")
         
         while True:
             try:
-                choice = input(f"\nEscolha (1-{len(options)}) [{default + 1}]: ").strip()
+                # obter escolha do usuario
+                choice = input(f"\nescolha (1-{len(options)}) [{default + 1}]: ").strip()
                 
+                # se nao escolheu nada, usar padrao
                 if not choice:
                     return options[default]
                 
+                # converter para indice (comeca em 0)
                 choice_idx = int(choice) - 1
+                # validar se indice esta dentro do range
                 if 0 <= choice_idx < len(options):
                     return options[choice_idx]
                 else:
-                    print(f"  ⚠️  Escolha entre 1 e {len(options)}!")
+                    print(f"  aviso: escolha entre 1 e {len(options)}!")  # avisar se fora do range
             except ValueError:
-                print("  ⚠️  Digite um numero valido!")
+                print("  aviso: digite um numero valido!")  # avisar se nao for numero
     
     def get_boolean(self, prompt: str, default: bool = True) -> bool:
-        """obter entrada booleana"""
+        """obter entrada booleana (sim/nao) do usuario"""
         default_str = "sim" if default else "nao"
         while True:
+            # obter entrada e converter para minusculo
             value = input(f"{prompt} (s/n) [{default_str}]: ").strip().lower()
             
+            # validar entrada
             if value in ['s', 'sim', 'y', 'yes']:
-                return True
+                return True  # retornar true para sim
             elif value in ['n', 'nao', 'no']:
-                return False
+                return False  # retornar false para nao
             elif not value:
-                return default
+                return default  # retornar padrao se nao digitou nada
             else:
-                print("  ⚠️  Digite 's' para sim ou 'n' para nao!")
+                print("  aviso: digite 's' para sim ou 'n' para nao!")  # avisar se entrada invalida
     
     def get_list_input(self, prompt: str, separator: str = ",") -> List[str]:
-        """obter entrada de lista"""
+        """obter entrada de lista separada por delimitador"""
         value = input(f"{prompt} (separado por '{separator}'): ").strip()
         if value:
+            # dividir string pelo separador e remover espacos de cada item
             return [item.strip() for item in value.split(separator)]
-        return []
+        return []  # retornar lista vazia se nao digitou nada
     
     def interactive_mode(self):
-        """modo questionario interativo"""
+        """modo questionario interativo - usuario responde perguntas passo a passo"""
         self.clear_screen()
-        self.print_header("WIZARD INTERATIVO - PARAMETRIZACAO DE LEITO")
+        self.print_header("wizard interativo - parametrizacao de leito")
         
-        print("Vamos criar seu leito empacotado passo a passo...")
-        print("Pressione ENTER para usar valores padrao quando disponivel.")
+        print("vamos criar seu leito empacotado passo a passo...")
+        print("pressione enter para usar valores padrao quando disponivel.")
         print()
         
-        # secao bed
-        self.print_section("GEOMETRIA DO LEITO")
+        # secao bed - parametros geometricos do leito
+        self.print_section("geometria do leito")
         self.params['bed'] = {
-            'diameter': self.get_number_input("Diametro do leito", "0.05", "m"),
-            'height': self.get_number_input("Altura do leito", "0.1", "m"),
-            'wall_thickness': self.get_number_input("Espessura da parede", "0.002", "m"),
-            'clearance': self.get_number_input("Folga superior", "0.01", "m"),
-            'material': self.get_input("Material da parede", "steel"),
-            'roughness': self.get_number_input("Rugosidade", "0.0", "m", False)
+            'diameter': self.get_number_input("diametro do leito", "0.05", "m"),
+            'height': self.get_number_input("altura do leito", "0.1", "m"),
+            'wall_thickness': self.get_number_input("espessura da parede", "0.002", "m"),
+            'clearance': self.get_number_input("folga superior", "0.01", "m"),
+            'material': self.get_input("material da parede", "steel"),
+            'roughness': self.get_number_input("rugosidade", "0.0", "m", False)
         }
         
-        # secao lids
-        self.print_section("TAMPAS")
-        lid_types = ["flat", "hemispherical", "none"]
+        # secao lids - parametros das tampas do leito
+        self.print_section("tampas")
+        lid_types = ["flat", "hemispherical", "none"]  # tipos de tampa disponiveis
         self.params['lids'] = {
-            'top_type': self.get_choice("Tipo da tampa superior", lid_types),
-            'bottom_type': self.get_choice("Tipo da tampa inferior", lid_types),
-            'top_thickness': self.get_number_input("Espessura tampa superior", "0.003", "m"),
-            'bottom_thickness': self.get_number_input("Espessura tampa inferior", "0.003", "m"),
-            'seal_clearance': self.get_number_input("Folga do selo", "0.001", "m", False)
+            'top_type': self.get_choice("tipo da tampa superior", lid_types),
+            'bottom_type': self.get_choice("tipo da tampa inferior", lid_types),
+            'top_thickness': self.get_number_input("espessura tampa superior", "0.003", "m"),
+            'bottom_thickness': self.get_number_input("espessura tampa inferior", "0.003", "m"),
+            'seal_clearance': self.get_number_input("folga do selo", "0.001", "m", False)
         }
         
-        # secao particles
-        self.print_section("PARTICULAS")
-        particle_kinds = ["sphere", "cube", "cylinder"]
+        # secao particles - parametros das particulas do leito
+        self.print_section("particulas")
+        particle_kinds = ["sphere", "cube", "cylinder"]  # formas de particulas disponiveis
         self.params['particles'] = {
-            'kind': self.get_choice("Tipo de particula", particle_kinds),
-            'diameter': self.get_number_input("Diametro das particulas", "0.005", "m"),
-            'count': int(self.get_number_input("Numero de particulas", "100", "", True)),
-            'target_porosity': self.get_number_input("Porosidade alvo", "0.4", "", False),
-            'density': self.get_number_input("Densidade do material", "2500.0", "kg/m3"),
-            'mass': self.get_number_input("Massa das particulas", "0.0", "g", False),
-            'restitution': self.get_number_input("Coeficiente de restituicao", "0.3", "", False),
-            'friction': self.get_number_input("Coeficiente de atrito", "0.5", "", False),
-            'rolling_friction': self.get_number_input("Atrito de rolamento", "0.1", "", False),
-            'linear_damping': self.get_number_input("Amortecimento linear", "0.1", "", False),
-            'angular_damping': self.get_number_input("Amortecimento angular", "0.1", "", False),
-            'seed': int(self.get_number_input("Seed para reproducibilidade", "42", "", False))
+            'kind': self.get_choice("tipo de particula", particle_kinds),
+            'diameter': self.get_number_input("diametro das particulas", "0.005", "m"),
+            'count': int(self.get_number_input("numero de particulas", "100", "", True)),
+            'target_porosity': self.get_number_input("porosidade alvo", "0.4", "", False),
+            'density': self.get_number_input("densidade do material", "2500.0", "kg/m3"),
+            'mass': self.get_number_input("massa das particulas", "0.0", "g", False),
+            'restitution': self.get_number_input("coeficiente de restituicao", "0.3", "", False),
+            'friction': self.get_number_input("coeficiente de atrito", "0.5", "", False),
+            'rolling_friction': self.get_number_input("atrito de rolamento", "0.1", "", False),
+            'linear_damping': self.get_number_input("amortecimento linear", "0.1", "", False),
+            'angular_damping': self.get_number_input("amortecimento angular", "0.1", "", False),
+            'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False))
         }
         
-        # secao packing
-        self.print_section("EMPACOTAMENTO")
-        packing_methods = ["rigid_body"]
+        # secao packing - parametros do empacotamento fisico
+        self.print_section("empacotamento")
+        packing_methods = ["rigid_body"]  # metodos de empacotamento disponiveis
         self.params['packing'] = {
-            'method': self.get_choice("Metodo de empacotamento", packing_methods),
-            'gravity': self.get_number_input("Gravidade", "-9.81", "m/s2"),
-            'substeps': int(self.get_number_input("Sub-passos de simulacao", "10", "", False)),
-            'iterations': int(self.get_number_input("Iteracoes", "10", "", False)),
-            'damping': self.get_number_input("Amortecimento", "0.1", "", False),
-            'rest_velocity': self.get_number_input("Velocidade de repouso", "0.01", "m/s", False),
-            'max_time': self.get_number_input("Tempo maximo", "5.0", "s", False),
-            'collision_margin': self.get_number_input("Margem de colisao", "0.001", "m", False)
+            'method': self.get_choice("metodo de empacotamento", packing_methods),
+            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2"),
+            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False)),
+            'iterations': int(self.get_number_input("iteracoes", "10", "", False)),
+            'damping': self.get_number_input("amortecimento", "0.1", "", False),
+            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False),
+            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False),
+            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False)
         }
         
-        # secao export
-        self.print_section("EXPORTACAO")
-        wall_modes = ["surface", "solid"]
-        fluid_modes = ["none", "cavity"]
+        # secao export - parametros de exportacao da geometria
+        self.print_section("exportacao")
+        wall_modes = ["surface", "solid"]  # modos de parede disponiveis
+        fluid_modes = ["none", "cavity"]  # modos de fluido disponiveis
         self.params['export'] = {
-            'formats': self.get_list_input("Formatos de exportacao", ",") or ["stl_binary", "obj"],
-            'units': self.get_input("Unidades de saida", "m", False),
-            'scale': self.get_number_input("Escala", "1.0", "", False),
-            'wall_mode': self.get_choice("Modo da parede", wall_modes),
-            'fluid_mode': self.get_choice("Modo do fluido", fluid_modes),
-            'manifold_check': self.get_boolean("Verificar manifold", True),
-            'merge_distance': self.get_number_input("Distancia de fusao", "0.001", "m", False)
+            'formats': self.get_list_input("formatos de exportacao", ",") or ["stl_binary", "obj"],
+            'units': self.get_input("unidades de saida", "m", False),
+            'scale': self.get_number_input("escala", "1.0", "", False),
+            'wall_mode': self.get_choice("modo da parede", wall_modes),
+            'fluid_mode': self.get_choice("modo do fluido", fluid_modes),
+            'manifold_check': self.get_boolean("verificar manifold", True),
+            'merge_distance': self.get_number_input("distancia de fusao", "0.001", "m", False)
         }
         
-        # secao cfd (opcional)
-        self.print_section("PARAMETROS CFD (OPCIONAL)")
-        if self.get_boolean("Incluir parametros CFD?", False):
-            cfd_regimes = ["laminar", "turbulent_rans"]
+        # secao cfd (opcional) - parametros de simulacao de fluidos
+        self.print_section("parametros cfd (opcional)")
+        if self.get_boolean("incluir parametros cfd?", False):
+            cfd_regimes = ["laminar", "turbulent_rans"]  # regimes de escoamento disponiveis
             self.params['cfd'] = {
-                'regime': self.get_choice("Regime CFD", cfd_regimes),
-                'inlet_velocity': self.get_number_input("Velocidade de entrada", "0.1", "m/s", False),
-                'fluid_density': self.get_number_input("Densidade do fluido", "1.225", "kg/m3", False),
-                'fluid_viscosity': self.get_number_input("Viscosidade do fluido", "1.8e-5", "Pa.s", False),
-                'max_iterations': int(self.get_number_input("Iteracoes maximas", "1000", "", False)),
-                'convergence_criteria': self.get_number_input("Criterio de convergencia", "1e-6", "", False),
-                'write_fields': self.get_boolean("Escrever campos", False)
+                'regime': self.get_choice("regime cfd", cfd_regimes),
+                'inlet_velocity': self.get_number_input("velocidade de entrada", "0.1", "m/s", False),
+                'fluid_density': self.get_number_input("densidade do fluido", "1.225", "kg/m3", False),
+                'fluid_viscosity': self.get_number_input("viscosidade do fluido", "1.8e-5", "pa.s", False),
+                'max_iterations': int(self.get_number_input("iteracoes maximas", "1000", "", False)),
+                'convergence_criteria': self.get_number_input("criterio de convergencia", "1e-6", "", False),
+                'write_fields': self.get_boolean("escrever campos", False)
             }
         
-        # nome do arquivo
-        self.output_file = self.get_input("Nome do arquivo de saida", "meu_leito.bed")
+        # obter nome do arquivo de saida
+        self.output_file = self.get_input("nome do arquivo de saida", "meu_leito.bed")
         
-        # confirmar
+        # confirmar parametros e salvar arquivo
         self.confirm_and_save()
     
     def template_mode(self):
-        """modo edicao de template"""
+        """modo edicao de template - usuario edita um arquivo template padrao"""
         self.clear_screen()
-        self.print_header("EDITOR DE TEMPLATE - PARAMETRIZACAO DE LEITO")
+        self.print_header("editor de template - parametrizacao de leito")
         
-        # criar template padrao
+        # criar template padrao com valores exemplo
         template = self.create_default_template()
         
-        # obter nome do arquivo
-        self.output_file = self.get_input("Nome do arquivo de saida", "meu_leito.bed")
+        # obter nome do arquivo de saida
+        self.output_file = self.get_input("nome do arquivo de saida", "meu_leito.bed")
         
         # criar arquivo temporario para edicao
         with tempfile.NamedTemporaryFile(mode='w', suffix='.bed', delete=False, encoding='utf-8') as temp_file:
-            temp_file.write(template)
-            temp_file_path = temp_file.name
+            temp_file.write(template)  # escrever template no arquivo temporario
+            temp_file_path = temp_file.name  # obter caminho do arquivo temporario
         
-        print(f"\nTemplate criado em: {temp_file_path}")
-        print("\nEditores disponiveis:")
-        print("1. notepad (Windows)")
-        print("2. nano (Linux/Mac)")
-        print("3. vim (Linux/Mac)")
-        print("4. Continuar sem editar")
+        print(f"\ntemplate criado em: {temp_file_path}")
+        print("\neditores disponiveis:")
+        print("1. notepad (windows)")
+        print("2. nano (linux/mac)")
+        print("3. vim (linux/mac)")
+        print("4. continuar sem editar")
         
-        editor_choice = self.get_choice("Escolha um editor", 
-                                      ["notepad", "nano", "vim", "Continuar sem editar"], 3)
+        # obter escolha do editor
+        editor_choice = self.get_choice("escolha um editor", 
+                                      ["notepad", "nano", "vim", "continuar sem editar"], 3)
         
-        if editor_choice != "Continuar sem editar":
+        # abrir editor se escolhido
+        if editor_choice != "continuar sem editar":
             try:
+                # executar editor com arquivo temporario
                 if editor_choice == "notepad":
                     subprocess.run([editor_choice, temp_file_path], check=True)
                 else:
                     subprocess.run([editor_choice, temp_file_path], check=True)
             except subprocess.CalledProcessError:
-                print(f"  ⚠️  Erro ao abrir editor {editor_choice}")
-                print("  Continuando sem edicao...")
+                print(f"  aviso: erro ao abrir editor {editor_choice}")
+                print("  continuando sem edicao...")
             except FileNotFoundError:
-                print(f"  ⚠️  Editor {editor_choice} nao encontrado")
-                print("  Continuando sem edicao...")
+                print(f"  aviso: editor {editor_choice} nao encontrado")
+                print("  continuando sem edicao...")
         
-        # ler conteudo editado
+        # ler conteudo editado do arquivo temporario
         with open(temp_file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # limpar arquivo temporario
         os.unlink(temp_file_path)
         
-        # salvar arquivo final
+        # salvar arquivo final com conteudo editado
         with open(self.output_file, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        print(f"\n✅ Arquivo salvo: {self.output_file}")
+        print(f"\nsucesso: arquivo salvo: {self.output_file}")
         
-        # verificar e compilar
+        # verificar sintaxe e compilar arquivo
         self.verify_and_compile()
     
     def create_default_template(self) -> str:
-        """criar template padrao"""
+        """criar template padrao com valores exemplo para edicao"""
         return '''// template padrao para leito empacotado
 // edite os valores conforme necessario
 
@@ -346,45 +368,48 @@ cfd {
 '''
     
     def confirm_and_save(self):
-        """confirmar parametros e salvar"""
+        """confirmar parametros configurados e salvar arquivo"""
         self.clear_screen()
-        self.print_header("CONFIRMACAO DOS PARAMETROS")
+        self.print_header("confirmacao dos parametros")
         
-        print("Parametros configurados:")
+        print("parametros configurados:")
         print()
         
-        # mostrar resumo
-        print(f"📏 LEITO: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
-        print(f"🔘 PARTICULAS: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
-        print(f"📦 EMPACOTAMENTO: {self.params['packing']['method']}")
-        print(f"💾 EXPORTACAO: {', '.join(self.params['export']['formats'])}")
+        # mostrar resumo dos parametros principais
+        print(f"leito: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
+        print(f"particulas: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
+        print(f"empacotamento: {self.params['packing']['method']}")
+        print(f"exportacao: {', '.join(self.params['export']['formats'])}")
         
+        # mostrar parametros cfd se configurados
         if 'cfd' in self.params:
-            print(f"🌊 CFD: {self.params['cfd']['regime']}")
+            print(f"cfd: {self.params['cfd']['regime']}")
         
         print()
         
-        if self.get_boolean("Salvar arquivo .bed?", True):
+        # confirmar se usuario quer salvar
+        if self.get_boolean("salvar arquivo .bed?", True):
             self.save_bed_file()
             self.verify_and_compile()
         else:
-            print("Operacao cancelada.")
+            print("operacao cancelada.")
     
     def save_bed_file(self):
-        """salvar arquivo .bed"""
-        content = self.generate_bed_content()
+        """salvar arquivo .bed com conteudo gerado"""
+        content = self.generate_bed_content()  # gerar conteudo do arquivo
         
+        # escrever arquivo com codificacao utf-8
         with open(self.output_file, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        print(f"✅ Arquivo salvo: {self.output_file}")
+        print(f"sucesso: arquivo salvo: {self.output_file}")
     
     def generate_bed_content(self) -> str:
-        """gerar conteudo do arquivo .bed"""
+        """gerar conteudo do arquivo .bed a partir dos parametros configurados"""
         lines = ["// arquivo .bed gerado pelo wizard"]
         lines.append("")
         
-        # secao bed
+        # secao bed - parametros geometricos do leito
         lines.append("bed {")
         bed = self.params['bed']
         lines.append(f"    diameter = {bed['diameter']} m;")
@@ -392,29 +417,32 @@ cfd {
         lines.append(f"    wall_thickness = {bed['wall_thickness']} m;")
         lines.append(f"    clearance = {bed['clearance']} m;")
         lines.append(f"    material = \"{bed['material']}\";")
+        # adicionar rugosidade apenas se especificada
         if bed['roughness']:
             lines.append(f"    roughness = {bed['roughness']} m;")
         lines.append("}")
         lines.append("")
         
-        # secao lids
+        # secao lids - parametros das tampas
         lines.append("lids {")
         lids = self.params['lids']
         lines.append(f"    top_type = \"{lids['top_type']}\";")
         lines.append(f"    bottom_type = \"{lids['bottom_type']}\";")
         lines.append(f"    top_thickness = {lids['top_thickness']} m;")
         lines.append(f"    bottom_thickness = {lids['bottom_thickness']} m;")
+        # adicionar folga do selo apenas se especificada
         if lids['seal_clearance']:
             lines.append(f"    seal_clearance = {lids['seal_clearance']} m;")
         lines.append("}")
         lines.append("")
         
-        # secao particles
+        # secao particles - parametros das particulas
         lines.append("particles {")
         particles = self.params['particles']
         lines.append(f"    kind = \"{particles['kind']}\";")
         lines.append(f"    diameter = {particles['diameter']} m;")
         lines.append(f"    count = {particles['count']};")
+        # adicionar parametros opcionais apenas se especificados
         if particles['target_porosity']:
             lines.append(f"    target_porosity = {particles['target_porosity']};")
         lines.append(f"    density = {particles['density']} kg/m3;")
@@ -435,11 +463,12 @@ cfd {
         lines.append("}")
         lines.append("")
         
-        # secao packing
+        # secao packing - parametros do empacotamento fisico
         lines.append("packing {")
         packing = self.params['packing']
         lines.append(f"    method = \"{packing['method']}\";")
         lines.append(f"    gravity = {packing['gravity']} m/s2;")
+        # adicionar parametros opcionais apenas se especificados
         if packing['substeps']:
             lines.append(f"    substeps = {packing['substeps']};")
         if packing['iterations']:
@@ -455,17 +484,20 @@ cfd {
         lines.append("}")
         lines.append("")
         
-        # secao export
+        # secao export - parametros de exportacao
         lines.append("export {")
         export = self.params['export']
+        # formatar lista de formatos com aspas
         formats_str = ", ".join([f'"{fmt}"' for fmt in export['formats']])
         lines.append(f"    formats = [{formats_str}];")
+        # adicionar parametros opcionais apenas se especificados
         if export['units']:
             lines.append(f"    units = \"{export['units']}\";")
         if export['scale']:
             lines.append(f"    scale = {export['scale']};")
         lines.append(f"    wall_mode = \"{export['wall_mode']}\";")
         lines.append(f"    fluid_mode = \"{export['fluid_mode']}\";")
+        # converter boolean para string minuscula
         if export['manifold_check'] is not None:
             lines.append(f"    manifold_check = {str(export['manifold_check']).lower()};")
         if export['merge_distance']:
