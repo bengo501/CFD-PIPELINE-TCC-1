@@ -48,7 +48,7 @@ class OpenFOAMCaseGenerator:
         with open(self.bed_json_path, 'r', encoding='utf-8') as f:
             params = json.load(f)
         
-        print(f"  ✓ parametros carregados")
+        print(f"  [OK] parametros carregados")
         print(f"    - leito: {params['bed']['diameter']}m x {params['bed']['height']}m")
         print(f"    - particulas: {params['particles']['count']}")
         
@@ -131,11 +131,11 @@ print(f"STL exportado: {{output_path}}")
         
         if result.returncode == 0 and stl_path.exists():
             size_mb = stl_path.stat().st_size / (1024 * 1024)
-            print(f"  ✓ stl exportado: {stl_path}")
+            print(f"  [OK] stl exportado: {stl_path}")
             print(f"    tamanho: {size_mb:.2f} mb")
             return stl_path
         else:
-            print(f"  ✗ erro ao exportar stl:")
+            print(f"  [ERRO] erro ao exportar stl:")
             print(result.stderr)
             raise RuntimeError("falha ao exportar stl")
     
@@ -154,7 +154,7 @@ print(f"STL exportado: {{output_path}}")
         for d in dirs:
             d.mkdir(parents=True, exist_ok=True)
         
-        print(f"  ✓ caso criado em: {self.case_dir}")
+        print(f"  [OK] caso criado em: {self.case_dir}")
     
     def copy_stl_to_case(self, stl_path: Path):
         """copiar arquivo stl para o caso"""
@@ -163,7 +163,7 @@ print(f"STL exportado: {{output_path}}")
         dest = self.case_dir / "constant" / "triSurface" / "leito.stl"
         shutil.copy(stl_path, dest)
         
-        print(f"  ✓ stl copiado para: {dest}")
+        print(f"  [OK] stl copiado para: {dest}")
     
     def create_mesh_dict(self):
         """criar dicionarios de geracao de malha"""
@@ -247,7 +247,7 @@ mergePatchPairs
         with open(self.case_dir / "system" / "blockMeshDict", 'w') as f:
             f.write(blockmesh)
         
-        print(f"  ✓ blockMeshDict criado")
+        print(f"  [OK] blockMeshDict criado")
         
         # criar snappyhexmeshdict
         snappy = f"""/*--------------------------------*- C++ -*----------------------------------*\\
@@ -370,7 +370,7 @@ mergeTolerance 1e-6;
         with open(self.case_dir / "system" / "snappyHexMeshDict", 'w') as f:
             f.write(snappy)
         
-        print(f"  ✓ snappyHexMeshDict criado")
+        print(f"  [OK] snappyHexMeshDict criado")
     
     def create_control_dicts(self):
         """criar dicionarios de controle da simulacao"""
@@ -539,7 +539,7 @@ relaxationFactors
         with open(self.case_dir / "system" / "fvSolution", 'w') as f:
             f.write(solution)
         
-        print(f"  ✓ arquivos de controle criados")
+        print(f"  [OK] arquivos de controle criados")
     
     def create_initial_conditions(self):
         """criar condicoes iniciais e de contorno"""
@@ -659,7 +659,7 @@ simulationType laminar;
         with open(self.case_dir / "constant" / "turbulenceProperties", 'w') as f:
             f.write(turbulence)
         
-        print(f"  ✓ condicoes iniciais criadas")
+        print(f"  [OK] condicoes iniciais criadas")
     
     def create_run_script(self):
         """criar script allrun para executar caso"""
@@ -682,7 +682,7 @@ if [ $? -ne 0 ]; then
     echo "erro no blockMesh! veja log.blockMesh"
     exit 1
 fi
-echo "   ✓ malha de fundo criada"
+echo "   [OK] malha de fundo criada"
 
 echo ""
 echo "2. gerando malha refinada (snappyHexMesh)..."
@@ -692,7 +692,7 @@ if [ $? -ne 0 ]; then
     echo "erro no snappyHexMesh! veja log.snappyHexMesh"
     exit 1
 fi
-echo "   ✓ malha refinada criada"
+echo "   [OK] malha refinada criada"
 
 echo ""
 echo "3. verificando qualidade da malha..."
@@ -718,9 +718,9 @@ FOAM_EXIT=$?
 
 echo ""
 if [ $FOAM_EXIT -eq 0 ]; then
-    echo "   ✓ simulacao concluida!"
+    echo "   [OK] simulacao concluida!"
 else
-    echo "   ✗ erro na simulacao! veja log.simpleFoam"
+    echo "   [ERRO] erro na simulacao! veja log.simpleFoam"
     exit 1
 fi
 
@@ -745,9 +745,12 @@ exit 0
             f.write(allrun)
         
         # tornar executavel (no wsl)
-        allrun_path.chmod(0o755)
+        try:
+            allrun_path.chmod(0o755)
+        except:
+            pass  # windows nao suporta chmod
         
-        print(f"  ✓ script Allrun criado")
+        print(f"  [OK] script Allrun criado")
     
     def run(self, blend_file: Path, execute_simulation: bool = True):
         """
@@ -784,7 +787,7 @@ exit 0
             self.create_run_script()
             
             print(f"\n{'='*60}")
-            print(f"  ✓ caso openfoam configurado com sucesso!")
+            print(f"  [OK] caso openfoam configurado com sucesso!")
             print(f"{'='*60}")
             print(f"\ncaso criado em: {self.case_dir}")
             print(f"\npara executar a simulacao:")
@@ -798,7 +801,7 @@ exit 0
             return True
             
         except Exception as e:
-            print(f"\n✗ erro: {e}")
+            print(f"\n[ERRO] erro: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -823,19 +826,19 @@ exit 0
             )
             
             if result.returncode == 0:
-                print(f"\n✓ simulacao concluida com sucesso!")
+                print(f"\n[OK] simulacao concluida com sucesso!")
                 print(f"\narquivos de resultado em: {self.case_dir}")
                 print(f"\nvisualizar:")
                 print(f"  cd {self.case_dir}")
                 print(f"  paraview caso.foam")
             else:
-                print(f"\n✗ simulacao falhou com codigo {result.returncode}")
+                print(f"\n[ERRO] simulacao falhou com codigo {result.returncode}")
                 print(f"verifique os arquivos de log em {self.case_dir}")
                 
         except KeyboardInterrupt:
             print(f"\n\nsimulacao cancelada pelo usuario")
         except Exception as e:
-            print(f"\n✗ erro ao executar simulacao: {e}")
+            print(f"\n[ERRO] erro ao executar simulacao: {e}")
 
 
 def main():
