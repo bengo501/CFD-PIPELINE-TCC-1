@@ -1122,6 +1122,34 @@ cfd {
             input("pressione enter para continuar...")
             self.show_help_menu()
     
+    def show_documentation(self):
+        """abrir documentacao html completa do projeto"""
+        import webbrowser
+        
+        # obter caminho do arquivo de documentacao
+        doc_path = Path(__file__).parent / "documentacao.html"
+        
+        # verificar se arquivo existe
+        if not doc_path.exists():
+            print("\nerro: arquivo de documentacao nao encontrado!")
+            print(f"procurado em: {doc_path}")
+            input("\npressione enter para continuar...")
+            return
+        
+        print("\nabrindo documentacao no navegador...")
+        print(f"arquivo: {doc_path}")
+        
+        try:
+            # abrir no navegador padrao
+            webbrowser.open(f"file://{doc_path.absolute()}")
+            print("\nsucesso: documentacao aberta no navegador!")
+            print("se nao abriu automaticamente, copie o caminho acima")
+        except Exception as e:
+            print(f"\nerro ao abrir navegador: {e}")
+            print(f"\nabra manualmente o arquivo: {doc_path}")
+        
+        input("\npressione enter para continuar...")
+    
     def run(self):
         """executar wizard"""
         self.clear_screen()
@@ -1137,10 +1165,11 @@ cfd {
         print("2. editor de template - edite um arquivo padrao")
         print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
         print("4. menu de ajuda - informacoes sobre parametros")
-        print("5. sair")
+        print("5. documentacao completa - guia html interativo")
+        print("6. sair")
         
         while True:
-            choice = input("\nescolha (1-5): ").strip()
+            choice = input("\nescolha (1-6): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -1161,12 +1190,25 @@ cfd {
                 print("2. editor de template - edite um arquivo padrao")
                 print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
                 print("4. menu de ajuda - informacoes sobre parametros")
-                print("5. sair")
+                print("5. documentacao completa - guia html interativo")
+                print("6. sair")
             elif choice == "5":
+                self.show_documentation()
+                # apos ver documentacao, mostrar menu novamente
+                self.clear_screen()
+                self.print_header("wizard de parametrizacao de leitos empacotados")
+                print("escolha o modo de criacao:")
+                print("1. questionario interativo - responda perguntas passo a passo")
+                print("2. editor de template - edite um arquivo padrao")
+                print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
+                print("4. menu de ajuda - informacoes sobre parametros")
+                print("5. documentacao completa - guia html interativo")
+                print("6. sair")
+            elif choice == "6":
                 print("ate logo!")
                 sys.exit(0)
             else:
-                print("  aviso: escolha entre 1, 2, 3, 4 ou 5!")
+                print("  aviso: escolha entre 1, 2, 3, 4, 5 ou 6!")
 
 def main():
     """funcao principal"""

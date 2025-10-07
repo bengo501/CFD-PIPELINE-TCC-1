@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação - CFD Pipeline TCC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px 40px;
+            border-bottom: 3px solid #667eea;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #764ba2;
+        }
+        
+        main {
+            padding: 40px;
+        }
+        
+        section {
+            margin-bottom: 50px;
+            scroll-margin-top: 80px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 25px 0 15px 0;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .card-warning {
+            border-left-color: #ffc107;
+            background: #fff8e1;
+        }
+        
+        .card-success {
+            border-left-color: #28a745;
+            background: #e8f5e9;
+        }
+        
+        .card-info {
+            border-left-color: #17a2b8;
+            background: #e3f2fd;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+        
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        .badge-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+            font-family: monospace;
+            line-height: 2;
+        }
+        
+        .flow-step {
+            background: white;
+            padding: 15px;
+            margin: 10px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+        
+        .arrow {
+            color: #667eea;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        footer {
+            background: #2d2d2d;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #764ba2;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .grid-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .grid-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .grid-item h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CFD Pipeline para Leitos Empacotados</h1>
+            <p>documentação técnica simplificada</p>
+        </header>
+        
+        <nav>
+            <a href="#intro">introdução</a>
+            <a href="#arquitetura">arquitetura</a>
+            <a href="#instalacao">instalação</a>
+            <a href="#uso">uso rápido</a>
+            <a href="#parametros">parâmetros</a>
+            <a href="#workflow">workflow</a>
+        </nav>
+        
+        <main>
+            <!-- INTRODUÇÃO -->
+            <section id="intro">
+                <h2>introdução</h2>
+                
+                <div class="card card-info">
+                    <h3>o que é este projeto?</h3>
+                    <p>pipeline automatizado para simulação cfd de leitos empacotados usando uma dsl personalizada, blender para geometria 3d e openfoam para simulação.</p>
+                </div>
+                
+                <div class="grid">
+                    <div class="grid-item">
+                        <h4>dsl customizada</h4>
+                        <p>linguagem <code>.bed</code> para descrever parâmetros do leito de forma intuitiva</p>
+                    </div>
+                    <div class="grid-item">
+                        <h4>geometria 3d</h4>
+                        <p>geração automática de modelos 3d realistas no blender com física</p>
+                    </div>
+                    <div class="grid-item">
+                        <h4>simulação cfd</h4>
+                        <p>integração com openfoam para análise de escoamento</p>
+                    </div>
+                    <div class="grid-item">
+                        <h4>containerizado</h4>
+                        <p>docker compose para reprodutibilidade total</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ARQUITETURA -->
+            <section id="arquitetura">
+                <h2>arquitetura do sistema</h2>
+                
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <strong>usuário</strong><br>
+                        define parâmetros via wizard ou arquivo .bed
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">
+                        <strong>compilador antlr</strong><br>
+                        valida sintaxe e gera arquivo.bed.json
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">
+                        <strong>blender (headless)</strong><br>
+                        cria geometria 3d com física de partículas
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">
+                        <strong>openfoam</strong><br>
+                        simulação cfd do escoamento
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">
+                        <strong>visualização</strong><br>
+                        dashboard web com resultados
+                    </div>
+                </div>
+                
+                <h3>componentes principais</h3>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>componente</th>
+                            <th>função</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>dsl/grammar/Bed.g4</code></td>
+                            <td>gramática antlr da linguagem .bed</td>
+                            <td><span class="badge badge-success">implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>dsl/bed_wizard.py</code></td>
+                            <td>interface interativa para criação</td>
+                            <td><span class="badge badge-success">implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>dsl/compiler/</code></td>
+                            <td>compilador .bed → .json</td>
+                            <td><span class="badge badge-success">implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>scripts/blender_scripts/</code></td>
+                            <td>geração de geometria 3d</td>
+                            <td><span class="badge badge-success">implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>openfoam/</code></td>
+                            <td>simulação cfd</td>
+                            <td><span class="badge badge-warning">em progresso</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>api/</code></td>
+                            <td>backend fastapi</td>
+                            <td><span class="badge badge-danger">pendente</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>frontend/</code></td>
+                            <td>dashboard react</td>
+                            <td><span class="badge badge-danger">pendente</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <!-- INSTALAÇÃO -->
+            <section id="instalacao">
+                <h2>instalação</h2>
+                
+                <h3>pré-requisitos</h3>
+                <ul>
+                    <li><strong>python 3.8+</strong> - linguagem principal</li>
+                    <li><strong>java 11+</strong> - para executar antlr</li>
+                    <li><strong>blender 3.0+</strong> - geração de geometria</li>
+                    <li><strong>git</strong> - controle de versão</li>
+                </ul>
+                
+                <h3>instalação rápida</h3>
+                
+                <h4>1. clonar repositório</h4>
+                <pre><code>git clone https://github.com/bengo501/CFD-PIPELINE-TCC-1.git
+cd CFD-PIPELINE-TCC-1</code></pre>
+                
+                <h4>2. instalar dependências python</h4>
+                <pre><code>pip install antlr4-python3-runtime</code></pre>
+                
+                <h4>3. gerar parser antlr</h4>
+                <pre><code>cd dsl
+java -jar antlr-4.13.1-complete.jar -Dlanguage=Python3 -o generated grammar/Bed.g4</code></pre>
+                
+                <div class="card card-success">
+                    <h4>pronto! agora você pode usar o wizard:</h4>
+                    <pre><code>python bed_wizard.py</code></pre>
+                </div>
+            </section>
+            
+            <!-- USO RÁPIDO -->
+            <section id="uso">
+                <h2>uso rápido</h2>
+                
+                <h3>modo 1: wizard interativo</h3>
+                <pre><code>python bed_wizard.py
+# escolher opção 3 (modo blender)
+# preencher parâmetros
+# aguardar geração</code></pre>
+                
+                <h3>modo 2: editar template</h3>
+                <pre><code>python bed_wizard.py
+# escolher opção 2
+# editar arquivo .bed
+# compilar e executar</code></pre>
+                
+                <h3>modo 3: criar arquivo manualmente</h3>
+                <pre><code>// arquivo: meu_leito.bed
+bed {
+    diameter = 0.05 m;
+    height = 0.1 m;
+    wall_thickness = 0.002 m;
+}
+
+particles {
+    kind = "sphere";
+    count = 100;
+    diameter = 0.005 m;
+    density = 2500.0 kg/m3;
+}
+
+packing {
+    method = "rigid_body";
+    gravity = -9.81 m/s2;
+}</code></pre>
+
+                <p>depois compilar:</p>
+                <pre><code>python compiler/bed_compiler_antlr_standalone.py meu_leito.bed</code></pre>
+            </section>
+            
+            <!-- PARÂMETROS -->
+            <section id="parametros">
+                <h2>parâmetros principais</h2>
+                
+                <h3>seção bed (geometria)</h3>
+                <table>
+                    <tr>
+                        <th>parâmetro</th>
+                        <th>range</th>
+                        <th>descrição</th>
+                    </tr>
+                    <tr>
+                        <td><code>diameter</code></td>
+                        <td>0.01 - 2.0 m</td>
+                        <td>diâmetro interno do leito</td>
+                    </tr>
+                    <tr>
+                        <td><code>height</code></td>
+                        <td>0.01 - 5.0 m</td>
+                        <td>altura do leito</td>
+                    </tr>
+                    <tr>
+                        <td><code>wall_thickness</code></td>
+                        <td>0.0001 - 0.1 m</td>
+                        <td>espessura da parede</td>
+                    </tr>
+                </table>
+                
+                <h3>seção particles</h3>
+                <table>
+                    <tr>
+                        <th>parâmetro</th>
+                        <th>range</th>
+                        <th>descrição</th>
+                    </tr>
+                    <tr>
+                        <td><code>kind</code></td>
+                        <td>sphere, cube, cylinder</td>
+                        <td>formato das partículas</td>
+                    </tr>
+                    <tr>
+                        <td><code>count</code></td>
+                        <td>1 - 10000</td>
+                        <td>quantidade de partículas</td>
+                    </tr>
+                    <tr>
+                        <td><code>diameter</code></td>
+                        <td>0.0001 - 0.5 m</td>
+                        <td>diâmetro das partículas</td>
+                    </tr>
+                    <tr>
+                        <td><code>density</code></td>
+                        <td>100 - 20000 kg/m³</td>
+                        <td>densidade do material</td>
+                    </tr>
+                </table>
+                
+                <h3>seção packing</h3>
+                <table>
+                    <tr>
+                        <th>parâmetro</th>
+                        <th>range</th>
+                        <th>descrição</th>
+                    </tr>
+                    <tr>
+                        <td><code>method</code></td>
+                        <td>rigid_body</td>
+                        <td>método de empacotamento</td>
+                    </tr>
+                    <tr>
+                        <td><code>gravity</code></td>
+                        <td>-50 a 50 m/s²</td>
+                        <td>aceleração gravitacional</td>
+                    </tr>
+                    <tr>
+                        <td><code>substeps</code></td>
+                        <td>1 - 100</td>
+                        <td>precisão da simulação</td>
+                    </tr>
+                </table>
+                
+                <div class="card card-warning">
+                    <h4>dica: use o sistema de ajuda!</h4>
+                    <p>no wizard, digite <code>?</code> em qualquer campo para ver informações detalhadas, ranges permitidos e exemplos práticos.</p>
+                </div>
+            </section>
+            
+            <!-- WORKFLOW -->
+            <section id="workflow">
+                <h2>workflow típico</h2>
+                
+                <h3>1. definir parâmetros</h3>
+                <ul>
+                    <li>abrir wizard: <code>python bed_wizard.py</code></li>
+                    <li>escolher modo blender (opção 3)</li>
+                    <li>preencher parâmetros com ajuda contextual</li>
+                </ul>
+                
+                <h3>2. gerar geometria</h3>
+                <ul>
+                    <li>wizard compila automaticamente o .bed</li>
+                    <li>executa blender em modo headless</li>
+                    <li>salva modelo em <code>output/models/</code></li>
+                </ul>
+                
+                <h3>3. visualizar resultado</h3>
+                <ul>
+                    <li>abrir arquivo <code>.blend</code> no blender</li>
+                    <li>verificar geometria e empacotamento</li>
+                    <li>exportar para outros formatos se necessário</li>
+                </ul>
+                
+                <h3>tempo estimado</h3>
+                <div class="grid">
+                    <div class="grid-item">
+                        <h4>100 partículas</h4>
+                        <p>~2 minutos</p>
+                        <span class="badge badge-success">rápido</span>
+                    </div>
+                    <div class="grid-item">
+                        <h4>500 partículas</h4>
+                        <p>~5 minutos</p>
+                        <span class="badge badge-warning">médio</span>
+                    </div>
+                    <div class="grid-item">
+                        <h4>1000+ partículas</h4>
+                        <p>~15 minutos</p>
+                        <span class="badge badge-danger">lento</span>
+                    </div>
+                </div>
+                
+                <div class="card card-info">
+                    <h4>próximos passos (em desenvolvimento)</h4>
+                    <ul>
+                        <li>integração automática com openfoam</li>
+                        <li>geração de malha para cfd</li>
+                        <li>execução de simulação</li>
+                        <li>visualização de resultados em dashboard web</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- LINKS ÚTEIS -->
+            <section id="links">
+                <h2>recursos adicionais</h2>
+                
+                <div class="grid">
+                    <div class="grid-item">
+                        <h4>repositório github</h4>
+                        <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1" class="btn">ver código</a>
+                    </div>
+                    <div class="grid-item">
+                        <h4>documentação detalhada</h4>
+                        <p>veja os arquivos markdown no repositório</p>
+                    </div>
+                    <div class="grid-item">
+                        <h4>ajuda do wizard</h4>
+                        <p>opção 4 no menu principal</p>
+                    </div>
+                    <div class="grid-item">
+                        <h4>exemplos</h4>
+                        <p>pasta <code>dsl/examples/</code></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p><strong>CFD Pipeline para Leitos Empacotados</strong></p>
+            <p>trabalho de conclusão de curso - 2024/2025</p>
+            <p>desenvolvido com python, antlr, blender e openfoam</p>
+        </footer>
+    </div>
+</body>
+</html>
+
