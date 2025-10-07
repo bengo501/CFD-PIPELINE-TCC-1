@@ -1,6 +1,10 @@
-import bpy # importar o blender 
+import bpy  # importar o blender 
 import math 
 import random
+import json  # para ler arquivo json
+import sys  # para ler argumentos da linha de comando
+import argparse  # para processar argumentos
+from pathlib import Path  # para trabalhar com caminhos
 
 # =============
 # Limpar cena =
@@ -215,7 +219,106 @@ def main():
     print(f"- 2 tampas")
     print(f"- {len(particulas)} particulas com fisica")
 
+def ler_parametros_json(json_path):
+    """ler parametros do arquivo json"""
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            params = json.load(f)
+        print(f"parametros carregados de: {json_path}")
+        return params
+    except Exception as e:
+        print(f"erro ao ler json: {e}")
+        return None
+
+def main_com_parametros():
+    """funcao principal que aceita parametros da linha de comando"""
+    # processar argumentos apenas se houver '--' nos argumentos
+    argv = sys.argv
+    if '--' in argv:
+        argv = argv[argv.index('--') + 1:]
+    else:
+        # se nao houver argumentos, usar valores padrao
+        print("executando com parametros padrao...")
+        main()
+        return
+    
+    # criar parser de argumentos
+    parser = argparse.ArgumentParser(description='gerar leito empacotado no blender')
+    parser.add_argument('--params', type=str, help='caminho do arquivo json com parametros')
+    parser.add_argument('--output', type=str, help='caminho do arquivo de saida .blend')
+    
+    try:
+        args = parser.parse_args(argv)
+    except:
+        # se falhar ao processar argumentos, usar padrao
+        print("erro ao processar argumentos, usando padrao...")
+        main()
+        return
+    
+    # ler parametros do json se fornecido
+    if args.params:
+        params = ler_parametros_json(args.params)
+        if params:
+            # extrair parametros
+            bed = params.get('bed', {})
+            particles = params.get('particles', {})
+            
+            # valores com fallback para padrao
+            altura = bed.get('height', 0.1)
+            diametro = bed.get('diameter', 0.05)
+            espessura = bed.get('wall_thickness', 0.002)
+            num_particulas = particles.get('count', 100)
+            diametro_particula = particles.get('diameter', 0.005)
+            
+            print(f"parametros do json:")
+            print(f"  altura: {altura}m")
+            print(f"  diametro: {diametro}m")
+            print(f"  espessura parede: {espessura}m")
+            print(f"  particulas: {num_particulas}")
+            print(f"  diametro particula: {diametro_particula}m")
+        else:
+            # se falhar ao ler json, usar padrao
+            altura = 0.1
+            diametro = 0.05
+            espessura = 0.002
+            num_particulas = 100
+            diametro_particula = 0.005
+    else:
+        # sem json, usar padrao
+        altura = 0.1
+        diametro = 0.05
+        espessura = 0.002
+        num_particulas = 100
+        diametro_particula = 0.005
+    
+    # limpar cena
+    limpar_cena()
+    
+    # criar geometria
+    leito = criar_cilindro_oco(altura, diametro, espessura)
+    tampa_inferior = criar_tampa(diametro, 0.003, altura=0)
+    tampa_superior = criar_tampa(diametro, 0.003, altura=altura)
+    particulas = criar_particulas(num_particulas, diametro_particula, altura)
+    
+    # configurar fisica
+    configurar_simulacao_fisica()
+    aplicar_fisica(leito, eh_movel=False)
+    aplicar_fisica(tampa_inferior, eh_movel=False)  
+    aplicar_fisica(tampa_superior, eh_movel=False)
+    
+    for particula in particulas:
+        aplicar_fisica(particula, eh_movel=True)
+    
+    # salvar arquivo se caminho fornecido
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        bpy.ops.wm.save_as_mainfile(filepath=str(output_path))
+        print(f"\narquivo salvo: {output_path}")
+    
+    print("\nmodelo 3d gerado com sucesso!")
+
 if __name__ == "__main__":
-    main()
+    main_com_parametros()
 # =========================================================================================
 

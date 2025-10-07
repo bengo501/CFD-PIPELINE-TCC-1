@@ -48,8 +48,15 @@ class BedWizard:
             else:
                 full_prompt = f"{prompt}: "
             
-            # obter entrada do usuario e remover espacos
-            value = input(full_prompt).strip()
+            # obter entrada do usuario (nao remover espacos ainda)
+            value = input(full_prompt)
+            
+            # se for apenas espacos ou vazio e houver padrao, usar padrao
+            if not value.strip() and default:
+                return default
+            
+            # remover espacos para validacao
+            value = value.strip()
             
             # validar entrada
             if value:
@@ -70,8 +77,15 @@ class BedWizard:
             else:
                 full_prompt = f"{prompt} ({unit}): "
             
-            # obter entrada do usuario e remover espacos
-            value = input(full_prompt).strip()
+            # obter entrada do usuario (nao remover espacos ainda)
+            value = input(full_prompt)
+            
+            # se for apenas espacos ou vazio e houver padrao, usar padrao
+            if not value.strip() and default:
+                return default
+            
+            # remover espacos para validacao
+            value = value.strip()
             
             # validar entrada
             if value:
@@ -98,12 +112,15 @@ class BedWizard:
         
         while True:
             try:
-                # obter escolha do usuario
-                choice = input(f"\nescolha (1-{len(options)}) [{default + 1}]: ").strip()
+                # obter escolha do usuario (nao remover espacos ainda)
+                choice = input(f"\nescolha (1-{len(options)}) [{default + 1}]: ")
                 
-                # se nao escolheu nada, usar padrao
-                if not choice:
+                # se for apenas espacos ou vazio, usar padrao
+                if not choice.strip():
                     return options[default]
+                
+                # remover espacos para validacao
+                choice = choice.strip()
                 
                 # converter para indice (comeca em 0)
                 choice_idx = int(choice) - 1
@@ -119,16 +136,21 @@ class BedWizard:
         """obter entrada booleana (sim/nao) do usuario"""
         default_str = "sim" if default else "nao"
         while True:
-            # obter entrada e converter para minusculo
-            value = input(f"{prompt} (s/n) [{default_str}]: ").strip().lower()
+            # obter entrada (nao remover espacos ainda)
+            value = input(f"{prompt} (s/n) [{default_str}]: ")
+            
+            # se for apenas espacos ou vazio, usar padrao
+            if not value.strip():
+                return default
+            
+            # remover espacos e converter para minusculo
+            value = value.strip().lower()
             
             # validar entrada
             if value in ['s', 'sim', 'y', 'yes']:
                 return True  # retornar true para sim
             elif value in ['n', 'nao', 'no']:
                 return False  # retornar false para nao
-            elif not value:
-                return default  # retornar padrao se nao digitou nada
             else:
                 print("  aviso: digite 's' para sim ou 'n' para nao!")  # avisar se entrada invalida
     
@@ -146,7 +168,7 @@ class BedWizard:
         self.print_header("wizard interativo - parametrizacao de leito")
         
         print("vamos criar seu leito empacotado passo a passo...")
-        print("pressione enter para usar valores padrao quando disponivel.")
+        print("pressione enter ou espaco para usar valores padrao quando disponivel.")
         print()
         
         # secao bed - parametros geometricos do leito
@@ -528,11 +550,11 @@ cfd {
     
     def verify_and_compile(self):
         """verificar sintaxe e compilar arquivo .bed"""
-        print(f"\n🔍 Verificando arquivo: {self.output_file}")
+        print(f"\nverificando arquivo: {self.output_file}")
         
         # verificar se arquivo existe
         if not os.path.exists(self.output_file):
-            print(f"  ❌ Arquivo nao encontrado: {self.output_file}")
+            print(f"  erro: arquivo nao encontrado: {self.output_file}")
             return False
         
         # tentar compilar com ANTLR
@@ -546,41 +568,251 @@ cfd {
             ], capture_output=True, text=True, cwd=Path(__file__).parent)
             
             if result.returncode == 0:
-                print("  ✅ Sintaxe valida!")
-                print("  ✅ Compilacao bem-sucedida!")
-                print(f"  📄 Arquivo JSON gerado: {self.output_file}.json")
-                print(f"  📊 {result.stdout}")
+                print("  sucesso: sintaxe valida!")
+                print("  sucesso: compilacao bem-sucedida!")
+                print(f"  arquivo json gerado: {self.output_file}.json")
+                print(f"  resultado: {result.stdout}")
                 return True
             else:
-                print("  ❌ Erro na compilacao:")
+                print("  erro: erro na compilacao:")
                 print(f"  {result.stderr}")
                 return False
                 
         except FileNotFoundError:
-            print("  ⚠️  Compilador ANTLR nao encontrado!")
-            print("  Verifique se o arquivo bed_compiler_antlr_standalone.py existe")
+            print("  aviso: compilador antlr nao encontrado!")
+            print("  verifique se o arquivo bed_compiler_antlr_standalone.py existe")
             return False
         except Exception as e:
-            print(f"  ❌ Erro inesperado: {e}")
+            print(f"  erro: erro inesperado: {e}")
+            return False
+    
+    def blender_mode(self):
+        """modo blender - apenas geracao de modelo 3d sem parametros cfd"""
+        self.clear_screen()
+        self.print_header("modo blender - geracao de modelo 3d")
+        
+        print("este modo gera apenas o modelo 3d no blender")
+        print("parametros cfd nao serao configurados")
+        print("pressione enter ou espaco para usar valores padrao quando disponivel.")
+        print()
+        
+        # secao bed - parametros geometricos do leito
+        self.print_section("geometria do leito")
+        self.params['bed'] = {
+            'diameter': self.get_number_input("diametro do leito", "0.05", "m"),
+            'height': self.get_number_input("altura do leito", "0.1", "m"),
+            'wall_thickness': self.get_number_input("espessura da parede", "0.002", "m"),
+            'clearance': self.get_number_input("folga superior", "0.01", "m"),
+            'material': self.get_input("material da parede", "steel"),
+            'roughness': self.get_number_input("rugosidade", "0.0", "m", False)
+        }
+        
+        # secao lids - parametros das tampas do leito
+        self.print_section("tampas")
+        lid_types = ["flat", "hemispherical", "none"]
+        self.params['lids'] = {
+            'top_type': self.get_choice("tipo da tampa superior", lid_types),
+            'bottom_type': self.get_choice("tipo da tampa inferior", lid_types),
+            'top_thickness': self.get_number_input("espessura tampa superior", "0.003", "m"),
+            'bottom_thickness': self.get_number_input("espessura tampa inferior", "0.003", "m"),
+            'seal_clearance': self.get_number_input("folga do selo", "0.001", "m", False)
+        }
+        
+        # secao particles - parametros das particulas do leito
+        self.print_section("particulas")
+        particle_kinds = ["sphere", "cube", "cylinder"]
+        self.params['particles'] = {
+            'kind': self.get_choice("tipo de particula", particle_kinds),
+            'diameter': self.get_number_input("diametro das particulas", "0.005", "m"),
+            'count': int(self.get_number_input("numero de particulas", "100", "", True)),
+            'target_porosity': self.get_number_input("porosidade alvo", "0.4", "", False),
+            'density': self.get_number_input("densidade do material", "2500.0", "kg/m3"),
+            'mass': self.get_number_input("massa das particulas", "0.0", "g", False),
+            'restitution': self.get_number_input("coeficiente de restituicao", "0.3", "", False),
+            'friction': self.get_number_input("coeficiente de atrito", "0.5", "", False),
+            'rolling_friction': self.get_number_input("atrito de rolamento", "0.1", "", False),
+            'linear_damping': self.get_number_input("amortecimento linear", "0.1", "", False),
+            'angular_damping': self.get_number_input("amortecimento angular", "0.1", "", False),
+            'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False))
+        }
+        
+        # secao packing - parametros do empacotamento fisico
+        self.print_section("empacotamento")
+        packing_methods = ["rigid_body"]
+        self.params['packing'] = {
+            'method': self.get_choice("metodo de empacotamento", packing_methods),
+            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2"),
+            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False)),
+            'iterations': int(self.get_number_input("iteracoes", "10", "", False)),
+            'damping': self.get_number_input("amortecimento", "0.1", "", False),
+            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False),
+            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False),
+            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False)
+        }
+        
+        # secao export - parametros de exportacao simplificados
+        self.print_section("exportacao")
+        self.params['export'] = {
+            'formats': ["stl_binary", "blend"],  # formatos para blender
+            'units': "m",
+            'scale': 1.0,
+            'wall_mode': "surface",
+            'fluid_mode': "none",
+            'manifold_check': True,
+            'merge_distance': 0.001
+        }
+        
+        # nao incluir secao cfd
+        print("\nparametros cfd: nao configurados (modo blender)")
+        
+        # obter nome do arquivo de saida
+        self.output_file = self.get_input("nome do arquivo de saida", "leito_blender.bed")
+        
+        # confirmar e processar
+        self.confirm_and_generate_blender()
+    
+    def confirm_and_generate_blender(self):
+        """confirmar parametros e executar geracao no blender"""
+        self.clear_screen()
+        self.print_header("confirmacao e geracao 3d")
+        
+        print("parametros configurados:")
+        print()
+        
+        # mostrar resumo dos parametros principais
+        print(f"leito: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
+        print(f"particulas: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
+        print(f"empacotamento: {self.params['packing']['method']}")
+        print(f"exportacao: blend, stl")
+        print()
+        
+        # confirmar se usuario quer continuar
+        if not self.get_boolean("continuar com geracao no blender?", True):
+            print("operacao cancelada.")
+            return
+        
+        # salvar arquivo .bed
+        self.save_bed_file()
+        
+        # compilar arquivo
+        print("\ncompilando arquivo...")
+        if not self.verify_and_compile():
+            print("erro: nao foi possivel compilar o arquivo")
+            return
+        
+        # executar blender
+        print("\nexecutando blender...")
+        self.execute_blender()
+    
+    def execute_blender(self):
+        """executar script do blender para gerar modelo 3d"""
+        try:
+            # definir caminhos
+            project_root = Path(__file__).parent.parent
+            dsl_dir = Path(__file__).parent
+            blender_script = project_root / "scripts" / "blender_scripts" / "leito_extracao.py"
+            output_dir = project_root / "output" / "models"
+            
+            # obter caminho completo do arquivo json
+            # o compilador gera arquivo.bed.json, nao arquivo.json
+            json_file = Path(self.output_file + '.json')
+            if not json_file.is_absolute():
+                json_file = dsl_dir / json_file
+            
+            # criar diretorio de saida se nao existir
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            print(f"script blender: {blender_script}")
+            print(f"arquivo json: {json_file}")
+            print(f"diretorio saida: {output_dir}")
+            
+            # verificar se arquivos existem
+            if not blender_script.exists():
+                print(f"erro: script blender nao encontrado: {blender_script}")
+                return False
+            
+            if not json_file.exists():
+                print(f"erro: arquivo json nao encontrado: {json_file}")
+                return False
+            
+            # tentar encontrar blender
+            blender_paths = [
+                r"C:\Program Files\Blender Foundation\Blender 4.0\blender.exe",
+                r"C:\Program Files\Blender Foundation\Blender 3.6\blender.exe",
+                r"C:\Program Files\Blender Foundation\Blender 3.5\blender.exe",
+                r"C:\Program Files\Blender Foundation\Blender\blender.exe",
+                "blender"
+            ]
+            
+            blender_exe = None
+            for path in blender_paths:
+                if Path(path).exists() if path.startswith("C:") else True:
+                    blender_exe = path
+                    break
+            
+            if not blender_exe:
+                print("erro: blender nao encontrado")
+                print("instale o blender ou adicione ao path do sistema")
+                return False
+            
+            print(f"blender encontrado: {blender_exe}")
+            print("\niniciando geracao do modelo 3d...")
+            print("isso pode levar alguns minutos...")
+            
+            # nome do arquivo de saida
+            output_blend = output_dir / f"{Path(self.output_file).stem}.blend"
+            
+            # executar blender em modo headless
+            result = subprocess.run([
+                blender_exe,
+                "--background",
+                "--python", str(blender_script),
+                "--",
+                "--params", str(json_file),
+                "--output", str(output_blend)
+            ], capture_output=True, text=True, timeout=300)
+            
+            if result.returncode == 0:
+                print("\nsucesso: modelo 3d gerado!")
+                print(f"arquivo salvo: {output_blend}")
+                print(f"diretorio: {output_dir}")
+                return True
+            else:
+                print("\nerro: falha na geracao do modelo")
+                print(f"codigo de erro: {result.returncode}")
+                if result.stderr:
+                    print(f"detalhes: {result.stderr}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            print("erro: timeout na execucao do blender (limite: 5 minutos)")
+            return False
+        except FileNotFoundError:
+            print("erro: blender nao encontrado no sistema")
+            print("verifique a instalacao do blender")
+            return False
+        except Exception as e:
+            print(f"erro: erro inesperado: {e}")
             return False
     
     def run(self):
         """executar wizard"""
         self.clear_screen()
-        self.print_header("WIZARD DE PARAMETRIZACAO DE LEITOS EMPACOTADOS")
+        self.print_header("wizard de parametrizacao de leitos empacotados")
         
-        print("Bem-vindo ao wizard para criacao de arquivos .bed!")
-        print("Este wizard ajuda voce a criar arquivos de parametrizacao")
-        print("para leitos empacotados que serao processados pelo compilador ANTLR.")
+        print("bem-vindo ao wizard para criacao de arquivos .bed!")
+        print("este wizard ajuda voce a criar arquivos de parametrizacao")
+        print("para leitos empacotados que serao processados pelo compilador antlr.")
         print()
         
-        print("Escolha o modo de criacao:")
-        print("1. Questionario interativo - responda perguntas passo a passo")
-        print("2. Editor de template - edite um arquivo padrao")
-        print("3. Sair")
+        print("escolha o modo de criacao:")
+        print("1. questionario interativo - responda perguntas passo a passo")
+        print("2. editor de template - edite um arquivo padrao")
+        print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
+        print("4. sair")
         
         while True:
-            choice = input("\nEscolha (1-3): ").strip()
+            choice = input("\nescolha (1-4): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -589,10 +821,13 @@ cfd {
                 self.template_mode()
                 break
             elif choice == "3":
-                print("Ate logo!")
+                self.blender_mode()
+                break
+            elif choice == "4":
+                print("ate logo!")
                 sys.exit(0)
             else:
-                print("  ⚠️  Escolha entre 1, 2 ou 3!")
+                print("  aviso: escolha entre 1, 2, 3 ou 4!")
 
 def main():
     """funcao principal"""
