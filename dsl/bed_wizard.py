@@ -936,6 +936,93 @@ cfd {
         # confirmar e processar
         self.confirm_and_generate_blender()
     
+    def blender_interactive_mode(self):
+        """modo blender interativo - gera modelo e abre blender automaticamente"""
+        self.clear_screen()
+        self.print_header("modo blender interativo - visualizacao automatica")
+        
+        print("este modo gera o modelo 3d e abre automaticamente no blender")
+        print("voce podera visualizar e editar o modelo imediatamente")
+        print("pressione enter ou espaco para usar valores padrao quando disponivel.")
+        print("digite '?' para ver ajuda sobre cada parametro")
+        print()
+        
+        # usar mesma coleta de parametros do modo blender normal
+        # secao bed - parametros geometricos do leito
+        self.print_section("geometria do leito")
+        self.params['bed'] = {
+            'diameter': self.get_number_input("diametro do leito", "0.05", "m", True, "bed.diameter"),
+            'height': self.get_number_input("altura do leito", "0.1", "m", True, "bed.height"),
+            'wall_thickness': self.get_number_input("espessura da parede", "0.002", "m", True, "bed.wall_thickness"),
+            'clearance': self.get_number_input("folga superior", "0.01", "m", True, "bed.clearance"),
+            'material': self.get_input("material da parede", "steel"),
+            'roughness': self.get_number_input("rugosidade", "0.0", "m", False, "bed.roughness")
+        }
+        
+        # secao lids - parametros das tampas do leito
+        self.print_section("tampas")
+        lid_types = ["flat", "hemispherical", "none"]
+        self.params['lids'] = {
+            'top_type': self.get_choice("tipo da tampa superior", lid_types),
+            'bottom_type': self.get_choice("tipo da tampa inferior", lid_types),
+            'top_thickness': self.get_number_input("espessura tampa superior", "0.003", "m", True, "lids.top_thickness"),
+            'bottom_thickness': self.get_number_input("espessura tampa inferior", "0.003", "m", True, "lids.bottom_thickness"),
+            'seal_clearance': self.get_number_input("folga do selo", "0.001", "m", False, "lids.seal_clearance")
+        }
+        
+        # secao particles - parametros das particulas do leito
+        self.print_section("particulas")
+        particle_kinds = ["sphere", "cube", "cylinder"]
+        self.params['particles'] = {
+            'kind': self.get_choice("tipo de particula", particle_kinds),
+            'diameter': self.get_number_input("diametro das particulas", "0.005", "m", True, "particles.diameter"),
+            'count': int(self.get_number_input("numero de particulas", "100", "", True, "particles.count")),
+            'target_porosity': self.get_number_input("porosidade alvo", "0.4", "", False, "particles.target_porosity"),
+            'density': self.get_number_input("densidade do material", "2500.0", "kg/m3", True, "particles.density"),
+            'mass': self.get_number_input("massa das particulas", "0.0", "g", False, "particles.mass"),
+            'restitution': self.get_number_input("coeficiente de restituicao", "0.3", "", False, "particles.restitution"),
+            'friction': self.get_number_input("coeficiente de atrito", "0.5", "", False, "particles.friction"),
+            'rolling_friction': self.get_number_input("atrito de rolamento", "0.1", "", False, "particles.rolling_friction"),
+            'linear_damping': self.get_number_input("amortecimento linear", "0.1", "", False, "particles.linear_damping"),
+            'angular_damping': self.get_number_input("amortecimento angular", "0.1", "", False, "particles.angular_damping"),
+            'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False, "particles.seed"))
+        }
+        
+        # secao packing - parametros do empacotamento fisico
+        self.print_section("empacotamento")
+        packing_methods = ["rigid_body"]
+        self.params['packing'] = {
+            'method': self.get_choice("metodo de empacotamento", packing_methods),
+            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2", True, "packing.gravity"),
+            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False, "packing.substeps")),
+            'iterations': int(self.get_number_input("iteracoes", "10", "", False, "packing.iterations")),
+            'damping': self.get_number_input("amortecimento", "0.1", "", False, "packing.damping"),
+            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False, "packing.rest_velocity"),
+            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False, "packing.max_time"),
+            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False, "packing.collision_margin")
+        }
+        
+        # secao export - parametros de exportacao simplificados
+        self.print_section("exportacao")
+        self.params['export'] = {
+            'formats': ["stl_binary", "blend"],  # formatos para blender
+            'units': "m",
+            'scale': 1.0,
+            'wall_mode': "surface",
+            'fluid_mode': "none",
+            'manifold_check': True,
+            'merge_distance': 0.001
+        }
+        
+        # nao incluir secao cfd
+        print("\nparametros cfd: nao configurados (modo blender)")
+        
+        # obter nome do arquivo de saida
+        self.output_file = self.get_input("nome do arquivo de saida", "leito_interativo.bed")
+        
+        # confirmar e processar com abertura automatica
+        self.confirm_and_generate_blender_interactive()
+    
     def confirm_and_generate_blender(self):
         """confirmar parametros e executar geracao no blender"""
         self.clear_screen()
@@ -969,7 +1056,56 @@ cfd {
         print("\nexecutando blender...")
         self.execute_blender()
     
-    def execute_blender(self):
+    def confirm_and_generate_blender_interactive(self):
+        """confirmar parametros, gerar modelo e abrir blender automaticamente"""
+        self.clear_screen()
+        self.print_header("confirmacao e geracao 3d interativa")
+        
+        print("parametros configurados:")
+        print()
+        
+        # mostrar resumo dos parametros principais
+        print(f"leito: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
+        print(f"particulas: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
+        print(f"empacotamento: {self.params['packing']['method']}")
+        print(f"exportacao: blend, stl")
+        print()
+        print("** apos a geracao, o blender sera aberto automaticamente **")
+        print()
+        
+        # confirmar se usuario quer continuar
+        if not self.get_boolean("continuar com geracao e abertura no blender?", True):
+            print("operacao cancelada.")
+            return
+        
+        # salvar arquivo .bed
+        self.save_bed_file()
+        
+        # compilar arquivo
+        print("\ncompilando arquivo...")
+        if not self.verify_and_compile():
+            print("erro: nao foi possivel compilar o arquivo")
+            return
+        
+        # executar blender com abertura automatica
+        print("\nexecutando blender...")
+        success, blend_file = self.execute_blender(open_after=True)
+        
+        if success:
+            print("\n" + "="*60)
+            print("processo concluido com sucesso!")
+            print("="*60)
+            print(f"\nmodelo gerado: {blend_file}")
+            print("blender aberto e rodando em segundo plano")
+            print("\ndicas:")
+            print("- use o scroll do mouse para zoom")
+            print("- segure botao do meio e arraste para rotacionar")
+            print("- pressione numpad 7 para vista superior")
+            print("- pressione z para mudar modo de visualizacao")
+            print("="*60)
+            input("\npressione enter para voltar ao menu...")
+    
+    def execute_blender(self, open_after=False):
         """executar script do blender para gerar modelo 3d"""
         try:
             # definir caminhos
@@ -994,11 +1130,11 @@ cfd {
             # verificar se arquivos existem
             if not blender_script.exists():
                 print(f"erro: script blender nao encontrado: {blender_script}")
-                return False
+                return False, None
             
             if not json_file.exists():
                 print(f"erro: arquivo json nao encontrado: {json_file}")
-                return False
+                return False, None
             
             # tentar encontrar blender
             blender_paths = [
@@ -1018,7 +1154,7 @@ cfd {
             if not blender_exe:
                 print("erro: blender nao encontrado")
                 print("instale o blender ou adicione ao path do sistema")
-                return False
+                return False, None
             
             print(f"blender encontrado: {blender_exe}")
             print("\niniciando geracao do modelo 3d...")
@@ -1049,30 +1185,56 @@ cfd {
                     print(f"arquivo salvo: {output_blend}")
                     print(f"tamanho: {output_blend.stat().st_size / 1024:.2f} kb")
                     print(f"diretorio: {output_dir}")
-                    return True
+                    
+                    # abrir blender com o arquivo se solicitado
+                    if open_after:
+                        print("\nabrindo modelo no blender...")
+                        self.open_blender_with_file(blender_exe, output_blend)
+                    
+                    return True, output_blend
                 else:
                     print("\naviso: blender executou mas arquivo nao foi criado")
                     print(f"arquivo esperado: {output_blend}")
                     print("verifique a saida do blender acima")
-                    return False
+                    return False, None
             else:
                 print("\nerro: falha na geracao do modelo")
                 print(f"codigo de erro: {result.returncode}")
                 if result.stderr:
                     print(f"detalhes do erro:")
                     print(result.stderr)
-                return False
+                return False, None
                 
         except subprocess.TimeoutExpired:
             print("erro: timeout na execucao do blender (limite: 5 minutos)")
-            return False
+            return False, None
         except FileNotFoundError:
             print("erro: blender nao encontrado no sistema")
             print("verifique a instalacao do blender")
-            return False
+            return False, None
         except Exception as e:
             print(f"erro: erro inesperado: {e}")
-            return False
+            return False, None
+    
+    def open_blender_with_file(self, blender_exe, blend_file):
+        """abrir blender com arquivo especifico em modo gui"""
+        try:
+            print(f"executando: {blender_exe} {blend_file}")
+            
+            # abrir blender em modo gui (sem --background)
+            # usar Popen para nao bloquear o terminal
+            subprocess.Popen([blender_exe, str(blend_file)], 
+                           stdout=subprocess.DEVNULL, 
+                           stderr=subprocess.DEVNULL)
+            
+            print("\nsucesso: blender aberto!")
+            print("o blender esta rodando em segundo plano")
+            print("voce pode fechar esta janela sem afetar o blender")
+            
+        except Exception as e:
+            print(f"\nerro ao abrir blender: {e}")
+            print(f"\nabra manualmente executando:")
+            print(f"{blender_exe} {blend_file}")
     
     def show_help_menu(self):
         """mostrar menu de ajuda com informacoes sobre parametros"""
@@ -1163,13 +1325,14 @@ cfd {
         print("escolha o modo de criacao:")
         print("1. questionario interativo - responda perguntas passo a passo")
         print("2. editor de template - edite um arquivo padrao")
-        print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
-        print("4. menu de ajuda - informacoes sobre parametros")
-        print("5. documentacao completa - guia html interativo")
-        print("6. sair")
+        print("3. modo blender - geracao de modelo 3d (sem cfd)")
+        print("4. modo blender interativo - gera e abre automaticamente")
+        print("5. menu de ajuda - informacoes sobre parametros")
+        print("6. documentacao completa - guia html interativo")
+        print("7. sair")
         
         while True:
-            choice = input("\nescolha (1-6): ").strip()
+            choice = input("\nescolha (1-7): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -1181,6 +1344,9 @@ cfd {
                 self.blender_mode()
                 break
             elif choice == "4":
+                self.blender_interactive_mode()
+                break
+            elif choice == "5":
                 self.show_help_menu()
                 # apos ver ajuda, mostrar menu novamente
                 self.clear_screen()
@@ -1188,11 +1354,12 @@ cfd {
                 print("escolha o modo de criacao:")
                 print("1. questionario interativo - responda perguntas passo a passo")
                 print("2. editor de template - edite um arquivo padrao")
-                print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
-                print("4. menu de ajuda - informacoes sobre parametros")
-                print("5. documentacao completa - guia html interativo")
-                print("6. sair")
-            elif choice == "5":
+                print("3. modo blender - geracao de modelo 3d (sem cfd)")
+                print("4. modo blender interativo - gera e abre automaticamente")
+                print("5. menu de ajuda - informacoes sobre parametros")
+                print("6. documentacao completa - guia html interativo")
+                print("7. sair")
+            elif choice == "6":
                 self.show_documentation()
                 # apos ver documentacao, mostrar menu novamente
                 self.clear_screen()
@@ -1200,15 +1367,16 @@ cfd {
                 print("escolha o modo de criacao:")
                 print("1. questionario interativo - responda perguntas passo a passo")
                 print("2. editor de template - edite um arquivo padrao")
-                print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
-                print("4. menu de ajuda - informacoes sobre parametros")
-                print("5. documentacao completa - guia html interativo")
-                print("6. sair")
-            elif choice == "6":
+                print("3. modo blender - geracao de modelo 3d (sem cfd)")
+                print("4. modo blender interativo - gera e abre automaticamente")
+                print("5. menu de ajuda - informacoes sobre parametros")
+                print("6. documentacao completa - guia html interativo")
+                print("7. sair")
+            elif choice == "7":
                 print("ate logo!")
                 sys.exit(0)
             else:
-                print("  aviso: escolha entre 1, 2, 3, 4, 5 ou 6!")
+                print("  aviso: escolha entre 1, 2, 3, 4, 5, 6 ou 7!")
 
 def main():
     """funcao principal"""
