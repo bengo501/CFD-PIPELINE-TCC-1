@@ -23,6 +23,229 @@ class BedWizard:
         self.params = {}  # dicionario para armazenar parametros do leito
         self.output_file = None  # nome do arquivo de saida
         
+        # dicionario com informacoes de ajuda para cada parametro
+        self.param_help = {
+            # secao bed
+            'bed.diameter': {
+                'desc': 'diametro interno do leito cilindrico',
+                'min': 0.01, 'max': 2.0, 'unit': 'm',
+                'exemplo': 'leito de 5cm = 0.05m'
+            },
+            'bed.height': {
+                'desc': 'altura total do leito cilindrico',
+                'min': 0.01, 'max': 5.0, 'unit': 'm',
+                'exemplo': 'leito de 10cm = 0.1m'
+            },
+            'bed.wall_thickness': {
+                'desc': 'espessura da parede do cilindro',
+                'min': 0.0001, 'max': 0.1, 'unit': 'm',
+                'exemplo': 'parede de 2mm = 0.002m'
+            },
+            'bed.clearance': {
+                'desc': 'espaco livre acima das particulas',
+                'min': 0.0, 'max': 1.0, 'unit': 'm',
+                'exemplo': 'folga de 1cm = 0.01m'
+            },
+            'bed.material': {
+                'desc': 'material da parede do leito',
+                'exemplo': 'steel, aluminum, glass, plastic'
+            },
+            'bed.roughness': {
+                'desc': 'rugosidade da superficie interna',
+                'min': 0.0, 'max': 0.01, 'unit': 'm',
+                'exemplo': 'superficie lisa = 0.0m'
+            },
+            # secao lids
+            'lids.top_type': {
+                'desc': 'formato da tampa superior',
+                'exemplo': 'flat (plana), hemispherical (semiesferica), none (sem tampa)'
+            },
+            'lids.bottom_type': {
+                'desc': 'formato da tampa inferior',
+                'exemplo': 'flat (plana), hemispherical (semiesferica), none (sem tampa)'
+            },
+            'lids.top_thickness': {
+                'desc': 'espessura da tampa superior',
+                'min': 0.0001, 'max': 0.1, 'unit': 'm',
+                'exemplo': 'tampa de 3mm = 0.003m'
+            },
+            'lids.bottom_thickness': {
+                'desc': 'espessura da tampa inferior',
+                'min': 0.0001, 'max': 0.1, 'unit': 'm',
+                'exemplo': 'tampa de 3mm = 0.003m'
+            },
+            'lids.seal_clearance': {
+                'desc': 'folga entre tampa e parede',
+                'min': 0.0, 'max': 0.01, 'unit': 'm',
+                'exemplo': 'folga de 1mm = 0.001m'
+            },
+            # secao particles
+            'particles.kind': {
+                'desc': 'formato geometrico das particulas',
+                'exemplo': 'sphere (esfera), cube (cubo), cylinder (cilindro)'
+            },
+            'particles.diameter': {
+                'desc': 'diametro das particulas esfericas',
+                'min': 0.0001, 'max': 0.5, 'unit': 'm',
+                'exemplo': 'particula de 5mm = 0.005m'
+            },
+            'particles.count': {
+                'desc': 'quantidade total de particulas',
+                'min': 1, 'max': 10000, 'unit': '',
+                'exemplo': '100 particulas = empacotamento rapido'
+            },
+            'particles.target_porosity': {
+                'desc': 'porosidade desejada (0-1)',
+                'min': 0.1, 'max': 0.9, 'unit': '',
+                'exemplo': '0.4 = 40% de vazios'
+            },
+            'particles.density': {
+                'desc': 'densidade do material das particulas',
+                'min': 100.0, 'max': 20000.0, 'unit': 'kg/m3',
+                'exemplo': 'vidro = 2500 kg/m3, aco = 7850 kg/m3'
+            },
+            'particles.mass': {
+                'desc': 'massa individual de cada particula',
+                'min': 0.0, 'max': 1000.0, 'unit': 'g',
+                'exemplo': '0.0 = calculado automaticamente'
+            },
+            'particles.restitution': {
+                'desc': 'coeficiente de restituicao (quique)',
+                'min': 0.0, 'max': 1.0, 'unit': '',
+                'exemplo': '0.0 = sem quique, 1.0 = quique total'
+            },
+            'particles.friction': {
+                'desc': 'coeficiente de atrito entre particulas',
+                'min': 0.0, 'max': 1.0, 'unit': '',
+                'exemplo': '0.5 = atrito moderado'
+            },
+            'particles.rolling_friction': {
+                'desc': 'resistencia ao rolamento',
+                'min': 0.0, 'max': 1.0, 'unit': '',
+                'exemplo': '0.1 = rolamento facil'
+            },
+            'particles.linear_damping': {
+                'desc': 'amortecimento do movimento linear',
+                'min': 0.0, 'max': 1.0, 'unit': '',
+                'exemplo': '0.1 = amortecimento leve'
+            },
+            'particles.angular_damping': {
+                'desc': 'amortecimento da rotacao',
+                'min': 0.0, 'max': 1.0, 'unit': '',
+                'exemplo': '0.1 = rotacao com leve resistencia'
+            },
+            'particles.seed': {
+                'desc': 'semente para geracao aleatoria',
+                'min': 0, 'max': 99999, 'unit': '',
+                'exemplo': '42 = resultado reproduzivel'
+            },
+            # secao packing
+            'packing.method': {
+                'desc': 'metodo de simulacao do empacotamento',
+                'exemplo': 'rigid_body (corpo rigido com fisica)'
+            },
+            'packing.gravity': {
+                'desc': 'aceleracao da gravidade',
+                'min': -50.0, 'max': 50.0, 'unit': 'm/s2',
+                'exemplo': 'terra = -9.81 m/s2, lua = -1.62 m/s2'
+            },
+            'packing.substeps': {
+                'desc': 'subdivisoes de cada frame',
+                'min': 1, 'max': 100, 'unit': '',
+                'exemplo': '10 = boa precisao, 50 = alta precisao'
+            },
+            'packing.iterations': {
+                'desc': 'iteracoes do solver por substep',
+                'min': 1, 'max': 100, 'unit': '',
+                'exemplo': '10 = boa convergencia'
+            },
+            'packing.damping': {
+                'desc': 'amortecimento global da simulacao',
+                'min': 0.0, 'max': 1.0, 'unit': '',
+                'exemplo': '0.1 = sistema estabiliza rapido'
+            },
+            'packing.rest_velocity': {
+                'desc': 'velocidade considerada repouso',
+                'min': 0.0001, 'max': 1.0, 'unit': 'm/s',
+                'exemplo': '0.01 = particula parada se < 1cm/s'
+            },
+            'packing.max_time': {
+                'desc': 'tempo maximo de simulacao',
+                'min': 0.1, 'max': 60.0, 'unit': 's',
+                'exemplo': '5.0s = suficiente para empacotamento'
+            },
+            'packing.collision_margin': {
+                'desc': 'margem de deteccao de colisao',
+                'min': 0.00001, 'max': 0.01, 'unit': 'm',
+                'exemplo': '0.001m = 1mm de margem'
+            },
+            # secao export
+            'export.formats': {
+                'desc': 'formatos de arquivo para exportar',
+                'exemplo': 'stl_binary, stl_ascii, obj, blend'
+            },
+            'export.units': {
+                'desc': 'unidade de medida na exportacao',
+                'exemplo': 'm (metros), cm (centimetros), mm (milimetros)'
+            },
+            'export.scale': {
+                'desc': 'fator de escala na exportacao',
+                'min': 0.001, 'max': 1000.0, 'unit': '',
+                'exemplo': '1.0 = tamanho original, 1000 = mm para m'
+            },
+            'export.wall_mode': {
+                'desc': 'modo de exportacao da parede',
+                'exemplo': 'surface (superficie), solid (solido)'
+            },
+            'export.fluid_mode': {
+                'desc': 'modo de exportacao do fluido',
+                'exemplo': 'none (sem fluido), cavity (com cavidade)'
+            },
+            'export.manifold_check': {
+                'desc': 'verificar se malha e manifold',
+                'exemplo': 'true = verifica integridade da malha'
+            },
+            'export.merge_distance': {
+                'desc': 'distancia para mesclar vertices',
+                'min': 0.0, 'max': 0.1, 'unit': 'm',
+                'exemplo': '0.001m = mescla vertices proximos'
+            },
+            # secao cfd
+            'cfd.regime': {
+                'desc': 'regime de escoamento do fluido',
+                'exemplo': 'laminar (baixa velocidade), turbulent_rans (alta velocidade)'
+            },
+            'cfd.inlet_velocity': {
+                'desc': 'velocidade do fluido na entrada',
+                'min': 0.001, 'max': 100.0, 'unit': 'm/s',
+                'exemplo': '0.1 m/s = escoamento lento'
+            },
+            'cfd.fluid_density': {
+                'desc': 'densidade do fluido',
+                'min': 0.1, 'max': 2000.0, 'unit': 'kg/m3',
+                'exemplo': 'ar = 1.225 kg/m3, agua = 1000 kg/m3'
+            },
+            'cfd.fluid_viscosity': {
+                'desc': 'viscosidade dinamica do fluido',
+                'min': 1e-6, 'max': 1.0, 'unit': 'Pa.s',
+                'exemplo': 'ar = 1.8e-5 Pa.s, agua = 1e-3 Pa.s'
+            },
+            'cfd.max_iterations': {
+                'desc': 'numero maximo de iteracoes',
+                'min': 10, 'max': 100000, 'unit': '',
+                'exemplo': '1000 = simulacao rapida, 10000 = precisa'
+            },
+            'cfd.convergence_criteria': {
+                'desc': 'criterio de convergencia (residuo)',
+                'min': 1e-10, 'max': 1e-2, 'unit': '',
+                'exemplo': '1e-6 = convergencia boa'
+            },
+            'cfd.write_fields': {
+                'desc': 'salvar campos de velocidade/pressao',
+                'exemplo': 'true = salva resultados, false = nao salva'
+            }
+        }
+        
     def clear_screen(self):
         """limpar tela do terminal para melhor visualizacao"""
         # usar comando apropriado para windows (cls) ou unix (clear)
@@ -38,6 +261,18 @@ class BedWizard:
     def print_section(self, title: str):
         """imprimir titulo de secao formatado"""
         print(f"\n--- {title} ---")
+    
+    def show_param_help(self, param_key: str):
+        """mostrar ajuda detalhada sobre um parametro"""
+        if param_key in self.param_help:
+            info = self.param_help[param_key]
+            print(f"\n  [ajuda] {info['desc']}")
+            if 'min' in info and 'max' in info:
+                unit = info.get('unit', '')
+                print(f"  [range] minimo: {info['min']}{unit}, maximo: {info['max']}{unit}")
+            if 'exemplo' in info:
+                print(f"  [exemplo] {info['exemplo']}")
+            print()
     
     def get_input(self, prompt: str, default: str = "", required: bool = True) -> str:
         """obter entrada de texto do usuario com validacao"""
@@ -68,17 +303,37 @@ class BedWizard:
             else:
                 print("  aviso: campo obrigatorio!")  # avisar se obrigatorio
     
-    def get_number_input(self, prompt: str, default: str = "", unit: str = "", required: bool = True) -> str:
+    def get_number_input(self, prompt: str, default: str = "", unit: str = "", required: bool = True, param_key: str = "") -> str:
         """obter entrada numerica com unidade e validacao"""
+        # mostrar ajuda se disponivel
+        if param_key and param_key in self.param_help:
+            self.show_param_help(param_key)
+        
+        # obter limites se disponivel
+        min_val = None
+        max_val = None
+        if param_key and param_key in self.param_help:
+            info = self.param_help[param_key]
+            min_val = info.get('min')
+            max_val = info.get('max')
+        
         while True:
             # formatar prompt com valor padrao e unidade se disponivel
             if default:
-                full_prompt = f"{prompt} [{default} {unit}]: "
+                full_prompt = f"{prompt} [{default} {unit}] (? para ajuda): "
             else:
-                full_prompt = f"{prompt} ({unit}): "
+                full_prompt = f"{prompt} ({unit}) (? para ajuda): "
             
             # obter entrada do usuario (nao remover espacos ainda)
             value = input(full_prompt)
+            
+            # verificar se usuario quer ajuda
+            if value.strip() == '?':
+                if param_key:
+                    self.show_param_help(param_key)
+                else:
+                    print("  [info] ajuda nao disponivel para este parametro")
+                continue
             
             # se for apenas espacos ou vazio e houver padrao, usar padrao
             if not value.strip() and default:
@@ -91,7 +346,16 @@ class BedWizard:
             if value:
                 try:
                     # tentar converter para float para validar se e numero
-                    float(value)
+                    num_value = float(value)
+                    
+                    # validar limites se especificados
+                    if min_val is not None and num_value < min_val:
+                        print(f"  aviso: valor muito baixo! minimo: {min_val}{unit}")
+                        continue
+                    if max_val is not None and num_value > max_val:
+                        print(f"  aviso: valor muito alto! maximo: {max_val}{unit}")
+                        continue
+                    
                     return value  # retornar valor se valido
                 except ValueError:
                     print("  aviso: digite um numero valido!")  # avisar se nao for numero
@@ -110,7 +374,7 @@ class BedWizard:
         for i, option in enumerate(options):
             print(f"  {i + 1}. {option}")
         
-        while True:
+        while True: #loop infinito para obter escolha do usuario
             try:
                 # obter escolha do usuario (nao remover espacos ainda)
                 choice = input(f"\nescolha (1-{len(options)}) [{default + 1}]: ")
@@ -594,17 +858,18 @@ cfd {
         print("este modo gera apenas o modelo 3d no blender")
         print("parametros cfd nao serao configurados")
         print("pressione enter ou espaco para usar valores padrao quando disponivel.")
+        print("digite '?' para ver ajuda sobre cada parametro")
         print()
         
         # secao bed - parametros geometricos do leito
         self.print_section("geometria do leito")
         self.params['bed'] = {
-            'diameter': self.get_number_input("diametro do leito", "0.05", "m"),
-            'height': self.get_number_input("altura do leito", "0.1", "m"),
-            'wall_thickness': self.get_number_input("espessura da parede", "0.002", "m"),
-            'clearance': self.get_number_input("folga superior", "0.01", "m"),
+            'diameter': self.get_number_input("diametro do leito", "0.05", "m", True, "bed.diameter"),
+            'height': self.get_number_input("altura do leito", "0.1", "m", True, "bed.height"),
+            'wall_thickness': self.get_number_input("espessura da parede", "0.002", "m", True, "bed.wall_thickness"),
+            'clearance': self.get_number_input("folga superior", "0.01", "m", True, "bed.clearance"),
             'material': self.get_input("material da parede", "steel"),
-            'roughness': self.get_number_input("rugosidade", "0.0", "m", False)
+            'roughness': self.get_number_input("rugosidade", "0.0", "m", False, "bed.roughness")
         }
         
         # secao lids - parametros das tampas do leito
@@ -613,9 +878,9 @@ cfd {
         self.params['lids'] = {
             'top_type': self.get_choice("tipo da tampa superior", lid_types),
             'bottom_type': self.get_choice("tipo da tampa inferior", lid_types),
-            'top_thickness': self.get_number_input("espessura tampa superior", "0.003", "m"),
-            'bottom_thickness': self.get_number_input("espessura tampa inferior", "0.003", "m"),
-            'seal_clearance': self.get_number_input("folga do selo", "0.001", "m", False)
+            'top_thickness': self.get_number_input("espessura tampa superior", "0.003", "m", True, "lids.top_thickness"),
+            'bottom_thickness': self.get_number_input("espessura tampa inferior", "0.003", "m", True, "lids.bottom_thickness"),
+            'seal_clearance': self.get_number_input("folga do selo", "0.001", "m", False, "lids.seal_clearance")
         }
         
         # secao particles - parametros das particulas do leito
@@ -623,17 +888,17 @@ cfd {
         particle_kinds = ["sphere", "cube", "cylinder"]
         self.params['particles'] = {
             'kind': self.get_choice("tipo de particula", particle_kinds),
-            'diameter': self.get_number_input("diametro das particulas", "0.005", "m"),
-            'count': int(self.get_number_input("numero de particulas", "100", "", True)),
-            'target_porosity': self.get_number_input("porosidade alvo", "0.4", "", False),
-            'density': self.get_number_input("densidade do material", "2500.0", "kg/m3"),
-            'mass': self.get_number_input("massa das particulas", "0.0", "g", False),
-            'restitution': self.get_number_input("coeficiente de restituicao", "0.3", "", False),
-            'friction': self.get_number_input("coeficiente de atrito", "0.5", "", False),
-            'rolling_friction': self.get_number_input("atrito de rolamento", "0.1", "", False),
-            'linear_damping': self.get_number_input("amortecimento linear", "0.1", "", False),
-            'angular_damping': self.get_number_input("amortecimento angular", "0.1", "", False),
-            'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False))
+            'diameter': self.get_number_input("diametro das particulas", "0.005", "m", True, "particles.diameter"),
+            'count': int(self.get_number_input("numero de particulas", "100", "", True, "particles.count")),
+            'target_porosity': self.get_number_input("porosidade alvo", "0.4", "", False, "particles.target_porosity"),
+            'density': self.get_number_input("densidade do material", "2500.0", "kg/m3", True, "particles.density"),
+            'mass': self.get_number_input("massa das particulas", "0.0", "g", False, "particles.mass"),
+            'restitution': self.get_number_input("coeficiente de restituicao", "0.3", "", False, "particles.restitution"),
+            'friction': self.get_number_input("coeficiente de atrito", "0.5", "", False, "particles.friction"),
+            'rolling_friction': self.get_number_input("atrito de rolamento", "0.1", "", False, "particles.rolling_friction"),
+            'linear_damping': self.get_number_input("amortecimento linear", "0.1", "", False, "particles.linear_damping"),
+            'angular_damping': self.get_number_input("amortecimento angular", "0.1", "", False, "particles.angular_damping"),
+            'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False, "particles.seed"))
         }
         
         # secao packing - parametros do empacotamento fisico
@@ -641,13 +906,13 @@ cfd {
         packing_methods = ["rigid_body"]
         self.params['packing'] = {
             'method': self.get_choice("metodo de empacotamento", packing_methods),
-            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2"),
-            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False)),
-            'iterations': int(self.get_number_input("iteracoes", "10", "", False)),
-            'damping': self.get_number_input("amortecimento", "0.1", "", False),
-            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False),
-            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False),
-            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False)
+            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2", True, "packing.gravity"),
+            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False, "packing.substeps")),
+            'iterations': int(self.get_number_input("iteracoes", "10", "", False, "packing.iterations")),
+            'damping': self.get_number_input("amortecimento", "0.1", "", False, "packing.damping"),
+            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False, "packing.rest_velocity"),
+            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False, "packing.max_time"),
+            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False, "packing.collision_margin")
         }
         
         # secao export - parametros de exportacao simplificados
@@ -809,6 +1074,54 @@ cfd {
             print(f"erro: erro inesperado: {e}")
             return False
     
+    def show_help_menu(self):
+        """mostrar menu de ajuda com informacoes sobre parametros"""
+        self.clear_screen()
+        self.print_header("menu de ajuda - parametros do leito")
+        
+        sections = {
+            '1': ('bed', 'geometria do leito'),
+            '2': ('lids', 'tampas'),
+            '3': ('particles', 'particulas'),
+            '4': ('packing', 'empacotamento'),
+            '5': ('export', 'exportacao'),
+            '6': ('cfd', 'simulacao cfd')
+        }
+        
+        print("escolha uma secao para ver detalhes dos parametros:")
+        for key, (section, desc) in sections.items():
+            print(f"{key}. {desc}")
+        print("0. voltar ao menu principal")
+        print()
+        
+        choice = input("escolha (0-6): ").strip()
+        
+        if choice == '0':
+            return
+        elif choice in sections:
+            section_key, section_desc = sections[choice]
+            self.clear_screen()
+            self.print_header(f"ajuda - {section_desc}")
+            
+            # mostrar todos os parametros da secao
+            for param_key, param_info in self.param_help.items():
+                if param_key.startswith(f"{section_key}."):
+                    param_name = param_key.split('.')[1]
+                    print(f"\n[{param_name}]")
+                    print(f"  descricao: {param_info['desc']}")
+                    if 'min' in param_info and 'max' in param_info:
+                        unit = param_info.get('unit', '')
+                        print(f"  range: {param_info['min']}{unit} a {param_info['max']}{unit}")
+                    if 'exemplo' in param_info:
+                        print(f"  exemplo: {param_info['exemplo']}")
+            
+            input("\npressione enter para continuar...")
+            self.show_help_menu()
+        else:
+            print("  aviso: opcao invalida!")
+            input("pressione enter para continuar...")
+            self.show_help_menu()
+    
     def run(self):
         """executar wizard"""
         self.clear_screen()
@@ -823,10 +1136,11 @@ cfd {
         print("1. questionario interativo - responda perguntas passo a passo")
         print("2. editor de template - edite um arquivo padrao")
         print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
-        print("4. sair")
+        print("4. menu de ajuda - informacoes sobre parametros")
+        print("5. sair")
         
         while True:
-            choice = input("\nescolha (1-4): ").strip()
+            choice = input("\nescolha (1-5): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -838,10 +1152,21 @@ cfd {
                 self.blender_mode()
                 break
             elif choice == "4":
+                self.show_help_menu()
+                # apos ver ajuda, mostrar menu novamente
+                self.clear_screen()
+                self.print_header("wizard de parametrizacao de leitos empacotados")
+                print("escolha o modo de criacao:")
+                print("1. questionario interativo - responda perguntas passo a passo")
+                print("2. editor de template - edite um arquivo padrao")
+                print("3. modo blender - apenas geracao de modelo 3d (sem cfd)")
+                print("4. menu de ajuda - informacoes sobre parametros")
+                print("5. sair")
+            elif choice == "5":
                 print("ate logo!")
                 sys.exit(0)
             else:
-                print("  aviso: escolha entre 1, 2, 3 ou 4!")
+                print("  aviso: escolha entre 1, 2, 3, 4 ou 5!")
 
 def main():
     """funcao principal"""
