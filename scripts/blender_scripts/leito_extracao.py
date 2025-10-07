@@ -291,32 +291,69 @@ def main_com_parametros():
         num_particulas = 100
         diametro_particula = 0.005
     
-    # limpar cena
-    limpar_cena()
-    
-    # criar geometria
-    leito = criar_cilindro_oco(altura, diametro, espessura)
-    tampa_inferior = criar_tampa(diametro, 0.003, altura=0)
-    tampa_superior = criar_tampa(diametro, 0.003, altura=altura)
-    particulas = criar_particulas(num_particulas, diametro_particula, altura)
-    
-    # configurar fisica
-    configurar_simulacao_fisica()
-    aplicar_fisica(leito, eh_movel=False)
-    aplicar_fisica(tampa_inferior, eh_movel=False)  
-    aplicar_fisica(tampa_superior, eh_movel=False)
-    
-    for particula in particulas:
-        aplicar_fisica(particula, eh_movel=True)
-    
-    # salvar arquivo se caminho fornecido
-    if args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        bpy.ops.wm.save_as_mainfile(filepath=str(output_path))
-        print(f"\narquivo salvo: {output_path}")
-    
-    print("\nmodelo 3d gerado com sucesso!")
+    try:
+        # limpar cena
+        limpar_cena()
+        
+        # criar geometria
+        print("criando geometria...")
+        leito = criar_cilindro_oco(altura, diametro, espessura)
+        print(f"leito criado: altura={altura}m, diametro={diametro}m")
+        
+        tampa_inferior = criar_tampa(posicao_z=0, diametro=diametro, espessura=0.003, nome="tampa_inferior")
+        print("tampa inferior criada")
+        
+        tampa_superior = criar_tampa(posicao_z=altura, diametro=diametro, espessura=0.003, nome="tampa_superior")
+        print("tampa superior criada")
+        
+        # calcular raio do leito e raio da particula
+        raio_leito = (diametro / 2) - espessura  # raio interno
+        raio_particula = diametro_particula / 2
+        
+        particulas = criar_particulas(
+            quantidade=num_particulas,
+            raio_leito=raio_leito,
+            altura_leito=altura,
+            raio_particula=raio_particula
+        )
+        print(f"{num_particulas} particulas criadas")
+        
+        # configurar fisica
+        print("configurando fisica...")
+        configurar_simulacao_fisica()
+        
+        print("aplicando fisica ao leito...")
+        aplicar_fisica(leito, eh_movel=False)
+        
+        print("aplicando fisica as tampas...")
+        aplicar_fisica(tampa_inferior, eh_movel=False)  
+        aplicar_fisica(tampa_superior, eh_movel=False)
+        
+        print("aplicando fisica as particulas...")
+        for i, particula in enumerate(particulas):
+            aplicar_fisica(particula, eh_movel=True)
+            if (i + 1) % 20 == 0:
+                print(f"  {i + 1}/{num_particulas} particulas processadas")
+        
+        print("fisica aplicada a todas as particulas")
+        
+        # salvar arquivo se caminho fornecido
+        if args.output:
+            print(f"\nsalvando arquivo em: {args.output}")
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            bpy.ops.wm.save_as_mainfile(filepath=str(output_path))
+            print(f"arquivo salvo com sucesso: {output_path}")
+        else:
+            print("\naviso: caminho de saida nao especificado, arquivo nao foi salvo")
+        
+        print("\nmodelo 3d gerado com sucesso!")
+        
+    except Exception as e:
+        print(f"\nerro ao gerar modelo: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 if __name__ == "__main__":
     main_com_parametros()

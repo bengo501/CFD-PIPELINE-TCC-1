@@ -772,16 +772,30 @@ cfd {
                 "--output", str(output_blend)
             ], capture_output=True, text=True, timeout=300)
             
+            # mostrar saida do blender para debug
+            if result.stdout:
+                print("\nsaida do blender:")
+                print(result.stdout)
+            
             if result.returncode == 0:
-                print("\nsucesso: modelo 3d gerado!")
-                print(f"arquivo salvo: {output_blend}")
-                print(f"diretorio: {output_dir}")
-                return True
+                # verificar se arquivo foi realmente criado
+                if output_blend.exists():
+                    print("\nsucesso: modelo 3d gerado!")
+                    print(f"arquivo salvo: {output_blend}")
+                    print(f"tamanho: {output_blend.stat().st_size / 1024:.2f} kb")
+                    print(f"diretorio: {output_dir}")
+                    return True
+                else:
+                    print("\naviso: blender executou mas arquivo nao foi criado")
+                    print(f"arquivo esperado: {output_blend}")
+                    print("verifique a saida do blender acima")
+                    return False
             else:
                 print("\nerro: falha na geracao do modelo")
                 print(f"codigo de erro: {result.returncode}")
                 if result.stderr:
-                    print(f"detalhes: {result.stderr}")
+                    print(f"detalhes do erro:")
+                    print(result.stderr)
                 return False
                 
         except subprocess.TimeoutExpired:
