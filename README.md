@@ -1,50 +1,418 @@
 # CFD-PIPELINE-TCC-1
 
-etapa 1:
+pipeline automatizado para simulacao cfd de leitos empacotados usando dsl, blender e openfoam.
 
-1)
-antes semana 1 (dockerfile inicio)
-porem não continuei
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
+[![Blender](https://img.shields.io/badge/blender-4.0+-orange.svg)](https://blender.org)
+[![OpenFOAM](https://img.shields.io/badge/openfoam-11-green.svg)](https://openfoam.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-semana dia 1
-escrevendo e testando os scripts python que geram o leito no blender
-diretamente pelo blender aberto
+## 📋 sobre o projeto
 
-semana dia 8
-bed.g4 antl (inicio do uso do antlr) e 
-escrita do bed_compiler_antlr_standalone.py
-ainda nao foi gerado o parser
+este projeto implementa um pipeline completo e reproduzivel para simulacao cfd (computational fluid dynamics) de leitos empacotados. a solucao aborda os principais problemas de reproducibilidade em simulacoes cientificas atraves de:
 
-semana dia 15
-criei o o bed.g4 (antlr)
-comecei a utilizar o antlr para gerar o parser
-Teste de implementação da geração de geometrias
-utilizando o blender em modo headless
+1. **dsl (domain specific language)** - linguagem `.bed` para descrever parametros de leitos
+2. **geracao automatica de geometria 3d** - usando blender com fisica rigid body
+3. **simulacao cfd automatizada** - usando openfoam (blockmesh, snappyhexmesh, simplefoam)
+4. **containerizacao** - docker compose para reproducibilidade total (em desenvolvimento)
+5. **interface web** - dashboard para visualizacao e analise (planejado)
 
-semana dia 22
-gerei o json dos parametros do leito, mas não conectei
-com o arquivo que gera o leito no blender
-(primeiro teste funcionou)
-(abrir no blender de forma headless e verificar se está abrindo)
+## 🚀 instalacao rapida
 
-2) semana dia 15
-Aprender sobre o software de CFD OpenFOAM e
-investigar os softwares Palabos e OpenLB
+### windows
 
-semana dia 22
-(ainda não fiz)
+```batch
+# baixar o projeto
+git clone https://github.com/bengo501/CFD-PIPELINE-TCC-1.git
+cd CFD-PIPELINE-TCC-1
 
+# executar configuracao automatica
+scripts\automation\setup_all.bat
+```
 
-backlog 
-- conectar o json dos parametros do leito com o arquivo que gera o leito no blender
-- aprender sobre o software de CFD OpenFOAM e
-investigar os softwares Palabos e OpenLB
-- apredner docker compose e dockerfile
-- aprender three js e plotly, fast api e como conectar com o frontend, backend, 
-banco de dados e storage.
-- gerar a malha no openfoam
-- rodar a simulação no openfoam
-- extrair os resultados da simulação
-- armazenar os resultados em um banco de dados
-- expor os resultados via API
-- expor os resultados via dashboard
+### linux / macos
+
+```bash
+# baixar o projeto
+git clone https://github.com/bengo501/CFD-PIPELINE-TCC-1.git
+cd CFD-PIPELINE-TCC-1
+
+# executar configuracao automatica
+python3 scripts/automation/setup_complete.py
+```
+
+**tempo estimado:** 15-60 minutos (depende dos componentes escolhidos)
+
+## 📦 componentes do pipeline
+
+```mermaid
+graph LR
+    A[usuario] -->|define parametros| B[bed_wizard.py]
+    B -->|cria| C[.bed file]
+    C -->|compila| D[compilador antlr]
+    D -->|gera| E[.bed.json]
+    E -->|entrada| F[blender headless]
+    F -->|cria| G[.blend + fisica]
+    G -->|exporta| H[.stl]
+    E -->|configura| I[openfoam case]
+    H -->|geometria| I
+    I -->|executa| J[wsl/linux]
+    J -->|resultados| K[paraview]
+```
+
+### 1. dsl - domain specific language
+
+linguagem declarativa `.bed` para descrever leitos empacotados:
+
+```
+bed {
+    diameter = 5cm
+    height = 10cm
+    wall_thickness = 2mm
+    shape = "cylinder"
+}
+
+particles {
+    count = 100
+    kind = "sphere"
+    diameter = 5mm
+    mass = 0.1kg
+}
+
+packing {
+    method = "rigid_body"
+    gravity = (0, 0, -9.81) m/s2
+}
+
+cfd {
+    regime = "laminar"
+    inlet_velocity = 0.1 m/s
+    fluid_density = 1000 kg/m3
+}
+```
+
+### 2. compilador antlr
+
+compila `.bed` para `.bed.json` normalizado (valores em si):
+
+```bash
+python dsl/compiler/bed_compiler_antlr_standalone.py leito.bed
+# saida: leito.bed.json
+```
+
+### 3. geracao 3d com blender
+
+cria modelo 3d com fisica rigid body:
+
+```bash
+python dsl/bed_wizard.py
+# escolher modo blender
+# modelo salvo em output/models/
+```
+
+**features:**
+- cilindros ou cubos
+- tampas planas ou hemisfericas
+- particulas esfericas com fisica
+- simulacao de empacotamento por gravidade
+
+### 4. simulacao cfd com openfoam
+
+configura e executa simulacao automaticamente:
+
+```bash
+python scripts/openfoam_scripts/setup_openfoam_case.py \
+  dsl/leito.bed.json \
+  output/models/leito.blend \
+  --output-dir output/cfd \
+  --run
+```
+
+**etapas automatizadas:**
+1. exportar stl do blender
+2. criar caso openfoam (0/, constant/, system/)
+3. gerar malha com blockmesh
+4. refinar malha com snappyhexmesh
+5. verificar qualidade com checkmesh
+6. resolver com simplefoam
+7. gerar arquivo para paraview
+
+## 🛠️ tecnologias utilizadas
+
+| componente | tecnologia | versao | uso |
+|------------|-----------|--------|-----|
+| dsl | antlr | 4.13.1 | parser e compilador |
+| geometria | blender | 4.0+ | geracao 3d e fisica |
+| cfd | openfoam | 11 | simulacao fluidos |
+| visualizacao | paraview | 5.11+ | pos-processamento |
+| linguagem | python | 3.8+ | automacao e scripts |
+| ambiente | wsl2 + ubuntu | 22.04 | execucao openfoam no windows |
+
+## 📚 documentacao
+
+### guias principais
+
+- **[scripts/automation/README.md](scripts/automation/README.md)** - instalacao e configuracao
+- **[docs/UML_COMPLETO.md](docs/UML_COMPLETO.md)** - arquitetura e diagramas
+- **[docs/OPENFOAM_WINDOWS_GUIA.md](docs/OPENFOAM_WINDOWS_GUIA.md)** - guia openfoam
+- **[dsl/documentacao.html](dsl/documentacao.html)** - documentacao web interativa
+
+### guias especificos
+
+- **[dsl/README_BLENDER_MODE.md](dsl/README_BLENDER_MODE.md)** - modo blender do wizard
+- **[dsl/README_SISTEMA_AJUDA.md](dsl/README_SISTEMA_AJUDA.md)** - sistema de ajuda
+- **[scripts/openfoam_scripts/GUIA_SIMULACAO_MANUAL.md](scripts/openfoam_scripts/GUIA_SIMULACAO_MANUAL.md)** - simulacao manual
+- **[scripts/openfoam_scripts/README.md](scripts/openfoam_scripts/README.md)** - scripts openfoam
+
+## 🎯 uso basico
+
+### 1. criar um leito com wizard interativo
+
+```bash
+cd dsl
+python bed_wizard.py
+```
+
+**opcoes:**
+1. modo interativo - responder questoes
+2. modo edicao - editar arquivo .bed
+3. modo blender - gerar apenas 3d
+4. modo blender interativo - gerar e abrir blender
+5. documentacao - abrir docs html
+
+### 2. gerar modelo 3d
+
+o wizard ja gera automaticamente no modo blender. ou manualmente:
+
+```bash
+cd scripts/standalone_scripts
+python executar_leito_headless.py
+```
+
+### 3. executar simulacao cfd
+
+```bash
+# configurar caso
+python scripts/openfoam_scripts/setup_openfoam_case.py \
+  dsl/leito_interativo.bed.json \
+  output/models/leito_interativo.blend \
+  --output-dir output/cfd
+
+# executar no wsl
+wsl
+cd /mnt/c/Users/[SEU_USUARIO]/Downloads/CFD-PIPELINE-TCC-1/output/cfd/leito_interativo
+source /opt/openfoam11/etc/bashrc
+./Allrun
+
+# visualizar
+paraview caso.foam
+```
+
+## 📁 estrutura do projeto
+
+```
+CFD-PIPELINE-TCC-1/
+├── dsl/                              # domain specific language
+│   ├── grammar/
+│   │   └── Bed.g4                   # gramatica antlr
+│   ├── compiler/
+│   │   └── bed_compiler_antlr_standalone.py
+│   ├── generated/                    # parser gerado
+│   ├── bed_wizard.py                # interface principal
+│   └── documentacao.html            # docs web
+│
+├── scripts/
+│   ├── automation/                   # scripts de instalacao
+│   │   ├── setup_complete.py        # setup completo
+│   │   ├── install_openfoam.py      # instalador openfoam
+│   │   ├── install_antlr.py         # instalador antlr
+│   │   └── README.md                # guia instalacao
+│   ├── blender_scripts/
+│   │   └── leito_extracao.py        # geracao 3d
+│   ├── openfoam_scripts/
+│   │   └── setup_openfoam_case.py   # configuracao cfd
+│   └── standalone_scripts/
+│       └── executar_leito_headless.py
+│
+├── output/
+│   ├── models/                       # arquivos .blend gerados
+│   └── cfd/                          # casos openfoam
+│
+├── docs/                             # documentacao
+│   ├── UML_COMPLETO.md              # diagramas arquitetura
+│   ├── OPENFOAM_WINDOWS_GUIA.md     # guia openfoam
+│   └── README.md                    # indice docs
+│
+└── README.md                         # este arquivo
+```
+
+## 🔧 scripts de automacao
+
+### instalacao completa
+
+```bash
+# instala tudo (python, java, antlr, blender, openfoam)
+python scripts/automation/setup_complete.py
+```
+
+### instalacao por componente
+
+```bash
+# apenas antlr + java
+python scripts/automation/install_antlr.py
+
+# apenas blender
+python scripts/automation/install_blender.py
+
+# apenas openfoam (windows)
+python scripts/automation/install_openfoam.py
+```
+
+mais detalhes: [scripts/automation/README.md](scripts/automation/README.md)
+
+## 🎨 exemplos
+
+### exemplo 1: leito cilindrico com 100 particulas
+
+```bash
+python dsl/bed_wizard.py
+# escolher modo blender
+# diametro: 0.05m
+# altura: 0.1m
+# particulas: 100
+# diametro particula: 0.005m
+```
+
+**resultado:** `output/models/leito_blender.blend`
+
+### exemplo 2: simulacao cfd completa
+
+```bash
+# 1. criar leito
+python dsl/bed_wizard.py  # modo interativo
+
+# 2. gerar modelo
+# (ja gerado automaticamente)
+
+# 3. configurar cfd
+python scripts/openfoam_scripts/setup_openfoam_case.py \
+  dsl/leito_interativo.bed.json \
+  output/models/leito_interativo.blend \
+  --output-dir output/cfd \
+  --run
+
+# 4. visualizar
+# (automatico ao final da simulacao)
+```
+
+## 🧪 testes
+
+### testar compilador dsl
+
+```bash
+cd dsl
+python compiler/bed_compiler_antlr_standalone.py examples/leito.bed
+```
+
+### testar geracao 3d
+
+```bash
+python scripts/standalone_scripts/executar_leito_headless.py
+```
+
+### testar setup openfoam
+
+```bash
+python scripts/openfoam_scripts/setup_openfoam_case.py --help
+```
+
+## 📊 metricas do projeto
+
+| metrica | valor |
+|---------|-------|
+| linhas de codigo python | ~8000 |
+| scripts de automacao | 5 |
+| classes principais | 8 |
+| funcoes blender | 8 |
+| parametros configuracoes | 47 |
+| documentos markdown | 15 |
+| diagramas uml | 12 |
+
+## 🚧 roadmap
+
+### ✅ concluido
+
+- [x] dsl (.bed) com antlr
+- [x] compilador para json
+- [x] geracao 3d com blender
+- [x] fisica rigid body
+- [x] integracao openfoam
+- [x] scripts de automacao
+- [x] documentacao completa
+- [x] wizard interativo
+- [x] sistema de ajuda
+
+### 🔄 em desenvolvimento
+
+- [ ] api rest com fastapi
+- [ ] dashboard web (react + three.js + plotly)
+- [ ] banco de dados postgresql
+- [ ] storage minio
+- [ ] containerizacao docker
+
+### 📋 planejado
+
+- [ ] processamento em lote
+- [ ] analise parametrica
+- [ ] otimizacao automatica
+- [ ] machine learning para predicoes
+- [ ] ci/cd pipeline
+
+## 🤝 contribuindo
+
+contribuicoes sao bem-vindas! por favor:
+
+1. fork o projeto
+2. crie uma branch: `git checkout -b feature/nova-feature`
+3. commit: `git commit -m 'adicionar nova feature'`
+4. push: `git push origin feature/nova-feature`
+5. abra um pull request
+
+## 📝 licenca
+
+este projeto esta sob a licenca mit. veja [LICENSE](LICENSE) para detalhes.
+
+## 👤 autor
+
+**bengo501**
+
+- github: [@bengo501](https://github.com/bengo501)
+- projeto: [CFD-PIPELINE-TCC-1](https://github.com/bengo501/CFD-PIPELINE-TCC-1)
+
+## 🙏 agradecimentos
+
+- **antlr** - parser generator
+- **blender foundation** - software 3d open source
+- **openfoam foundation** - software cfd open source
+- **python software foundation** - linguagem python
+
+## 📞 suporte
+
+se encontrar problemas:
+
+1. verifique a [documentacao](docs/)
+2. leia o [guia de instalacao](scripts/automation/README.md)
+3. consulte o [troubleshooting](scripts/automation/README.md#troubleshooting)
+4. abra uma [issue no github](https://github.com/bengo501/CFD-PIPELINE-TCC-1/issues)
+
+## 📈 status do projeto
+
+este projeto e um trabalho de conclusao de curso (tcc) em desenvolvimento ativo.
+
+**ultima atualizacao:** outubro 2025
+
+**versao atual:** 1.0.0-beta
+
+---
+
+**nota:** este projeto foi desenvolvido para fins academicos e de pesquisa. para uso em producao, considere validacao adicional dos resultados cfd.
