@@ -1,0 +1,34 @@
+# arquivos gerados pelos testes e2e
+
+# saidas dos testes
+outputs/
+!outputs/.gitkeep
+
+# resultados
+results/
+!results/.gitkeep
+
+# logs
+logs/
+!logs/.gitkeep
+
+# cache python
+__pycache__/
+*.pyc
+*.pyo
+
+# arquivos temporarios
+*.tmp
+*.temp
+*.bak
+
+# arquivos grandes
+*.blend
+*.blend1
+*.blend2
+*.stl
+*.obj
+
+# casos openfoam
+*_cfd/
+
