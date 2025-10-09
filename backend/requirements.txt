@@ -1,0 +1,25 @@
+# backend cfd pipeline - dependências python
+
+# framework web
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# validação e serialização
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# utilitários
+python-dotenv==1.0.0
+aiofiles==23.2.1
+
+# cors (desenvolvimento)
+fastapi-cors==0.0.6
+
+# opcional: banco de dados futuro
+# sqlalchemy==2.0.23
+# alembic==1.13.0
+
+# opcional: armazenamento futuro
+# boto3==1.29.7  # minio/s3
+
