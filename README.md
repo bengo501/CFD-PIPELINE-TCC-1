@@ -7,7 +7,7 @@ pipeline automatizado para simulacao cfd de leitos empacotados usando dsl, blend
 [![OpenFOAM](https://img.shields.io/badge/openfoam-11-green.svg)](https://openfoam.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 📋 sobre o projeto
+## sobre o projeto
 
 este projeto implementa um pipeline completo e reproduzivel para simulacao cfd (computational fluid dynamics) de leitos empacotados. a solucao aborda os principais problemas de reproducibilidade em simulacoes cientificas atraves de:
 
@@ -17,7 +17,7 @@ este projeto implementa um pipeline completo e reproduzivel para simulacao cfd (
 4. **containerizacao** - docker compose para reproducibilidade total (em desenvolvimento)
 5. **interface web** - dashboard para visualizacao e analise (planejado)
 
-## 🚀 instalacao rapida
+## instalacao rapida
 
 ### windows
 
@@ -43,7 +43,7 @@ python3 scripts/automation/setup_complete.py
 
 **tempo estimado:** 15-60 minutos (depende dos componentes escolhidos)
 
-## 📦 componentes do pipeline
+## componentes do pipeline
 
 ```mermaid
 graph LR
@@ -137,7 +137,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 6. resolver com simplefoam
 7. gerar arquivo para paraview
 
-## 🛠️ tecnologias utilizadas
+## tecnologias utilizadas
 
 | componente | tecnologia | versao | uso |
 |------------|-----------|--------|-----|
@@ -148,7 +148,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 | linguagem | python | 3.8+ | automacao e scripts |
 | ambiente | wsl2 + ubuntu | 22.04 | execucao openfoam no windows |
 
-## 📚 documentacao
+## documentacao
 
 ### guias principais
 
@@ -164,7 +164,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 - **[scripts/openfoam_scripts/GUIA_SIMULACAO_MANUAL.md](scripts/openfoam_scripts/GUIA_SIMULACAO_MANUAL.md)** - simulacao manual
 - **[scripts/openfoam_scripts/README.md](scripts/openfoam_scripts/README.md)** - scripts openfoam
 
-## 🎯 uso basico
+## uso basico
 
 ### 1. criar um leito com wizard interativo
 
@@ -208,7 +208,7 @@ source /opt/openfoam11/etc/bashrc
 paraview caso.foam
 ```
 
-## 📁 estrutura do projeto
+## estrutura do projeto
 
 ```
 CFD-PIPELINE-TCC-1/
@@ -246,7 +246,7 @@ CFD-PIPELINE-TCC-1/
 └── README.md                         # este arquivo
 ```
 
-## 🔧 scripts de automacao
+## scripts de automacao
 
 ### instalacao completa
 
@@ -270,7 +270,7 @@ python scripts/automation/install_openfoam.py
 
 mais detalhes: [scripts/automation/README.md](scripts/automation/README.md)
 
-## 🎨 exemplos
+## exemplos
 
 ### exemplo 1: leito cilindrico com 100 particulas
 
@@ -305,7 +305,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 # (automatico ao final da simulacao)
 ```
 
-## 🧪 testes
+## testes
 
 ### testar compilador dsl
 
@@ -326,7 +326,7 @@ python scripts/standalone_scripts/executar_leito_headless.py
 python scripts/openfoam_scripts/setup_openfoam_case.py --help
 ```
 
-## 📊 metricas do projeto
+## metricas do projeto
 
 | metrica | valor |
 |---------|-------|
@@ -338,9 +338,9 @@ python scripts/openfoam_scripts/setup_openfoam_case.py --help
 | documentos markdown | 15 |
 | diagramas uml | 12 |
 
-## 🚧 roadmap
+## roadmap
 
-### ✅ concluido
+### concluido
 
 - [x] dsl (.bed) com antlr
 - [x] compilador para json
@@ -352,7 +352,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py --help
 - [x] wizard interativo
 - [x] sistema de ajuda
 
-### 🔄 em desenvolvimento
+### em desenvolvimento
 
 - [ ] api rest com fastapi
 - [ ] dashboard web (react + three.js + plotly)
@@ -360,7 +360,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py --help
 - [ ] storage minio
 - [ ] containerizacao docker
 
-### 📋 planejado
+### planejado
 
 - [ ] processamento em lote
 - [ ] analise parametrica
@@ -368,51 +368,9 @@ python scripts/openfoam_scripts/setup_openfoam_case.py --help
 - [ ] machine learning para predicoes
 - [ ] ci/cd pipeline
 
-## 🤝 contribuindo
-
-contribuicoes sao bem-vindas! por favor:
-
-1. fork o projeto
-2. crie uma branch: `git checkout -b feature/nova-feature`
-3. commit: `git commit -m 'adicionar nova feature'`
-4. push: `git push origin feature/nova-feature`
-5. abra um pull request
-
-## 📝 licenca
-
-este projeto esta sob a licenca mit. veja [LICENSE](LICENSE) para detalhes.
-
-## 👤 autor
+## autor
 
 **bengo501**
 
 - github: [@bengo501](https://github.com/bengo501)
 - projeto: [CFD-PIPELINE-TCC-1](https://github.com/bengo501/CFD-PIPELINE-TCC-1)
-
-## 🙏 agradecimentos
-
-- **antlr** - parser generator
-- **blender foundation** - software 3d open source
-- **openfoam foundation** - software cfd open source
-- **python software foundation** - linguagem python
-
-## 📞 suporte
-
-se encontrar problemas:
-
-1. verifique a [documentacao](docs/)
-2. leia o [guia de instalacao](scripts/automation/README.md)
-3. consulte o [troubleshooting](scripts/automation/README.md#troubleshooting)
-4. abra uma [issue no github](https://github.com/bengo501/CFD-PIPELINE-TCC-1/issues)
-
-## 📈 status do projeto
-
-este projeto e um trabalho de conclusao de curso (tcc) em desenvolvimento ativo.
-
-**ultima atualizacao:** outubro 2025
-
-**versao atual:** 1.0.0-beta
-
----
-
-**nota:** este projeto foi desenvolvido para fins academicos e de pesquisa. para uso em producao, considere validacao adicional dos resultados cfd.

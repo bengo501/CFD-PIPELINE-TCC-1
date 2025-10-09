@@ -2,7 +2,7 @@
 
 testes automatizados completos do pipeline, desde geracao de leitos ate simulacao openfoam.
 
-## 📁 estrutura
+## estrutura
 
 ```
 tests/e2e/
@@ -24,7 +24,7 @@ tests/e2e/
 └── README.md                   # este arquivo
 ```
 
-## 🧪 testes disponiveis
+## testes disponiveis
 
 ### suite principal: test_full_pipeline.py
 
@@ -64,7 +64,7 @@ tests/e2e/
 
 ---
 
-## 🚀 como usar
+## como usar
 
 ### executar todos os testes
 
@@ -133,7 +133,7 @@ python test_full_pipeline.py --test test_parametric_study
 
 ---
 
-## 📊 relatorios
+## relatorios
 
 ### relatorio json
 
@@ -179,7 +179,7 @@ cada teste gera logs especificos:
 
 ---
 
-## 🎯 cenarios de teste
+## cenarios de teste
 
 ### cenario 1: validacao basica
 
@@ -242,7 +242,7 @@ cada teste gera logs especificos:
 
 ---
 
-## 🔧 configuracao
+## configuracao
 
 ### requisitos
 
@@ -280,7 +280,7 @@ python scripts/automation/run_tests.py
 
 ---
 
-## 📝 parametros dos testes
+## parametros dos testes
 
 cada teste usa parametros diferentes:
 
@@ -295,7 +295,7 @@ cada teste usa parametros diferentes:
 
 ---
 
-## 🐛 troubleshooting
+  ## troubleshooting
 
 ### erro: "blender nao encontrado"
 
@@ -349,7 +349,7 @@ python dsl/compiler/bed_compiler_antlr_standalone.py tests/e2e/outputs/test01.be
 
 ---
 
-## 📈 metricas de performance
+## metricas de performance
 
 tempos esperados (computador medio):
 
@@ -365,7 +365,7 @@ tempos esperados (computador medio):
 
 ---
 
-## 🔄 integracao ci/cd
+## integracao ci/cd
 
 para usar em ci/cd (github actions, gitlab ci):
 
@@ -398,7 +398,7 @@ jobs:
 
 ---
 
-## 📚 referencias
+## referencias
 
 - [suite de testes](test_full_pipeline.py)
 - [automacoes](../../scripts/automation/)
@@ -407,7 +407,7 @@ jobs:
 
 ---
 
-## 🎯 proximos passos
+## proximos passos
 
 1. **executar testes**
    ```bash
