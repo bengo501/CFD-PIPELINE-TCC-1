@@ -9,16 +9,21 @@ completedColumns:
 
 ## Done
 
-- task-001.md
-- task-002.md
-- task-003.md
-- task-004.md
-- task-005.md
-- task-006.md
-- task-007.md
-- task-008.md
-- task-018.md
-- task-019.md
+### sprint 1 - fundação (concluído)
+- task-001.md  # dsl + antlr
+- task-002.md  # bed wizard
+- task-007.md  # kanban/scrumban
+- task-008.md  # github projects
+
+### sprint 2 - modelagem e automação (concluído)
+- task-003.md  # blender headless
+- task-004.md  # setup openfoam
+- task-005.md  # testes e2e
+- task-006.md  # documentação pipeline
+
+### sprint 3 - web e api (concluído)
+- task-018.md  # backend fastapi
+- task-019.md  # frontend react
 
 ## In Progress
 
