@@ -50,22 +50,6 @@ class GitHubProjectCreator:
         """cria novo github project v2"""
         print("\n[2/7] criando github project...")
         
-        query = '''
-        mutation($ownerId: ID!) {
-          createProjectV2(input: {
-            ownerId: $ownerId,
-            title: "CFD Pipeline - Scrumban",
-            repositoryId: null
-          }) {
-            projectV2 {
-              id
-              number
-              url
-            }
-          }
-        }
-        '''
-        
         # pegar owner id
         owner_data = self.run_gh_command(['api', 'user'], parse_json=True)
         if not owner_data:
@@ -74,12 +58,13 @@ class GitHubProjectCreator:
         
         owner_id = owner_data['node_id']
         
-        # criar projeto
-        variables = json.dumps({'ownerId': owner_id})
+        # criar projeto usando formato correto
+        query = 'mutation($ownerId: ID!) { createProjectV2(input: {ownerId: $ownerId, title: "CFD Pipeline - Scrumban"}) { projectV2 { id number url } } }'
+        
         result = self.run_gh_command([
             'api', 'graphql',
             '-f', f'query={query}',
-            '-f', f'variables={variables}'
+            '-F', f'ownerId={owner_id}'
         ], parse_json=True)
         
         if result and 'data' in result:

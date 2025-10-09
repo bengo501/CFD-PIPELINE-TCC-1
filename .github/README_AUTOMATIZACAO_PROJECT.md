@@ -30,20 +30,33 @@ estes scripts automatizam a criação e configuração completa de um github pro
 
 ---
 
-## 📦 pré-requisitos
+## ⚠️ importante: permissões necessárias
 
-### 1. github cli instalado e autenticado
+**os scripts automáticos requerem permissões especiais (`project` scope) que não são concedidas por padrão no github cli.**
+
+**recomendação:** use o **guia manual** que é mais rápido e não requer permissões extras:
+- `.github/SETUP_PROJECT_MANUAL_GUIADO.md` ← **recomendado!**
+- tempo: 5-7 minutos
+- 100% visual e passo a passo
+
+---
+
+## 📦 pré-requisitos (se usar scripts automáticos)
+
+### 1. github cli com permissões project
 
 ```bash
 # verificar instalação
 gh --version
 
-# autenticar
-gh auth login
+# reautenticar com scopes corretos
+gh auth login --scopes project,read:project
 
 # verificar autenticação
 gh auth status
 ```
+
+**nota:** se preferir não dar permissões extras, siga o guia manual acima.
 
 ### 2. python 3.7+
 
