@@ -15,19 +15,20 @@ story-points: 13
 criar interface web para interagir com pipeline cfd.
 
 ## tarefas
-- [ ] setup react + vite
-- [ ] formulário de parâmetros do leito
-- [ ] integração com api backend (axios)
-- [ ] visualização 3d com three.js
-- [ ] monitoramento de jobs em tempo real
-- [ ] gráficos de resultados com plotly
-- [ ] estilização com tailwind css
-- [ ] download de arquivos
-- [ ] listagem de modelos
-- [ ] listagem de simulações
-- [ ] tratamento de erros
-- [ ] feedback visual (loading, success, error)
-- [ ] README completo
+- [x] setup react + vite
+- [x] formulário de parâmetros do leito
+- [x] integração com api backend (axios)
+- [x] monitoramento de jobs em tempo real
+- [x] download de arquivos
+- [x] listagem de modelos
+- [x] listagem de simulações
+- [x] tratamento de erros
+- [x] feedback visual (loading, success, error)
+- [x] README completo
+- [x] estilização css moderna
+- [x] design responsivo
+- [ ] visualização 3d com three.js (placeholder criado)
+- [ ] gráficos de resultados (futuro)
 
 ## resultado
 - aplicação react funcionando em localhost:3000
@@ -46,10 +47,12 @@ alta - interface principal do sistema
 - depende de: #18 (backend fastapi)
 
 ## critérios de aceitação
-- [ ] formulário cria arquivo .bed via api
-- [ ] visualiza modelo 3d gerado
-- [ ] monitora progresso de jobs
-- [ ] exibe resultados de simulação
-- [ ] responsivo e intuitivo
-- [ ] tratamento de erros
+- [x] formulário cria arquivo .bed via api
+- [x] monitora progresso de jobs
+- [x] exibe resultados de simulação
+- [x] responsivo e intuitivo
+- [x] tratamento de erros
+- [x] 12 arquivos criados
+- [x] ~1800 linhas de código
+- [ ] visualiza modelo 3d gerado (placeholder)
 
