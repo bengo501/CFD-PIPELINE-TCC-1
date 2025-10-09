@@ -43,23 +43,6 @@ python3 scripts/automation/setup_complete.py
 
 **tempo estimado:** 15-60 minutos (depende dos componentes escolhidos)
 
-## componentes do pipeline
-
-```mermaid
-graph LR
-    A[usuario] -->|define parametros| B[bed_wizard.py]
-    B -->|cria| C[.bed file]
-    C -->|compila| D[compilador antlr]
-    D -->|gera| E[.bed.json]
-    E -->|entrada| F[blender headless]
-    F -->|cria| G[.blend + fisica]
-    G -->|exporta| H[.stl]
-    E -->|configura| I[openfoam case]
-    H -->|geometria| I
-    I -->|executa| J[wsl/linux]
-    J -->|resultados| K[paraview]
-```
-
 ### 1. dsl - domain specific language
 
 linguagem declarativa `.bed` para descrever leitos empacotados:
