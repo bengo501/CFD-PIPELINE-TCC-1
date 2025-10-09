@@ -17,11 +17,13 @@ completedColumns:
 - task-006.md
 - task-007.md
 - task-008.md
+- task-018.md
 
 ## In Progress
 
 ## Todo
 
+- task-019.md
 - task-101.md
 - task-105.md
 - task-104.md

@@ -21,11 +21,11 @@
 
 | tarefa | descrição | story points | prioridade | responsável |
 |--------|-----------|--------------|------------|-------------|
-| #101 | análise de resultados | 8 | alta | @dev1 |
-| #105 | ci/cd pipeline | 5 | alta | @dev2 |
-| #104 | containerização docker | 8 | média | @dev1 |
+| #18 | backend fastapi | 13 | alta | @dev1 |
+| #19 | frontend react | 13 | alta | @dev1 |
+| #101 | análise de resultados | 8 | média | @dev1 |
 
-**total story points:** 21 pts
+**total story points:** 34 pts
 
 ### capacidade do time
 
