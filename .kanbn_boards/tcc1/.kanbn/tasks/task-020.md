@@ -5,7 +5,8 @@ tags:
   - openfoam
 created: 2025-10-09
 assigned: 
-sprint: sprint 2
+sprint: mes 4 sem 3-4
+atividades-tcc: a13
 story-points: 3
 ---
 

@@ -5,6 +5,10 @@ tags:
   - antlr
   - compilador
 created: 2025-09-15
+assigned: 
+sprint: mes 1 sem 3-4 + mes 2 sem 1-2
+atividades-tcc: a2, a3
+story-points: 13
 ---
 
 # implementar dsl (.bed) com antlr

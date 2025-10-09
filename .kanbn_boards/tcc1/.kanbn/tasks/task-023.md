@@ -6,7 +6,8 @@ tags:
   - postgresql
 created: 2025-10-09
 assigned: 
-sprint: sprint 2
+sprint: mes 3 sem 3
+atividades-tcc: a8
 story-points: 8
 ---
 

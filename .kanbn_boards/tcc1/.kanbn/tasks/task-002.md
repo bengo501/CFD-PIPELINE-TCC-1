@@ -1,28 +1,34 @@
 ---
-name: scripts blender para geracao 3d
+name: bed wizard - interface interativa para dsl
 tags:
-  - blender
-  - 3d
-  - fisica
-created: 2025-09-10
+  - dsl
+  - cli
+  - wizard
+created: 2025-09-20
+assigned: 
+sprint: mes 2 sem 1-2
+atividades-tcc: a3
+story-points: 8
 ---
 
-# scripts blender para geracao 3d
+# bed wizard - interface interativa para dsl
 
-criar scripts python para gerar leitos empacotados no blender com fisica rigid body.
+criar interface cli interativa para facilitar criação de arquivos .bed.
 
 ## tarefas
-- [x] script leito_extracao.py
-- [x] criar cilindro oco
-- [x] criar tampas (planas/hemisfericas)
-- [x] gerar particulas esfericas
-- [x] aplicar fisica rigid body (passive/active)
-- [x] configurar simulacao fisica (gravidade, substeps)
-- [x] salvar arquivo .blend
-- [x] executor headless
+- [x] menu principal com opções
+- [x] modo interativo com perguntas
+- [x] modo edição de arquivo padrão
+- [x] compilação automática após criação
+- [x] validação de sintaxe
+- [x] modo blender focado em 3d
+- [x] modo blender interativo (abre gui)
+- [x] sistema de ajuda integrado
+- [x] validação de ranges min/max
+- [x] documentação html embutida
 
 ## resultado
-- `scripts/blender_scripts/leito_extracao.py` (500 linhas)
-- `scripts/standalone_scripts/executar_leito_headless.py`
-- modelos 3d funcionais com fisica
+- `dsl/bed_wizard.py` (1400+ linhas)
+- interface amigável para usuários não técnicos
+- reduz barreiras de entrada no sistema
 

@@ -6,7 +6,8 @@ tags:
   - infraestrutura
 created: 2025-10-09
 assigned: 
-sprint: sprint 3
+sprint: mes 7 sem 3-4 + mes 8 sem 1
+atividades-tcc: a23, a24
 story-points: 13
 ---
 

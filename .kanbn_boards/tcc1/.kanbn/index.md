@@ -23,17 +23,31 @@ completedColumns:
 ## In Progress
 
 ## Todo
-- task-020.md
+
+### prioridade alta - tcc1 (mês 2-4)
 - task-021.md
 - task-022.md
+- task-025.md
+- task-028.md
+- task-029.md
+
+### prioridade média - tcc1 (mês 3-4)
+- task-020.md
 - task-023.md
-- task-101.md
+- task-026.md
+- task-027.md
+- task-030.md
+- task-031.md
 
 ## Backlog
 
-- task-024.md
+### tcc1 - melhorias
+- task-101.md
 - task-102.md
 - task-103.md
+
+### tcc2 - futuro (mês 5-8)
+- task-024.md
 - task-104.md
 - task-105.md
 - task-106.md

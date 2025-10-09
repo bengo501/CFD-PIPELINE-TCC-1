@@ -6,7 +6,8 @@ tags:
   - paraview
 created: 2025-10-09
 assigned: 
-sprint: sprint 2
+sprint: mes 2 sem 3-4 + mes 3 sem 1-2
+atividades-tcc: a5, a6
 story-points: 8
 ---
 

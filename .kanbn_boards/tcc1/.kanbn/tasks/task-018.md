@@ -5,8 +5,9 @@ tags:
   - api
   - fastapi
 created: 2025-10-09
-assigned: desenvolvedor
-sprint: sprint 1
+assigned: 
+sprint: mes 3 sem 3-4
+atividades-tcc: a9
 story-points: 13
 ---
 

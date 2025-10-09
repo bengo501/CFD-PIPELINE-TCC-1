@@ -1,30 +1,34 @@
 ---
-name: wizard interativo (bed_wizard.py)
+name: integrar blender headless com dsl
 tags:
-  - interface
-  - wizard
-  - ux
-created: 2025-09-20
+  - blender
+  - 3d
+  - integracao
+created: 2025-09-22
+assigned: 
+sprint: mes 2 sem 2-3
+atividades-tcc: a4
+story-points: 13
 ---
 
-# wizard interativo (bed_wizard.py)
+# integrar blender headless com dsl
 
-interface amigavel para criar leitos sem conhecimento tecnico.
+integrar blender para gerar modelos 3d a partir de arquivos .bed.json.
 
 ## tarefas
-- [x] modo interativo (questoes)
-- [x] modo edicao (arquivo padrao)
-- [x] modo blender (apenas 3d)
-- [x] modo blender interativo (abre gui)
-- [x] sistema de ajuda completo
-- [x] validacao de parametros (min/max)
-- [x] documentacao html integrada
-- [x] compilacao automatica
-- [x] execucao blender headless
+- [x] script leito_extracao.py com leitura de json
+- [x] criar cilindro oco
+- [x] criar tampas (planas/hemisfericas)
+- [x] gerar particulas esfericas
+- [x] aplicar fisica rigid body (passive/active)
+- [x] configurar simulacao fisica (gravidade, substeps)
+- [x] salvar arquivo .blend
+- [x] exportar stl
+- [x] executor headless
+- [x] integrar com bed_wizard
 
 ## resultado
-- `dsl/bed_wizard.py` (1388 linhas)
-- 47 parametros com ajuda
-- 5 modos de operacao
-- `dsl/documentacao.html`
+- `scripts/blender_scripts/leito_extracao.py` (500+ linhas)
+- `scripts/standalone_scripts/executar_leito_headless.py`
+- modelos 3d funcionais exportados como .blend e .stl
 

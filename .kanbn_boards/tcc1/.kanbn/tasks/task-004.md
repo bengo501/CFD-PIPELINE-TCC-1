@@ -1,15 +1,19 @@
 ---
-name: integracao openfoam
+name: criar setup openfoam automatizado
 tags:
   - cfd
   - openfoam
   - simulacao
 created: 2025-10-05
+assigned: 
+sprint: mes 2 sem 3-4
+atividades-tcc: a5
+story-points: 13
 ---
 
-# integracao openfoam
+# criar setup openfoam automatizado
 
-automatizar configuracao e execucao de simulacoes cfd no openfoam.
+automatizar configuracao completa de casos openfoam (template base).
 
 ## tarefas
 - [x] script setup_openfoam_case.py

@@ -1,31 +1,33 @@
 ---
-name: testes end-to-end (e2e)
+name: configurar kanban e scrumban
 tags:
-  - testes
-  - e2e
-  - validacao
-created: 2025-10-07
+  - gestao
+  - kanban
+  - scrum
+created: 2025-10-08
+assigned: 
+sprint: continuo
+atividades-tcc: a15
+story-points: 3
 ---
 
-# testes end-to-end (e2e)
+# configurar kanban e scrumban
 
-suite completa de testes automatizados do pipeline.
+implementar sistema de gestão kanban/scrumban para o projeto.
 
 ## tarefas
-- [x] test_full_pipeline.py (900 linhas)
-- [x] teste 1: geracao basica
-- [x] teste 2: geracao 3d completa
-- [x] teste 3: gerar e abrir blender
-- [x] teste 4: configuracao openfoam
-- [x] teste 5: simulacao completa rapida
-- [x] teste 6: estudo parametrico
-- [x] estrutura organizada (outputs/results/logs)
-- [x] relatorios json
-- [x] logs detalhados
+- [x] criar estrutura .kanbn/
+- [x] definir colunas (backlog, todo, in progress, done)
+- [x] criar 50+ tasks organizadas
+- [x] templates sprint planning
+- [x] templates issue (feature, bug, task)
+- [x] guia scrumban
+- [x] documentação completa
+- [x] integrar com cronograma tcc
 
 ## resultado
-- `tests/e2e/test_full_pipeline.py`
-- `tests/e2e/README.md` (400 linhas)
-- 6 testes automatizados
-- testa todo o pipeline (dsl → 3d → cfd)
+- `.kanbn_boards/tcc1/` estruturado
+- 50+ tasks categorizadas
+- templates reutilizáveis
+- organização sprint-based
 

@@ -1,28 +1,35 @@
 ---
-name: scripts de automacao (testes e utilidades)
+name: documentar pipeline completo
 tags:
-  - automacao
-  - testes
-  - manutencao
-created: 2025-10-07
+  - documentacao
+  - guias
+  - markdown
+created: 2025-10-08
+assigned: 
+sprint: mes 4 sem 3-4
+atividades-tcc: a13
+story-points: 5
 ---
 
-# scripts de automacao (testes e utilidades)
+# documentar pipeline completo
 
-ferramentas automatizadas para testes e manutencao.
+criar documentação abrangente de todo pipeline e componentes.
 
 ## tarefas
-- [x] run_tests.py (12 testes automatizados)
-- [x] batch_generate.py (geracao em lote)
-- [x] cleanup.py (limpeza automatica)
-- [x] relatorios json
-- [x] logs detalhados
-- [x] score de saude do projeto
+- [x] README.md principal (420+ linhas)
+- [x] UML_COMPLETO.md (12 diagramas mermaid)
+- [x] OPENFOAM_WINDOWS_GUIA.md (690 linhas)
+- [x] AUTOMACOES_DISPONIVEIS.md
+- [x] README por componente
+- [x] documentacao.html interativa
+- [x] sistema de ajuda no wizard
+- [x] troubleshooting extensivo
+- [x] badges e roadmap
 
 ## resultado
-- `scripts/automation/run_tests.py` (546 linhas)
-- `scripts/automation/batch_generate.py` (323 linhas)
-- `scripts/automation/cleanup.py` (301 linhas)
-- `docs/AUTOMACOES_DISPONIVEIS.md` (545 linhas)
-- 19 scripts de automacao total
+- 16+ arquivos markdown
+- 1 arquivo html interativo
+- ~5000 linhas de documentacao
+- 12 diagramas uml
+- guias de uso e instalação
 

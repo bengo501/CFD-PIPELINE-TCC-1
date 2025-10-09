@@ -6,7 +6,8 @@ tags:
   - bug
 created: 2025-10-09
 assigned: 
-sprint: sprint 2
+sprint: mes 2 sem 2-3
+atividades-tcc: a4
 story-points: 8
 ---
 

@@ -6,7 +6,8 @@ tags:
   - ui
 created: 2025-10-09
 assigned: 
-sprint: sprint 1
+sprint: mes 4 sem 1-2
+atividades-tcc: a10
 story-points: 13
 ---
 

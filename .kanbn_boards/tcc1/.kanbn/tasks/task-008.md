@@ -1,31 +1,33 @@
 ---
-name: documentacao completa
+name: integrar github projects
 tags:
-  - documentacao
-  - uml
-  - guias
-created: 2025-10-06
+  - gestao
+  - github
+  - automacao
+created: 2025-10-08
+assigned: 
+sprint: continuo
+atividades-tcc: a15
+story-points: 3
 ---
 
-# documentacao completa
+# integrar github projects
 
-criar documentacao extensa do projeto.
+integrar kanban local com github issues e projects.
 
 ## tarefas
-- [x] README.md principal (420 linhas)
-- [x] UML_COMPLETO.md (12 diagramas mermaid)
-- [x] OPENFOAM_WINDOWS_GUIA.md
-- [x] AUTOMACOES_DISPONIVEIS.md
-- [x] README por componente
-- [x] documentacao.html interativa
-- [x] sistema de ajuda no wizard
-- [x] troubleshooting extensivo
+- [x] script migrate_kanbn_to_github.py
+- [x] criar labels padronizados
+- [x] criar milestones
+- [x] templates de issue
+- [x] guia setup github projects
+- [x] scripts powershell e bash
+- [x] documentação completa
+- [x] guia de comandos gh cli
 
 ## resultado
-- 16 arquivos markdown
-- 1 arquivo html interativo
-- ~5000 linhas de documentacao
-- 12 diagramas uml
-- badges no readme
-- exemplos de uso
+- migração automática tasks → issues
+- `.github/` com templates e scripts
+- guia setup manual e automatizado
+- integração completa com gh cli
 

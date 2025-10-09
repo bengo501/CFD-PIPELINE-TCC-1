@@ -1,31 +1,36 @@
 ---
-name: scripts de automacao (instalacao)
+name: criar testes e2e automatizados
 tags:
+  - testes
+  - e2e
   - automacao
-  - instalacao
-  - setup
-created: 2025-10-06
+created: 2025-10-07
+assigned: 
+sprint: mes 4 sem 2
+atividades-tcc: a11
+story-points: 8
 ---
 
-# scripts de automacao (instalacao)
+# criar testes e2e automatizados
 
-automatizar instalacao de todas as dependencias do projeto.
+criar suite de testes end-to-end cobrindo pipeline completo.
 
 ## tarefas
-- [x] setup_complete.py (setup mestre)
-- [x] install_blender.py
-- [x] install_antlr.py (java + antlr)
-- [x] install_openfoam.py (wsl2 + openfoam)
-- [x] setup_all.bat (windows)
-- [x] setup_project.py
-- [x] setup_blender_path.py
-- [x] suporte multi-plataforma
-- [x] deteccao automatica
-- [x] verificacao pos-instalacao
+- [x] test_full_pipeline.py com 6 testes
+- [x] teste 1: geração básica dsl
+- [x] teste 2: geração 3d completa
+- [x] teste 3: abertura interativa blender
+- [x] teste 4: configuração openfoam
+- [x] teste 5: simulação rápida (blockmesh)
+- [x] teste 6: estudo paramétrico
+- [x] estrutura outputs/results/logs
+- [x] script de limpeza de outputs
+- [x] documentação completa
+- [x] relatórios json
 
 ## resultado
-- 7 scripts de instalacao
-- `scripts/automation/README.md` (416 linhas)
-- instalacao 100% automatizada
-- tempo: 15-60 minutos
+- `tests/e2e/test_full_pipeline.py` (485 linhas)
+- `tests/e2e/README.md` (437 linhas)
+- 6 testes cobrindo todo pipeline
+- estrutura organizada de outputs
 
