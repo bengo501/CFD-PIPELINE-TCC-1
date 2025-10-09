@@ -325,49 +325,6 @@ python scripts/standalone_scripts/executar_leito_headless.py
 ```bash
 python scripts/openfoam_scripts/setup_openfoam_case.py --help
 ```
-
-## metricas do projeto
-
-| metrica | valor |
-|---------|-------|
-| linhas de codigo python | ~8000 |
-| scripts de automacao | 5 |
-| classes principais | 8 |
-| funcoes blender | 8 |
-| parametros configuracoes | 47 |
-| documentos markdown | 15 |
-| diagramas uml | 12 |
-
-## roadmap
-
-### concluido
-
-- [x] dsl (.bed) com antlr
-- [x] compilador para json
-- [x] geracao 3d com blender
-- [x] fisica rigid body
-- [x] integracao openfoam
-- [x] scripts de automacao
-- [x] documentacao completa
-- [x] wizard interativo
-- [x] sistema de ajuda
-
-### em desenvolvimento
-
-- [ ] api rest com fastapi
-- [ ] dashboard web (react + three.js + plotly)
-- [ ] banco de dados postgresql
-- [ ] storage minio
-- [ ] containerizacao docker
-
-### planejado
-
-- [ ] processamento em lote
-- [ ] analise parametrica
-- [ ] otimizacao automatica
-- [ ] machine learning para predicoes
-- [ ] ci/cd pipeline
-
 ## autor
 
 **bengo501**
