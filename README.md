@@ -2,6 +2,10 @@
 
 pipeline automatizado para simulacao cfd de leitos empacotados usando dsl, blender e openfoam.
 
+https://github.com/bengo501/CFD-PIPELINE-TCC-1/issues
+
+https://github.com/bengo501/CFD-PIPELINE-TCC-1/milestones
+
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![Blender](https://img.shields.io/badge/blender-4.0+-orange.svg)](https://blender.org)
 [![OpenFOAM](https://img.shields.io/badge/openfoam-11-green.svg)](https://openfoam.org)
