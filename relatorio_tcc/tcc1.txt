@@ -411,7 +411,7 @@ Fonte: produção autoral (2025)
 
 A Tabela 2 mostra a organização temporal do trabalho, com as atividades estruturadas em semanas/meses, permitindo visualizar marcos de entrega
 
-COMPARAÇÃO ANTES X DEPOIS
+14.COMPARAÇÃO ANTES X DEPOIS
 
 **** Insira tabela ****
 
@@ -420,11 +420,67 @@ Fonte: produção autoral (2025)
 
 A Tabela X mostra
 
-CONSIDERAÇÕES FINAIS
+15.CONSIDERAÇÕES FINAIS
 
 ***** Escrever aqui as considerações finais.
 
-REFERÊNCIAS
+16.REFERÊNCIAS
 
 Apresentação do 26 º Salão de IC (2025/1) : Apresentacao_SIC_Bernardo_Klein_Heitz.pptx
 https://brpucrs-my.sharepoint.com/:p:/g/personal/bernardo_heitz_edu_pucrs_br/EWXtSWx93gVIqwTR_vOAMxMBEkQYagqKEniXpmqUDMtooQ?e=v5MAlI
+
+
+[1] LUTZ, Mark. Learning Python. 5. ed. Sebastopol: O’Reilly Media, 2013.
+[2] MATTHES, Eric. Python Crash Course: A Hands-On, Project-Based Introduction to Programming. 2. ed. San Francisco: No Starch Press, 2019.
+[3] BRITO, Allan. Blender Quick Start Guide: 3D Modeling, Animation, and Rendering with Blender 2.8. Birmingham: Packt, 2018.
+[4] VALENZA, Enrico. Blender 3D Cookbook. 2. ed. Birmingham: Packt, 2015.
+[5] CONLAN, Chris. The Blender Python API: Add-on Development. Berkeley: Apress, 2017.
+[6] SUTHERLAND, Jeff; SUTHERLAND, J. J. Scrum: a arte de fazer o dobro do trabalho na metade do tempo. Rio de Janeiro: Leya, 2014.
+[7] ERGUN, Sabri. Fluid flow through packed columns. Chemical Engineering Progress, v. 48, n. 2, p. 89–94, 1952.
+[8] ROACHE, Patrick J. Verification and Validation in Computational Science and Engineering. Albuquerque: Hermosa Publishers, 1998.
+[9] VERSTEEG, H. K.; MALALASEKERA, W. An Introduction to Computational Fluid Dynamics: The Finite Volume Method. 2. ed. Harlow: Pearson, 2007.
+[10] FERZIGER, Joel H.; PERIĆ, Milovan. Computational Methods for Fluid Dynamics. 3. ed. Berlin: Springer, 2002.
+[11] POPE, Stephen B. Turbulent Flows. Cambridge: Cambridge University Press, 2000.
+[12] WILCOX, David C. Turbulence Modeling for CFD. 3. ed. La Cañada: DCW Industries, 2006.
+[13] SCHLICHTING, Hermann; GERSTEN, Klaus. Boundary-Layer Theory. 8. ed. Berlin: Springer, 2000.
+[14] BLENDER FOUNDATION. Blender Python API. Disponível em: https://docs.blender.org/api/current/
+[15] BLENDER FOUNDATION. Python Console — Blender Manual. Disponível em: https://docs.blender.org/manual/pt/3.5/editors/python_console.html
+[16] OPENFOAM FOUNDATION. OpenFOAM documentation: User Guide; snappyHexMesh; simpleFoam. Disponível em: https://www.openfoam.com/documentation/
+[17] PYTHON SOFTWARE FOUNDATION. Python 3.x Documentation. Disponível em: https://docs.python.org/3/
+[18] FASTAPI. FastAPI Documentation. Disponível em: https://fastapi.tiangolo.com/
+[19] PALLETS PROJECTS. Flask Documentation (3.1.x). Disponível em: https://flask.palletsprojects.com/
+[20] DJANGO SOFTWARE FOUNDATION. Django overview. Disponível em: https://www.djangoproject.com/start/overview/
+[21] OPENJS FOUNDATION. Node.js Documentation. Disponível em: https://nodejs.org/
+[22] VERCEL. Next.js Learn. Disponível em: https://nextjs.org/learn
+[23] THREE.JS FOUNDATION. Three.js Documentation. Disponível em: https://threejs.org/
+[24] BABYLON.JS TEAM (Microsoft). Babylon.js — Web-Based 3D Engine. Disponível em: https://www.babylonjs.com/
+[25] PLOTLY. Plotly Python Graphing Library. Disponível em: https://plotly.com/python/
+[26] MINIO, Inc. MinIO Documentation. Disponível em: https://min.io/docs/
+[27] POSTGRESQL GLOBAL DEVELOPMENT GROUP. PostgreSQL 16 Documentation. Disponível em: https://www.postgresql.org/docs/
+[28] LARK PROJECT. Lark: Modern Parsing Library for Python. Disponível em: https://github.com/lark-parser/lark
+[29] KITWARE. ParaView Documentation. Disponível em: https://www.paraview.org/documentation/
+[30] KITWARE. vtk.js Documentation. Disponível em: https://kitware.github.io/vtk-js/
+[31] ESSS. Quarta técnica — Leitura de informações de partículas do ANSYS Fluent para CFD-Post (DPM). Disponível em: https://www.esss.com/blog/quarta-tecnica-leitura-de-informacoes-de-particulas-do-fluent-para-cfd-post-dpm/
+[32] PROCESSES (MDPI). Synthetic Packed-Bed Generation for CFD Simulations: Blender vs. STAR-CCM+. Disponível em: https://www.mdpi.com/2305-7084/3/2/52
+[33] CUTEC — Clausthal University of Technology. Relatório técnico sobre packed beds (versão aic.17284). Disponível em: https://www.cutec.de/fileadmin/Sites/CUTEC/Documents/Chemische-Energiesysteme/Ver%C3%B6ffentlichungen/aic.17284_Finalpaper__002_.pdf
+[34] BLENDERNATION. Using Blender for solving real engineering problems. 2017. Disponível em: https://www.blendernation.com/2017/10/17/using-blender-solving-real-engineering-problems/
+[35] BLENDER STACKEXCHANGE. How to create randomly packed bed? Disponível em: https://blender.stackexchange.com/questions/138930/how-to-create-randomly-packed-bed
+[36] COUPLER.IO. Top 19 exemplos e templates de dashboards financeiros. Disponível em: https://blog.coupler.io/pt/dashboards-financeiros/
+[37] MEDIUM. Essential Tech Stacks You Should Know to Stay Ahead in 2025. Disponível em: https://medium.com/hack-the-stack/essential-tech-stacks-you-should-know-to-stay-ahead-in-2025-41eb53ffd596
+[38] REDDIT — r/AskEngineers. How to make a packed bed column for simulations? Disponível em: https://www.reddit.com/r/AskEngineers/comments/1qg74ud/how_to_make_a_packed_bed_column_for_simulations/
+[40] RESEARCHGATE. Blender simulation of bed filling with particle array of 250 particles (Figura). Disponível em: https://www.researchgate.net/figure/a-Blender-simulation-of-bed-filling-with-particle-array-of-250-particles-and-b_fig2_366443894
+[41] GITHUB — NJANAKIEV, Nikola. blender-scripting: Introduction to Blender scripting. Disponível em: https://github.com/njanakiev/blender-scripting 
+[42] OPENFOAM FOUNDATION. OpenFOAM Development Wiki. Disponível em: https://develop.openfoam.com/Development/openfoam/-/wikis/home 
+[43] OPENLB DEVELOPMENT TEAM. OpenLB – Release repository: Doxygen configuration. Disponível em: https://gitlab.com/openlb/release/-/blob/master/doc/DoxygenConfig 
+[44] DOCKER, Inc. Docker Documentation. Disponível em: https://docs.docker.com/ 
+[45] PYDANTIC. Pydantic Documentation. Disponível em: https://docs.pydantic.dev/  
+[46] REDIS Ltd. Redis Documentation. Disponível em: https://redis.io/docs/ 
+[47] SQLALCHEMY. SQLAlchemy 2.x Documentation. Disponível em: https://docs.sqlalchemy.org/ 
+[48] JONES, M.; BRADLEY, J.; SAKIMURA, N. JSON Web Token (JWT). RFC 7519. IETF, 2015. Disponível em: https://www.rfc-editor.org/rfc/rfc7519 
+[49] FOWLER, Martin. Domain-Specific Languages. Boston: Addison-Wesley, 2010. 
+[50] PARR, Terence. Language Implementation Patterns: Create Your Own Domain-Specific and General-Purpose Languages. Shelter Island: Pragmatic Bookshelf, 2010. 
+[51] PARR, Terence. The Definitive ANTLR 4 Reference. 2. ed. Raleigh: Pragmatic Bookshelf, 2013. 
+[52] DOCKER, Inc. Docker Compose – Documentation. Disponível em: https://docs.docker.com/compose/ 
+[53] TRAEFIK LABS. Traefik Proxy Documentation. Disponível em: https://doc.traefik.io/traefik/ 
+[54] NGINX, Inc. NGINX Documentation. Disponível em: https://nginx.org/en/docs/ 
+[55] OPENAPI INITIATIVE. OpenAPI Specification (OAS). Disponível em: https://spec.openapis.org/oas/latest.html

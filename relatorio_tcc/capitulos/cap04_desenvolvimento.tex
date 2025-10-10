@@ -1,0 +1,319 @@
+\chapter{Sistema Proposto}
+\label{cap:sistema}
+
+A proposta do trabalho irá descrever o que é pretendido ser construído ao longo do TCC: um pipeline completo, com características declarativas, automatizadas e conteinerizadas, para a geração de modelagem geométrica e simulação CFD de leitos empacotados, incluindo ingestão de resultados e visualização em um dashboard web \cite{blender2021, openfoam2023, fastapi2021, plotly2021, docker2021}. Por se tratar de uma proposta, as escolhas apresentadas funcionam como guias de implementação, por isso detalhes específicos (parâmetros, listas de campos, ajustes de malha e solver) poderão ser refinados ao longo do desenvolvimento, sem perder de vista o objetivo central do pipeline: reduzir a dificuldade operacional e aumentar a reprodutibilidade científica \cite{roache1994}.
+
+% ============================================================
+% VISÃO GERAL DA SOLUÇÃO
+% ============================================================
+\section{Visão Geral da Solução}
+
+A proposta converte o problema do domínio (dimensões do leito, partículas e condições de escoamento) em um pipeline automatizado e reprodutível que entrega resultados comparáveis, versionados e fáceis de inspecionar \cite{fowler2010, openfoam2023}. O objetivo é reduzir a necessidade de abrir o Blender manualmente, editar múltiplos arquivos no OpenFOAM e organizar resultados na mão, oferecendo rastreabilidade ponta a ponta por meio de DSL, API e dashboard \cite{blender2021, openfoam2023, fastapi2021, plotly2021}.
+
+\subsection{Fluxo Ponta a Ponta}
+
+O usuário escreve um arquivo \texttt{.bed} (DSL) descrevendo o leito; o compilador gera um \texttt{params.json} canônico (SI e chaves padronizadas) \cite{fowler2010}. O Blender (CLI) cria o modelo 3D e exporta STL; o OpenFOAM gera a malha e roda o solver; o sistema extrai variáveis calculadas (ex.: $\Delta p$, $\Delta p/L$, velocidade média, $Re$), armazena metadados/artefatos de forma organizada e expõe tudo via API para visualização no dashboard \cite{blender2021, openfoam2023, versteeg2007}. O pesquisador acompanha o status e analisa os resultados no navegador, sem abrir a interface do Blender nem editar arquivos do CFD.
+
+% TODO: Inserir Figura 1 - Pipeline resumido
+% \begin{figure}[htb]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{figuras/arquitetura/pipeline_resumido.pdf}
+%     \caption{pipeline resumido do fluxo ponta a ponta}
+%     \label{fig:pipeline_resumido}
+% \end{figure}
+
+\subsection{Arquitetura Detalhada}
+
+A Figura \ref{fig:arquitetura_detalhada} mostra os módulos principais (DSL, Blender, OpenFOAM, banco, storage, API, dashboard), o fluxo de dados entre eles e os mecanismos de versionamento e rastreabilidade.
+
+% TODO: Inserir Figura 2 - Arquitetura detalhada
+% \begin{figure}[htb]
+%     \centering
+%     \includegraphics[width=\textwidth]{figuras/arquitetura/arquitetura_detalhada.pdf}
+%     \caption{arquitetura detalhada do sistema}
+%     \label{fig:arquitetura_detalhada}
+% \end{figure}
+
+\begin{description}
+    \item[DSL/Compilação:] valida sintaxe/semântica, normaliza para SI e gera \texttt{params.json} canônico; um hash identifica a variante para comparação e deduplicação \cite{fowler2010}.
+    
+    \item[Modelagem geométrica (Blender CLI):] script gera parede cilíndrica/estrutura, tampas e partículas com seed para reprodutibilidade; bake do empacotamento; exporta STL "manifold" adequado ao snappyHexMesh \cite{blender2021}.
+    
+    \item[CFD (OpenFOAM):] pipeline executa blockMesh $\rightarrow$ snappyHexMesh $\rightarrow$ simpleFoam; functionObjects calculam médias (pressão, velocidade) e estatísticas durante a execução; o worker consolida um CSV padronizado com variáveis calculadas \cite{openfoam2023, versteeg2007}.
+    
+    \item[Ingestão e persistência:] metadados/variáveis no PostgreSQL; artefatos pesados (STL, VTK/VTU, CSV, logs) no MinIO (compatível S3), organizados por usuário/execução, com rastro completo (hash do \texttt{params.json} canônico, seed, versões dos containers, tempos) \cite{postgresql2023, minio2021, docker2021}.
+    
+    \item[API e Dashboard:] FastAPI oferece rotas autenticadas para criar jobs, consultar execuções/variantes e emitir URLs assinadas (temporárias) para arquivos; o dashboard (React + Three.js + Plotly) mostra o 3D do leito, gráficos interativos das variáveis, logs e comparação lado a lado, facilitando análise e comunicação dos resultados \cite{fastapi2021, react2021, threejs2021, plotly2021}.
+\end{description}
+
+Com esse desenho, o usuário apenas descreve o leito em \texttt{.bed}, acompanha o status da execução e consulta resultados/artefatos no dashboard, mantendo rastreabilidade entre parâmetros, versões e arquivos em todas as etapas.
+
+% ============================================================
+% ENTRADAS, PROCESSAMENTO E SAÍDAS
+% ============================================================
+\section{De Entradas até as Saídas}
+
+\subsection{Entradas}
+
+As entradas são definidas em um arquivo \texttt{.bed} (linguagem de domínio) que descreve, de forma declarativa, a geometria do leito, as tampas, as partículas e a política de exportação/uso posterior. O compilador lê esse arquivo, valida unidades e coerência, e normaliza tudo para SI, gerando um \texttt{params.json} canônico \cite{fowler2010}. A seguir, o resumo de cada um dos blocos.
+
+\subsubsection{Bloco \texttt{bed} - Geometria do Leito}
+
+Define o corpo do leito com diâmetro interno, altura útil, espessura da parede e folga superior (clearance). Itens opcionais incluem rugosidade e material (metadado). 
+
+\textbf{Regras básicas:}
+\begin{itemize}
+    \item Positividade de dimensões
+    \item Espessura menor que metade do diâmetro
+    \item Respeito ao volume interno efetivo
+\end{itemize}
+
+Esses parâmetros servem de base para a modelagem geométrica no Blender (headless) e para a etapa de malha do CFD \cite{blender2021, openfoam2023}.
+
+\subsubsection{Bloco \texttt{lids} - Tampas}
+
+Especifica o tipo de tampa (flat, hemispherical ou none) e as espessuras associadas. Pode incluir folga de vedação (seal). Se houver tampa, a espessura deve ser $> 0$ e a soma espessuras + clearance não pode inviabilizar o volume interno. O objetivo é manter consistência geométrica para geração do sólido e empacotamento.
+
+\subsubsection{Bloco \texttt{particles} - Partículas}
+
+No escopo inicial, foca em esferas monodispersas: \texttt{kind = sphere}, \texttt{diameter} e \texttt{count} ou \texttt{target\_porosity}, exclusivos entre si. 
+
+Inclui propriedades físicas relevantes ao empacotamento por corpo rígido:
+\begin{itemize}
+    \item Densidade ou massa (com derivação automática para esferas)
+    \item Restituição
+    \item Atritos (estático/rolamento)
+    \item Amortecimentos linear/angular
+    \item Folgas mínimas partícula–parede e partícula–partícula
+    \item Margem de colisão
+    \item Parâmetros de posicionamento (método de inserção, altura de queda)
+    \item Seed para reprodutibilidade
+\end{itemize}
+
+O compilador aplica regras como: normalização SI, positividade de grandezas, exclusividade \texttt{count} XOR \texttt{target\_porosity}, frações que somam 1.0 (no caso poli), limites físicos 0–1 para coeficientes e checagens de consistência de espaço interno.
+
+\subsubsection{Bloco \texttt{packing} - Empacotamento}
+
+Agrupa a configuração do solver físico:
+\begin{itemize}
+    \item Método (rigid\_body)
+    \item Gravidade
+    \item Subpassos e iterações por frame
+    \item Amortecimento
+    \item Critério de repouso (limite de velocidade)
+    \item Tempo máximo de simulação
+    \item Margem de colisão
+\end{itemize}
+
+Esses controles permitem obter um arranjo estável das partículas, com custo numérico previsível e resultados repetíveis (via seed) \cite{blender2021}.
+
+\subsubsection{Bloco \texttt{export} - Saídas Geométricas}
+
+Define formatos (ex.: stl\_binary, obj, fbx), unidades/escala (o compilador normaliza SI), triangulação e opções de merge by distance. Inclui a exigência de manifold (sem buracos, normais consistentes) para evitar falhas na etapa de malha do CFD.
+
+\paragraph{Modelagem da Superfície Interna}
+
+Para representar o domínio do fluido no interior do leito, a proposta contempla dois caminhos complementares, selecionados por chaves (switches) no bloco export:
+
+\begin{enumerate}
+    \item \textbf{Método A - Superfície interna (recomendado)}:
+    Exporta apenas a superfície interna do cilindro (lateral + tampas internas) como STL fechado/manifold, bem como as superfícies das partículas. O snappyHexMesh recorta/refina a malha a partir do background mesh. A espessura da parede fica como metadado (não afeta o STL de CFD).
+    
+    \textit{Switches:} \texttt{wall\_mode = "surface"} (padrão), \texttt{fluid\_mode = "none"}.
+    
+    \textit{Vantagens:} malhas mais estáveis, menos risco de não-manifold, fluxo mais simples.
+    
+    \item \textbf{Método B - Cavidade por booleana (opcional)}:
+    Constrói explicitamente o "vazio" do fluido por subtração booleana (cilindro externo, cilindro interno e partículas), gerando um STL único do domínio de fluido.
+    
+    \textit{Switches:} \texttt{wall\_mode = "solid"}, \texttt{fluid\_mode = "cavity"}.
+    
+    \textit{Observação:} útil quando é necessário um volume único do fluido, porém operações booleanas em conjuntos grandes de partículas exigem checagens rigorosas de manifold para evitar degraus na malha.
+\end{enumerate}
+
+\textbf{Padrão seguro para CFD:} \texttt{wall\_mode="surface"} e \texttt{fluid\_mode="none"}. Quando \texttt{fluid\_mode="cavity"} for usado, recomenda-se validação automática (manifold) antes do snappy.
+
+\subsubsection{Bloco \texttt{cfd} - Parâmetros CFD (Opcional)}
+
+Embora a simulação seja gerada por templates do OpenFOAM, o \texttt{.bed} pode fornecer pistas: regime (laminar/RANS), velocidade de entrada, propriedades do fluido ($\nu$, $\rho$), limites de iteração e política de escrita de campos. Esses valores são consumidos ao montar os dicionários (blockMeshDict, snappyHexMeshDict, fvSchemes, fvSolution, controlDict) e a execução do simpleFoam \cite{openfoam2023}.
+
+\subsection{Processamento}
+
+\subsubsection{Compilação}
+
+Implementada em Python, utiliza Lark para parsing e Pydantic para validação/normalização SI, gerando um \texttt{params.json} canônico \cite{fowler2010, lark2021, pydantic2021}.
+
+\subsubsection{Geração Geométrica}
+
+Blender 4.x em modo headless (CLI) via Python API:
+\begin{enumerate}
+    \item Cria o leito (paredes/tampas cilíndricas)
+    \item Adiciona partículas com empacotamento por física rígida
+    \item Realiza bake da simulação física
+    \item Exporta STL/OBJ/FBX com checagens básicas (escala e manifold)
+\end{enumerate}
+
+O STL gerado é compatível com a etapa de malha do OpenFOAM \cite{blender2021}.
+
+\subsubsection{Simulação CFD}
+
+Pipeline OpenFOAM:
+\begin{enumerate}
+    \item \textbf{blockMesh}: gera malha de fundo estruturada
+    \item \textbf{snappyHexMesh}: recorta e refina sobre o STL
+    \item \textbf{simpleFoam}: solver para escoamento incompressível permanente (laminar ou RANS)
+    \item \textbf{functionObjects}: calculam médias de pressão, velocidade e estatísticas durante execução
+    \item \textbf{foamToVTK}: exporta campos para visualização
+\end{enumerate}
+
+Variáveis registradas: $\Delta p$ (Pa), $\Delta p/L$ (Pa$\cdot$m$^{-1}$), velocidade média (m$\cdot$s$^{-1}$), número de Reynolds, número de células, tempo total de execução (s) e resíduos de convergência \cite{openfoam2023, versteeg2007}.
+
+\subsubsection{Armazenamento e Versionamento}
+
+\begin{itemize}
+    \item \textbf{PostgreSQL}: metadados, variáveis calculadas e rastreabilidade de execuções
+    \item \textbf{MinIO}: artefatos pesados (STL, VTK, CSV, logs)
+    \item Cada execução possui identificador único e hash do \texttt{params.json}
+    \item Empacotamento reprodutível por seeds fixas
+\end{itemize}
+
+\subsubsection{Disponibilização}
+
+\begin{itemize}
+    \item \textbf{API FastAPI}: autenticação JWT, rotas para criar/consultar jobs, URLs temporárias para arquivos
+    \item \textbf{Dashboard React}: visualização 3D (Three.js), gráficos interativos (Plotly), comparação entre execuções
+\end{itemize}
+
+\subsection{Saídas}
+
+\subsubsection{Variáveis Calculadas}
+
+\begin{itemize}
+    \item Queda de pressão: $\Delta p$ (Pa)
+    \item Queda de pressão por comprimento: $\Delta p/L$ (Pa$\cdot$m$^{-1}$)
+    \item Velocidade média: $\bar{u}$ (m$\cdot$s$^{-1}$)
+    \item Número de Reynolds: $Re$ (adimensional)
+    \item Número de células da malha
+    \item Tempo total de execução (s)
+    \item Resíduos de convergência
+\end{itemize}
+
+\subsubsection{Artefatos Organizados}
+
+\begin{itemize}
+    \item STL: geometria exportada do Blender
+    \item VTK/VTU: campos simulados (pressão, velocidade, turbulência)
+    \item CSV: dados numéricos consolidados
+    \item Logs: registro de execução completo
+\end{itemize}
+
+\subsubsection{Interface Web}
+
+\begin{itemize}
+    \item Visualização 3D interativa do leito
+    \item Gráficos comparativos entre execuções
+    \item Histórico filtrável de jobs
+    \item Downloads de artefatos via URLs temporárias
+\end{itemize}
+
+% ============================================================
+% ARQUITETURA E TECNOLOGIAS
+% ============================================================
+\section{Arquiteturas e Tecnologias Utilizadas}
+
+A Tabela \ref{tab:tecnologias_sistema} apresenta as tecnologias selecionadas e suas justificativas de uso no sistema.
+
+\begin{table}[htb]
+\centering
+\caption{tecnologias utilizadas no sistema proposto}
+\label{tab:tecnologias_sistema}
+\begin{tabular}{lll}
+\toprule
+\textbf{componente} & \textbf{tecnologia} & \textbf{justificativa} \\
+\midrule
+DSL/Compilação & Python + Lark + Pydantic & parsing e validação tipada \\
+Modelagem 3D & Blender 4.x CLI & headless, scripting Python \\
+Simulação CFD & OpenFOAM (LTS) & código aberto, robusto \\
+Fila de Tarefas & Redis & performance, simplicidade \\
+Banco de Dados & PostgreSQL 16 & relacional, JSON support \\
+Object Storage & MinIO & S3-compatible, open source \\
+API Backend & FastAPI + JWT & performance, OpenAPI \\
+Frontend & React + Three.js + Plotly & interativo, 3D web \\
+Orquestração & Docker Compose & reprodutibilidade \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Justificativas das Escolhas}
+
+\subsubsection{Código Aberto}
+
+Todas as tecnologias são open source, favorecendo:
+\begin{itemize}
+    \item Transparência e auditoria
+    \item Colaboração científica
+    \item Ausência de custos de licença
+    \item Customização e extensibilidade
+\end{itemize}
+
+\subsubsection{Consolidação e Suporte}
+
+Tecnologias maduras com forte comunidade:
+\begin{itemize}
+    \item Python: linguagem mais usada em ciência de dados
+    \item Blender: padrão em modelagem 3D open source
+    \item OpenFOAM: referência em CFD acadêmico/industrial
+    \item PostgreSQL: banco relacional mais avançado open source
+    \item React: biblioteca frontend mais popular
+\end{itemize}
+
+\subsubsection{Separação de Responsabilidades}
+
+Arquitetura em microserviços facilita:
+\begin{itemize}
+    \item Evolução independente de componentes
+    \item Substituição de partes específicas
+    \item Escalabilidade horizontal
+    \item Debugging isolado
+\end{itemize}
+
+% ============================================================
+% MODELO DE DADOS E REPRODUTIBILIDADE
+% ============================================================
+\section{Modelo de Dados e Reprodutibilidade}
+
+Cada execução armazena informações suficientes para reprodutibilidade e auditoria:
+
+\subsection{Entidades Principais}
+
+\begin{description}
+    \item[Variants:] configuração utilizada (hash do \texttt{params.json} canônico, parâmetros normalizados, seed do empacotamento, versões de containers e commit do repositório)
+    
+    \item[Runs:] registro de cada execução (vínculo à variant, início/fim, estado, solver/malha e tempo total de execução)
+    
+    \item[Metrics:] variáveis calculadas por execução (nome, unidade, valor, vínculo ao run), como $\Delta p$, $\Delta p/L$, velocidade média, nº de células, tempo do solver e resíduos
+    
+    \item[Files:] artefatos produzidos (STL, VTK/VTU, CSV, logs) com localização no MinIO (compatível S3) e checksum para integridade
+\end{description}
+
+\subsection{Rastreabilidade}
+
+O sistema garante rastreabilidade completa através de:
+\begin{itemize}
+    \item Hash único do \texttt{params.json} canônico
+    \item Seed fixa para reprodutibilidade do empacotamento
+    \item Versões específicas de todos os containers Docker
+    \item Commit SHA do repositório Git
+    \item Timestamps de início e fim de cada etapa
+    \item Checksums de todos os artefatos gerados
+\end{itemize}
+
+Esta estrutura permite:
+\begin{enumerate}
+    \item Reproduzir exatamente qualquer execução passada
+    \item Comparar resultados entre variantes
+    \item Auditar mudanças em parâmetros
+    \item Identificar degradações ou melhorias
+    \item Validar resultados científicos
+\end{enumerate}
+
