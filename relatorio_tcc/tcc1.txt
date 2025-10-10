@@ -1,0 +1,430 @@
+PONTIFÍCIA UNIVERSIDADE CATÓLICA DO RIO GRANDE DO SUL
+ESCOLA POLITÉCNICA
+BACHARELADO EM CIÊNCIA DA COMPUTAÇÃO
+
+Pipeline conteinerizada para CFD reprodutível de leitos empacotados com uso de softwares de código aberto.
+
+Bernardo Klein Heitz
+
+Trabalho de Conclusão I apresentado como requisito parcial à obtenção do grau de Bacharel em Ciência da Computação na Pontifícia Universidade Católica do Rio Grande do Sul.
+
+Orientador: Marco Aurelio Souza Mangan
+Porto Alegre
+2025
+
+LISTA DE FIGURAS
+
+Figura 1 — Visão geral do pipeline do domínio ao CFD ............................. p. XX
+Figura 2 — Arquitetura de serviços e fluxo de dados ................................ p. XX
+Figura 3 — Cadeia CFD .............................................................................. p. XX
+Figura 4 — Dashboard: visualização 3D e gráficos de variáveis .................. p. XX
+
+LISTA DE TABELAS
+
+Tabela 1 — Quadro comparativo: Antes × Depois ..................................... p. XX
+Tabela 2 — Métricas numéricas e físicas reportadas .................................. p. XX
+Tabela 3 — Cronograma TCC1 e TCC2 por mês/semana .......................... p. XX
+Tabela 4 — Esquema de dados: variants, runs, metrics, files .................... p. XX
+
+LISTA DE SIGLAS
+
+3D —————————Tridimensional
+API —————————Application Programming Interface
+CFD —————————Computational Fluid Dynamics (Dinâmica dos Fluidos Computacional)
+CSV —————————Comma-Separated Values
+DB —————————Database
+DEM ————————Discrete Element Method
+DOE ————————Design of Experiments
+DOI ————————Digital Object Identifier
+DSL ————————Domain-Specific Language
+E2E ————————End to End
+FBX ————————Filmbox
+FOAM ———————Field Operation and Manipulation (base do OpenFOAM)
+GCI ————————Grid Convergence Index
+GPU ————————Graphics Processing Unit
+GUI ————————Graphical User Interface
+HPC ————————High-Performance Computing
+HTTP ———————Hypertext Transfer Protocol
+IC ————————Iniciação Científica
+JSON ———————JavaScript Object Notation
+JWT ————————JSON Web Token
+LES ————————Large Eddy Simulation
+LTS ————————Long-Term Support
+MVP ———————Minimum Viable Product
+OBJ ————————Wavefront OBJ
+OpenAPI ——————OpenAPI Specification (Especificação de APIs)
+OpenFOAM —————Open Field Operation and Manipulation (software de CFD)
+ORM ————————Object-Relational Mapping
+RBAC ————————Role-Based Access Control
+RANS ————————Reynolds-Averaged Navier–Stokes
+RBD —————————Rigid Body Dynamics
+Re —————————Número de Reynolds
+REST ————————Representational State Transfer
+S3 —————————Simple Storage Service (compatível com MinIO)
+SI —————————Sistema Internacional de Unidades
+SQL ————————Structured Query Language
+STL ————————Stereolithography (Standard Tessellation Language)
+UI —————————User Interface
+URL ————————Uniform Resource Locator
+VTK ————————Visualization Toolkit
+VTU ————————VTK Unstructured Grid
+YAML ———————YAML Ain’t Markup Language
+
+LISTA DE SÍMBOLOS
+
+Δp ———— Queda de pressão
+Δp/L ——— Queda de pressão por comprimento
+
+BANCO DE PALAVRAS (TERMOS/SIGLAS EM INGLÊS)
+
+API ——— Interface de programação usada para comunicação entre sistemas por meio de endpoints HTTP.
+Bucket —— Diretório lógico em storage de objetos (ex: MinIO, S3) onde arquivos são guardados.
+Checksum —— Valor calculado para verificar a integridade de um arquivo durante armazenamento/transferência.
+CSV —————— Formato texto com valores separados por vírgula, útil para métricas e tabelas.
+Dashboard ——— Página web com gráficos/painéis para acompanhar execuções, comparar resultados e baixar artefatos.
+Endpoint ———— URL específica de uma API que expõe uma operação (criar job, listar execuções, obter arquivos).
+GCI —————— Índice para avaliar independência de malha e estimar erro numérico em estudos de refinamento.
+Headless ———— Execução sem interface gráfica; no projeto, o Blender roda headless via scripts Python.
+Hash ————— Identificador derivado do conteúdo (ex: do params.json) usado para versionar/comparar variantes.
+Job —————— Unidade de trabalho no pipeline, do .bed até os resultados consolidados.
+Logs —————— Registros estruturados de eventos servem para depuração, auditoria e rastreabilidade.
+Manifold ———— Propriedade de superfícies sem buracos e com normais consistentes, adequada à malha de CFD.
+Mesh ——————— Malha numérica que discretiza o domínio para resolver as equações de escoamento.
+MVP ———————Primeira versão funcional mínima de um sistema, suficiente para demonstrar o fluxo fim a fim.
+OpenFOAM —— Conjunto de bibliotecas/solvers de CFD de código aberto usado neste trabalho.
+Pipeline ———— Sequência organizada de etapas automatizadas que transforma a descrição do problema em resultados.
+Queue ———— Fila de tarefas que organiza a execução de jobs, habilitando retries e paralelismo.
+RANS ———— Família de modelos de turbulência baseada na média de Reynolds para fechar Navier–Stokes.
+Seed ———— Valor inicial que controla processos estocásticos (ex: empacotamento), garantindo repetição.
+Solver ———— Programa que resolve numericamente as equações do escoamento (ex: simpleFoam).
+STL ——— ——Formato de superfície triangulada usado na exportação de geometrias do Blender.
+URL ————— Localizador uniforme de recursos; usado para acessar endpoints e arquivos da API.
+VTK ———— Ecossistema/formato para visualização científica, usado para exportar campos como p e U.
+
+SUMÁRIO
+
+1.INTRODUÇÃO......................................................................................................................3
+2.SISTEMA PROPOSTO...........................................................................................................4
+2.1 PROBLEMA E ESCOPO 4
+2.2 VISÃO GERAL DA SOLUÇÃO 5
+2.3 DE ENTRADAS ATÉ AS SAÍDAS 7
+2.3.1 ENTRADAS 7
+2.3.2 PROCESSAMENTO 9
+2.3.3 SAÍDAS 10
+3.ARQUITETURAS E TECNOLOGIAS UTILIZADAS ............................................................. 13
+4. FLUXO DE GERAÇÃO GEOMÉTRICA....................................................................14
+5. FLUXO DE SIMULAÇÕES CFD..............................................................................15
+6. FLUXO DE BANCO DE DADOS..............................................................................15
+7. FLUXO DE IMPLEMENTAÇÃO BACKEND...............................................................15
+8. FLUXO DE VISUALIZAÇÃO WEB...........................................................................16
+9. FLUXO DE CONTEINERIZAÇÃO.............................................................................16
+10.MODELO DE DADOS E REPRODUTIBILIDADE ..............................................................3
+11.COMO O TRABALHO SERÁ AVALIADO ......................................................................14
+12.RISCOS E COMO IREI LIDAR COM ELES ....................................................................14
+13.CRONOGRAMA ............................................................................................................15
+13.1 CRONOGRAMA DAS ATIVIDADES 15
+13.2 CRONOGRAMA DETALHADO DAS ATIVIDADES 15
+14.CONSIDERAÇÕES FINAIS ................................................................................................16
+15.REFERÊNCIAS ................................................................................................................16
+
+INTRODUÇÃO
+
+Os leitos empacotados são parte do dia a dia da engenharia química e aparecem em estudos relacionados a absorção, destilação, reações heterogêneas e sobre transferência de calor e massa. Representá-los bem faz diferença direta no desempenho e resultado dos processos científicos e industriais. Dessa forma, a computação gráfica e as simulações ganharam protagonismo nessa área. Entre as abordagens que estão disponíveis para serem utilizadas, temos a Computational Fluid Dynamics (CFD), que nos permite enxergar, de forma detalhada os campos de velocidade e pressão em geometrias que antes dependiam quase só de correlações empíricas.
+
+Apesar de todo o potencial que esse modelo nos traz, preparar estudos utilizando CFD para leitos empacotados ainda consome tempo e carece de padronização. Criar geometrias realistas, gerar malhas adequadas e encadear todas as etapas até a análise final costuma depender de scripts rodados de forma local, conhecimento técnico em diversos softwares e muitas operações manuais. No meu laboratório de Iniciação Científica, vejo as dificuldades vivenciadas pelo meu orientador e seu doutorando em relação ao empacotamento geométrico, isso acaba por desmotivar e dificultar os estudos e as comparações consistentes entre simulações.
+
+Diante desse cenário, estou propondo um pipeline automatizado e reprodutível que integra desde a descrição do problema até a visualização dos resultados. O fluxo começa em uma linguagem de domínio específico (DSL), na qual descrevo partículas, arranjos, fluido, regime e objetivos. A partir dela, o sistema irá traduzir as especificações para geometrias físicas no geradas no Blender, executar os casos/simulações no OpenFOAM, armazenar metadados e artefatos em um banco de dados e disponibilizar um dashboard interativo com visualização 3D dos modelos e a possibilidade de visualizar gráficos de análises e comparações. Toda a solução será rodada de forma conteinerizada e orquestrada por Docker Compose, o que melhora portabilidade e repetibilidade entre diferentes máquinas.
+
+Essa nova abordagem que eu proponho, combate esses gargalos recorrentes, de forma que o pipeline padroniza as entradas, reduz o trabalho manual, preserva histórico de versões e parâmetros, facilita auditoria e comparação entre cenários. O uso de ferramentas de código aberto, acaba por favorecer a colaboração da ciência aberta, enquanto a conteinerização do pipeline, resulta na mitigação do custo de instalação de programas e amplia a acessibilidade da experiência. Para validar o meu sistema, utilizo referências, como a correlação de Ergun, e realizo estudos de independência de malha com o índice de Convergência de Malha (GCI), usado para verificar a precisão dos resultados de simulações numéricas, como as realizadas em dinâmica dos fluidos computacional, dessa forma, assegurando consistência física.
+
+Para guiar o texto, organizo este TCC como uma narrativa do desenvolvimento desse projeto. Primeiro apresento o problema, as minhas motivações e os objetivos. Depois reúno o referencial teórico sobre escoamento em meios empacotados, fundamentos de CFD e práticas de verificação e validação. Em seguida eu descrevo a arquitetura e a implementação do pipeline, detalhando a DSL, geração geométrica utilizando scripts Python, malha, automações e visualização. Por fim, faço uma discussão sobre a validação da metodologia, trago estudos de caso, resultados, limitações encontradas e caminhos futuros, com foco em ampliar casos de uso e robustez do sistema.
+
+SISTEMA PROPOSTO
+
+A proposta do trabalho irá descrever o que é pretendido ser construído ao longo do TCC: um pipeline completo, com características declarativas, automatizadas e conteinerizadas, para a geração de modelagem geométrica e simulação CFD de leitos empacotados, incluindo ingestão de resultados e visualização em um dashboard web [14], [16], [18], [23], [25], [44], [52]. Por se tratar de uma proposta, as escolhas apresentadas funcionam como guias de implementação, por isso detalhes específicos (parâmetros, listas de campos, ajustes de malha e solver) poderão ser refinados ao longo do desenvolvimento, sem perder de vista o objetivo central do pipeline: reduzir a dificuldade operacional e aumentar a reprodutibilidade científica [8], [7], [27], [26].
+
+2.1 PROBLEMA E ESCOPO
+
+Problema detalhado:
+
+Pesquisadores de engenharia química que estudam leitos empacotados costumam enfrentar quatro obstáculos práticos:
+
+Geração de geometria fisicamente coerente (parede/estrutura cilíndrica, tampas e partículas) feita manualmente, consumindo tempo em leitos pequenos ou grandes [14], [3], [5].
+Preparação da simulação CFD com muitos arquivos e parâmetros (malha, contornos, esquemas numéricos), suscetível a erros e difícil de reproduzir sem histórico claro [16], [9], [11].
+Organização de resultados (variáveis calculadas, logs, malhas e campos) pouco padronizada, o que dificulta comparações e recuperação de histórico [27], [26].
+Comunicação dos achados dispersa (pastas locais, prints, planilhas), sem integração de dados e visualização consolidada [18], [23], [25].
+
+Escopo que será focado no TCC:
+
+Foco em leitos cilíndricos preenchidos com partículas (esferas, cubos, cilindros e planos) definidas via DSL; o modelo 3D inclui tampas inferior e superior [14], [49], [28], [45]. A versão inicial (v1) deve:
+
+transformar uma descrição declarativa do leito (DSL) em geometria 3D (ex.: STL) [49], [28], [45], [14];
+gerar malha e executar solver em CFD (ex.: OpenFOAM: blockMesh, snappyHexMesh, simpleFoam) [16], [42];
+extrair variáveis calculadas, registrar metadados/artefatos e disponibilizar via API e dashboard [18], [23], [25], [27], [26];
+rodar conteinerizado (Docker Compose), priorizando reprodutibilidade [44], [52].
+
+2.2 VISÃO GERAL DA SOLUÇÃO
+
+A proposta converte o problema do domínio (dimensões do leito, partículas e condições de escoamento) em um pipeline automatizado e reprodutível que entrega resultados comparáveis, versionados e fáceis de inspecionar [49], [16], [27], [26], [44], [52]. O objetivo é reduzir a necessidade de abrir o Blender manualmente, editar múltiplos arquivos no OpenFOAM e organizar resultados na mão, oferecendo rastreabilidade ponta a ponta por meio de DSL, API e dashboard [14], [16], [18], [23], [25].
+
+Figura 1 (fluxo ponta a ponta). O usuário escreve um arquivo .bed (DSL) descrevendo o leito; o compilador gera um params.json canônico (SI e chaves padronizadas) [49], [28], [45]. O Blender (CLI) cria o modelo 3D e exporta STL; o OpenFOAM gera a malha e roda o solver; o sistema extrai variáveis calculadas (ex.: Δp, Δp/L, velocidade média, Re), armazena metadados/artefatos de forma organizada e expõe tudo via API para visualização no dashboard [14], [16], [11], [27], [26], [18], [23], [25]. O pesquisador acompanha o status e analisa os resultados no navegador, sem abrir a interface do Blender nem editar arquivos do CFD [14], [16], [18], [23].
+
+**** Insira imagem ****
+
+Figura 1 – Pipeline resumido
+Fonte: produção autoral (2025)
+
+A Figura 1 mostra o fluxo ponta a ponta: O usuário escreve o arquivo .bed, o compilador gera o params.json, o Blender produz a geometria, o OpenFOAM roda a simulação, e os resultados são armazenados e disponibilizados pela API para visualização no dashboard.
+
+**** Insira imagem ****
+
+Figura 2 – Arquitetura detalhada do sistema
+Fonte: produção autoral (2025)
+
+A Figura 2 mostra os módulos principais (DSL, Blender, OpenFOAM, banco, storage, API, dashboard), o fluxo de dados entre eles e os mecanismos de versionamento e rastreabilidade.
+
+DSL/Compilação: valida sintaxe/semântica, normaliza para SI e gera params.json canônico; um hash identifica a variante para comparação e deduplicação [49], [28], [45].
+Modelagem geométrica (Blender CLI): script gera parede cilíndrica/estrutura, tampas e partículas com seed para reprodutibilidade; bake do empacotamento; exporta STL “manifold” adequado ao snappyHexMesh [14], [3], [5], [16].
+CFD (OpenFOAM): pipeline executa blockMesh -> snappyHexMesh -> simpleFoam; functionObjects calculam médias (pressão, velocidade) e estatísticas durante a execução; o worker consolida um CSV padronizado com variáveis calculadas (ex.: Δp, Δp/L, velocidade média, Re, nº de células, tempo do solver, resíduos) [16], [11], [12].
+Ingestão e persistência: metadados/variáveis no PostgreSQL; artefatos pesados (STL, VTK/VTU, CSV, logs) no MinIO (compatível S3), organizados por usuário/execução, com rastro completo (hash do params.json canônico, seed, versões dos containers, tempos) [27], [26], [44], [52].
+API e Dashboard: FastAPI oferece rotas autenticadas para criar jobs, consultar execuções/variantes e emitir URLs assinadas (temporárias) para arquivos; o dashboard (React + Three.js + Plotly) mostra o 3D do leito, gráficos interativos das variáveis, logs e comparação lado a lado, facilitando análise e comunicação dos resultados [18], [23], [25].
+Com esse desenho, o usuário apenas descreve o leito em .bed, acompanha o status da execução e consulta resultados/artefatos no dashboard, mantendo rastreabilidade entre parâmetros, versões e arquivos em todas as etapas [49], [16], [27], [26], [18], [23], [25], [44], [52]
+
+**** Insira imagem ****
+
+Figura 3 - Pipeline de simulação CFD com OpenFOAM
+Fonte: produção autoral (2025)
+
+A Figura 3 mostra o fluxo de processamento a partir da geometria exportada em STL (via Blender). O arquivo STL alimenta o blockMesh, que gera a malha inicial, posteriormente refinada pelo snappyHexMesh. Em seguida, o solver simpleFoam é executado, enquanto os functionObjects calculam estatísticas como queda de pressão (Δp, Δp/L) e velocidade média. Os resultados são exportados em formatos VTK/CSV para visualização científica e armazenados em banco de dados, sendo finalmente consolidados em relatórios, dashboards e visualização 3D.
+
+2.3 DE ENTRADAS ATÉ AS SAÍDAS
+
+2.3.1 ENTRADAS
+
+As entradas são definidas em um arquivo .bed (linguagem de domínio) que descreve, de forma declarativa, a geometria do leito, as tampas, as partículas e a política de exportação/uso posterior. O compilador lê esse arquivo, valida unidades e coerência, e normaliza tudo para SI, gerando um params.json canônico, o que é uma etapa fundamentada em DSLs e parsing/validação tipada (Lark + Pydantic) [49], [28], [45], [17]. A seguir, o resumo de cada um dos blocos.
+
+bed, geometria do leito (cilindro):
+Define o corpo do leito com diâmetro interno, altura útil, espessura da parede e folga superior (clearance). Itens opcionais incluem rugosidade e material (metadado). Regras básicas: positividade de dimensões, espessura menor que metade do diâmetro e respeito ao volume interno efetivo. Esses parâmetros servem de base para a modelagem geométrica no Blender (headless) e para a etapa de malha do CFD [14], [16].
+
+lids, que são as tampas (superior e inferior).
+Especifica o tipo de tampa (flat, hemispherical ou none) e as espessuras associadas. Pode incluir folga de vedação (seal). Se houver tampa, a espessura deve ser > 0 e a soma espessuras + clearance não pode inviabilizar o volume interno. O objetivo é manter consistência geométrica para geração do sólido e empacotamento [14].
+
+particles, escolha e parâmetros das partículas:
+No escopo inicial, foca em esferas monodispersas: kind = sphere, diameter e count ou target_porosity, exclusivos entre si. Alternativamente, descreve polidispersidade por classes (bins que somam 1.0) ou por distribuição (p. ex., lognormal com limites). Inclui propriedades físicas relevantes ao empacotamento por corpo rígido: densidade ou massa (com derivação automática para esferas), restituição, atritos (estático/rolamento), amortecimentos linear/angular, folgas mínimas partícula–parede e partícula–partícula, margem de colisão e parâmetros de posicionamento (método de inserção, altura de queda), além da seed para reprodutibilidade. O compilador aplica regras como: normalização SI, positividade de grandezas, exclusividade count XOR target_porosity, frações que somam 1.0 (no caso poli), limites físicos 0–1 para coeficientes e checagens de consistência de espaço interno (clearance/tampas) [14], [49], [28], [45]. Esses parâmetros alimentam o empacotamento rígido no Blender em modo CLI, mantendo o processo reproduzível e scriptável [14], [3], [5].
+
+packing, controle do empacotamento (Blender, corpo rígido):
+Agrupa a configuração do solver físico: método (rigid_body), gravidade, subpassos e iterações por frame, amortecimento, critério de repouso (limite de velocidade), tempo máximo de simulação e margem de colisão. Esses controles permitem obter um arranjo estável das partículas, com custo numérico previsível e resultados repetíveis (via seed) [14].
+
+export, saídas geométricas:
+Define formatos (ex.: stl_binary, obj, fbx), unidades/escala (o compilador normaliza SI), triangulação e opções de merge by distance. Inclui a exigência de manifold (sem buracos, normais consistentes) para evitar falhas na etapa de malha do CFD [14], [16].
+
+Modelagem da superfície interna do cilindro: dois métodos e “switches”.
+Para representar o domínio do fluido no interior do leito, a proposta contempla dois caminhos complementares, selecionados por chaves (switches) no bloco export:
+
+Método A, Superfície interna (recomendado para CFD/snappyHexMesh):
+Exporta apenas a superfície interna do cilindro (lateral + tampas internas) como STL fechado/manifold, bem como as superfícies das partículas. O snappyHexMesh recorta/refina a malha a partir do background mesh. A espessura da parede fica como metadado (não afeta o STL de CFD).
+Switches: wall_mode = "surface" (padrão), fluid_mode = "none".
+Vantagens: malhas mais estáveis, menos risco de não-manifold, fluxo mais simples [16].
+
+Método B, Cavidade por booleana (opcional):
+Constrói explicitamente o “vazio” do fluido por subtração booleana (cilindro externo, cilindro interno e partículas), gerando um STL único do domínio de fluido.
+Switches: wall_mode = "solid", fluid_mode = "cavity".
+Observação: útil quando é necessário um volume único do fluido, porém operações booleanas em conjuntos grandes de partículas exigem checagens rigorosas de manifold para evitar degraus na malha [14], [16].
+
+Padrão seguro para CFD: wall_mode="surface" e fluid_mode="none". Quando fluid_mode="cavity" for usado, recomenda-se validação automática (manifold) antes do snappy [16].
+
+cfd (opcional) — parâmetros para o template.
+Embora a simulação seja gerada por templates do OpenFOAM, o .bed pode fornecer pistas: regime (laminar/RANS), velocidade de entrada, propriedades do fluido (ν, ρ), limites de iteração e política de escrita de campos. Esses valores são consumidos ao montar os dicionários (blockMeshDict, snappyHexMeshDict, fvSchemes, fvSolution, controlDict) e a execução do simpleFoam [16], [11], [12].
+
+Saída dessa etapa:
+O compilador consolida todas as entradas em um params.json canônico (ordem estável de chaves, nomes padronizados, SI), pronto para: geração geométrica no Blender (com empacotamento rígido reprodutível) e criação do caso OpenFOAM (malha com blockMesh/snappyHexMesh e solução com simpleFoam) [14], [16]. Essa padronização viabiliza rastreabilidade e repetição controlada de experimentos nas etapas seguintes.
+
+**** Insira imagem ****
+
+Figura 4 – Pipeline
+Fonte: produção autoral (2025)
+
+A Figura 4, o diagrama mostra, da esquerda para a direita, os blocos de entrada do .bed (bed, lids, particles, packing, export e cfd (opcional)) convergindo no Compilador/Validador (normalização SI e geração do params.json canônico). A partir dele, o fluxo se divide: Blender (headless) com decisão pelos switches wall_mode/fluid_mode, sendo o Método A (surface: superfície interna + partículas, manifold) ou o Método B (cavity: cavidade do fluido por booleana, verificada via surfaceCheck) — produzindo STL para o snappyHexMesh; e template OpenFOAM (blockMesh -> surfaceFeatureExtract? -> snappyHexMesh -> simpleFoam -> functionObjects/foamToVTK).
+
+2.3.2 PROCESSAMENTO
+
+Compilação (Python): valida sintaxe/coerência, normaliza para SI e gera params.json canônico (Lark + Pydantic em Python) [28], [45], [17].
+Geração geométrica (Blender CLI): cria o leito (paredes/tampas) e adiciona partículas com empacotamento por física rígida; exporta STL/OBJ/FBX, com checagens básicas (escala e manifold). STL é compatível com a etapa de malha do OpenFOAM [14], [15], [3], [5], [16].
+
+Simulação CFD (OpenFOAM):
+
+Malha: blockMesh (base) e snappyHexMesh (recorte/refino sobre STL) [16], [42].
+Solver: simpleFoam para escoamento incompressível, laminar ou com turbulência (RANS) [16], [11], [12].
+Registro de variáveis calculadas: Δp, Δp/L, velocidade média, número de Reynolds, número de células, tempo total de execução e resíduos de convergência [9], [11].
+Exportação de campos (pressão, velocidade, turbulência) em VTK/VTU para visualização no ParaView [29], [30].
+Armazenamento e versionamento: resultados numéricos e metadados no PostgreSQL; artefatos pesados (STL, VTK, CSV, logs) no MinIO; cada execução possui identificador único e empacotamento reprodutível por seeds fixas [27], [26].
+Disponibilização: API em FastAPI (autenticação por JWT) expõe resultados e gera links temporários; dashboard em React permite visualização 3D do leito e análise gráfica interativa (Three.js/Plotly), além de comparação entre execuções [18], [48], [23], [25].
+
+2.3.3 SAÍDAS
+
+Variáveis calculadas: Δp (Pa), Δp/L (Pa·m⁻¹), velocidade média (m·s⁻¹), número de Reynolds (–), número de células, tempo total de execução (s) e resíduos de convergência [9], [11].
+Artefatos organizados: STL (geometria), VTK/VTU (campos simulados), CSV (dados numéricos) e logs (execução) [16], [29], [30].
+Interface web: visualização 3D interativa, gráficos comparativos e histórico filtrável com downloads (API + dashboard) [18], [23], [25].
+
+**** Insira imagem ****
+
+Figura 5 – Fluxo Entradas, Processamento até as Saídas
+Fonte: produção autoral (2025)
+
+A Figura 5 representa os blocos de entrada (arquivo .bed), compilação, geração de geometria (Blender), simulação CFD (OpenFOAM), armazenamento em bancoe disponibilização via API/dashboard, finalizando nas saídas (variáveis calculadas, artefatos e interface web).
+
+ARQUITETURAS E TECNOLOGIAS UTILIZADAS
+
+DSL e compilação: Python com Lark (parsing) e Pydantic (validação/normalização SI) gera um params.json estável para versionamento [28], [45], [17], [49].
+Modelagem geométrica: Blender 4.x em modo headless (CLI) via Python API, criando o leito com partículas e exportando STL/OBJ/FBX (superfície triangulada adequada a malha e visualizadores) [14], [15], [3], [5].
+Simulação CFD: OpenFOAM (LTS) com blockMesh (malha base), snappyHexMesh (recorte/refino no STL) e simpleFoam (incompressível, laminar/RANS). Variáveis de interesse: Δp, Δp/L, velocidade média, Re, nº de células, tempo de execução e resíduos; campos (p, U, k, ε) podem ser visualizados no ParaView/VTK [16], [42], [11], [12], [29], [30].
+Orquestração: Redis como fila de tarefas e worker em Python com timeouts e retries [46].
+Dados: PostgreSQL 16 para metadados/variáveis e MinIO para artefatos grandes (STL/VTK/CSV/logs), organizados por usuário/execução; acesso via SQLAlchemy [27], [26], [47].
+API: FastAPI (Python) com JWT para autenticação; rotas para login, criação/consulta de execuções e links temporários (OpenAPI para documentação) [18], [48], [55].
+Frontend: React para UI, Three.js para visualização 3D do leito e Plotly para gráficos interativos [23], [25], [21], [22].
+Empacotamento/execução: Docker Compose reúne banco, storage, fila, API, worker e frontend; execução integrada com docker compose up -d [44], [52] Essas tecnologias são abertas e consolidadas, com forte suporte à automação; a separação em serviços facilita evolução e substituição de componentes (ex.: trocar o solver CFD) [44], [52].
+
+**** Insira imagem ****
+
+Figura 6 - Arquitetura e Tecnologias utilizadas
+Fonte: produção autoral (2025)
+
+A Figura 6 mostra de forma esquemática os componentes técnicos (DSL/compilação, Blender, OpenFOAM, Redis, Postgres, MinIO, FastAPI, React/Three.js/Plotly, Docker Compose) e como eles se integram.
+
+FLUXO DE GERAÇÃO GEOMÉTRICA
+
+**** Insira texto ******
+
+**** Insira imagem ****
+
+Figura X - Fluxo de criação de geometrias
+Fonte: produção autoral (2025)
+
+A Figura X mostra
+
+FLUXO DE SIMULAÇÕES CFD
+
+**** Insira texto ******
+
+**** Insira imagem ****
+
+Figura X - Fluxo de simulações CFD
+Fonte: produção autoral (2025)
+
+A Figura X mostra
+
+FLUXO DE BANCO DE DADOS
+
+**** Insira texto ******
+
+**** Insira imagem ****
+
+Figura X - Fluxo de Banco de dados
+Fonte: produção autoral (2025)
+
+A Figura X mostra
+
+FLUXO DE IMPLEMENTAÇÃO BACKEND
+
+**** Insira texto ******
+
+**** Insira imagem ****
+
+Figura X - Fluxo de implementação back end
+Fonte: produção autoral (2025)
+
+A Figura X mostra
+
+FLUXO DE VISUALIZAÇÃO WEB
+
+Nesta etapa, os artefatos gerados (STL/VTK/CSV/logs) são mantidos no MinIO; a API FastAPI expõe rotas autenticadas (JWT) que emitem URLs assinadas e temporárias para acesso seguro aos arquivos [26], [18], [48].
+O dashboard em React consome essas URLs: carrega a geometria 3D (STL/glTF) no Three.js e plota séries/valores em Plotly, permitindo inspeção, comparação e download sem expor diretamente o storage [23], [25].
+Esse desenho separa as responsabilidades (armazenamento <-> API <-> Interface com o usuário), reforça segurança e facilita a rastreabilidade entre execução, parâmetros e resultados [26], [18].
+
+**** Insira imagem ****
+
+Figura 7 - Fluxo de visualização web
+Fonte: produção autoral (2025)
+
+A Figura 7 mostra como os artefatos (STL/VTK/CSV/logs) são mantidos no MinIO, acessados via URLs assinadas fornecidas pela API FastAPI, consumidos pelo dashboard em React e exibidos em Three.js (3D) e Plotly (gráficos).
+
+FLUXO DE CONTEINERIZAÇÃO
+
+**** Insira texto ******
+
+**** Insira imagem ****
+
+Figura X - Fluxo de Conteinerização
+Fonte: produção autoral (2025)
+
+A Figura X mostra
+
+MODELO DE DADOS E REPRODUTIBILIDADE
+
+Cada execução armazena informações suficientes para reprodutibilidade e auditoria:
+
+Variants: configuração utilizada (hash do params.json canônico, parâmetros normalizados, seed do empacotamento, versões de containers e commit do repositório) [44], [52].
+Runs: registro de cada execução (vínculo à variant, início/fim, estado, solver/malha e tempo total de execução) [16], [44].
+Metrics: variáveis calculadas por execução (nome, unidade, valor, vínculo ao run), como Δp, Δp/L, velocidade média, nº de células, tempo do solver e resíduos [9], [11].
+Files: artefatos produzidos (STL, VTK/VTU, CSV, logs) com localização no MinIO (compatível S3) e checksum para integridade [26], [29], [30].
+
+COMO O TRABALHO SERÁ AVALIADO
+
+Produtividade e usabilidade (parcial): comparar o tempo de preparo manual de um caso didático com o tempo via pipeline, visando redução ≥ 50%; verificar se um usuário não especialista executa o fluxo completo a partir de um guia curto. A avaliação considera execução conteinerizada e repetível do ambiente [44], [52].
+Foco: maior agilidade, menor dificuldade e experiência simples.
+
+Validação operacional: iniciar a pilha conteinerizada em ambiente limpo e concluir um job exemplo sem intervenção, com variáveis calculadas e artefatos disponíveis no dashboard (API FastAPI + frontend React/Three.js/Plotly) [18], [23], [25], [44], [52].
+Em resumo: subir o stack, rodar o job e visualizar resultados no painel.
+
+Planejamento experimental (DOE enxuto): variar velocidade superficial e diâmetro de partícula, com 3 repetições (seeds) por ponto para estimar a variabilidade do empacotamento (rigid-body/empacotamento no Blender) [14], [32].
+
+Resultados esperados (tabelas e gráficos):
+curvas de Δp/L comparadas à correlação de Ergun [7];
+gráficos de convergência dos resíduos e estabilidade do solver simpleFoam [16];
+boxplots de produtividade (tempos manual vs. pipeline) apresentados no dashboard (Plotly) [25].
+
+RISCOS E COMO IREI LIDAR COM ELES
+
+Variabilidade do empacotamento de partículas: o uso de física rígida e processos estocásticos pode produzir arranjos distintos e pequenas variações nos resultados [14], [32].
+Mitigação: fixar a seed ao comparar variantes e executar 3 réplicas (seeds diferentes) para estimar a variabilidade.
+
+Adoção por usuários não especialistas: dificuldades em detalhes de CFD e ambiente de execução.
+Mitigação: guia passo a passo, mensagens de erro claras na DSL (parser/validação com Lark/Pydantic), upload simples do .bed via dashboard (API FastAPI e UI React/Three.js/Plotly) [28], [45], [18], [23], [25]. A execução conteinerizada reduz atritos de instalação e diferenças de ambiente [44], [52].
+
+CRONOGRAMA
+
+13.1 CRONOGRAMA DAS ATIVIDADES
+
+*** colocar aqui o cronograma detalhado ****
+
+Tabela 1 – Cronograma inicial de atividades
+Fonte: produção autoral (2025)
+
+A Tabela 1 apresenta a distribuição preliminar das atividades do TCC ao longo do semestre, incluindo levantamento bibliográfico, desenvolvimento da DSL, integração de ferramentas, execução de simulações e documentação.
+
+13.2 CRONOGRAMA DETALHADO DAS ATIVIDADES
+
+*** colocar aqui o cronograma detalhado ****
+
+Tabela 2 – Cronograma detalhado
+Fonte: produção autoral (2025)
+
+A Tabela 2 mostra a organização temporal do trabalho, com as atividades estruturadas em semanas/meses, permitindo visualizar marcos de entrega
+
+COMPARAÇÃO ANTES X DEPOIS
+
+**** Insira tabela ****
+
+Tabela X - XXXXXXXXXXXX
+Fonte: produção autoral (2025)
+
+A Tabela X mostra
+
+CONSIDERAÇÕES FINAIS
+
+***** Escrever aqui as considerações finais.
+
+REFERÊNCIAS
+
+Apresentação do 26 º Salão de IC (2025/1) : Apresentacao_SIC_Bernardo_Klein_Heitz.pptx
+https://brpucrs-my.sharepoint.com/:p:/g/personal/bernardo_heitz_edu_pucrs_br/EWXtSWx93gVIqwTR_vOAMxMBEkQYagqKEniXpmqUDMtooQ?e=v5MAlI

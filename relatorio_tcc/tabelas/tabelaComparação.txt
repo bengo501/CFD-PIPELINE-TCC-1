@@ -1,0 +1,12 @@
+| Aspecto              | Antes                                                                 | Depois                                                                                          |
+| -------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Preparação do caso   | Sequência de cliques em múltiplas interfaces, passos não padronizados | Descrição declarativa em .bed, geração automática do params.json                                |
+| Modelagem geométrica | Operações manuais no Blender, risco de não-manifold                   | Scripts headless com validações e exportação STL manifold                                       |
+| Configuração CFD     | Edição manual de dicionários e parâmetros dispersos                   | Templates Jinja2 preenchem blockMeshDict, snappyHexMeshDict, fvSchemes, fvSolution, controlDict |
+| Execução             | Dependente de operador, suscetível a erros discretos                  | Orquestração por fila de tarefas, retries e logs estruturados                                   |
+| Pós-processamento    | Planilhas e prints locais, difícil de consolidar                      | functionObjects + globals.csv, VTK/VTU padronizados                                             |
+| Rastreamento         | Sem histórico unificado de versões e parâmetros                       | Hash do params.json, versões de contêineres, seed, checksums                                    |
+| Comparação           | Longa e manual, pouca confiabilidade                                  | Dashboard com comparações lado a lado e filtros por variante                                    |
+| Repetibilidade       | Baixa, depende de máquina e operador                                  | Conteinerização com Docker Compose, resultados consistentes                                     |
+| Custo de software    | Licenças e ferramentas heterogêneas                                   | Stack de código aberto (Blender, OpenFOAM, FastAPI, React, Postgres, MinIO)                     |
+| Tempo de preparo     | Alto em estudos seriados                                              | Redução ≥ 50% em relação ao fluxo manual                                                        |
