@@ -1,0 +1,241 @@
+% ============================================================
+% DOCUMENTO PRINCIPAL - TCC
+% Pipeline Automatizado para Simulações CFD de Leitos Empacotados
+% ============================================================
+
+\documentclass[
+    12pt,               % tamanho da fonte
+    oneside,            % impressão em um lado
+    a4paper,            % tamanho do papel
+    english,            % idioma adicional
+    brazil              % idioma principal
+]{abntex2}
+
+% ============================================================
+% PACOTES BÁSICOS
+% ============================================================
+\usepackage{lmodern}            % usa fonte latin modern
+\usepackage[T1]{fontenc}        % seleção de códigos de fonte
+\usepackage[utf8]{inputenc}     % codificação do documento
+\usepackage{lastpage}           % usado pela ficha catalográfica
+\usepackage{indentfirst}        % indenta o primeiro parágrafo
+\usepackage{color}              % controle de cores
+\usepackage{graphicx}           % inclusão de gráficos
+\usepackage{microtype}          % melhorias de justificação
+\usepackage{lipsum}             % geração de texto dummy
+
+% ============================================================
+% PACOTES PARA MATEMÁTICA E CÓDIGO
+% ============================================================
+\usepackage{amsmath}            % matemática avançada
+\usepackage{amssymb}            % símbolos matemáticos
+\usepackage{listings}           % listagens de código
+\usepackage{xcolor}             % cores personalizadas
+
+% ============================================================
+% PACOTES PARA TABELAS E FIGURAS
+% ============================================================
+\usepackage{booktabs}           % tabelas profissionais
+\usepackage{multirow}           % mesclar células em tabelas
+\usepackage{array}              % personalização de colunas
+\usepackage{caption}            % legendas customizadas
+\usepackage{subcaption}         % subfiguras
+
+% ============================================================
+% PACOTES PARA REFERÊNCIAS E CITAÇÕES
+% ============================================================
+\usepackage[brazilian,hyperpageref]{backref}    % páginas com citações
+\usepackage[alf]{abntex2cite}                   % citações padrão abnt
+
+% ============================================================
+% CONFIGURAÇÕES DE CORES PARA CÓDIGO
+% ============================================================
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% ============================================================
+% INFORMAÇÕES DO DOCUMENTO
+% ============================================================
+\titulo{Pipeline Automatizado para Simulações CFD de Leitos Empacotados}
+\autor{Seu Nome Completo}
+\local{Cidade, Estado}
+\data{2025}
+\orientador{Prof. Dr. Nome do Orientador}
+% \coorientador{Prof. Dr. Nome do Coorientador}
+\instituicao{%
+  Nome da Universidade
+  \par
+  Nome da Faculdade
+  \par
+  Nome do Curso}
+\tipotrabalho{Trabalho de Conclusão de Curso}
+\preambulo{Trabalho de Conclusão de Curso apresentado ao Curso de [Nome do Curso] da [Nome da Universidade] como requisito parcial para obtenção do título de Bacharel em [Nome do Curso].}
+
+% ============================================================
+% CONFIGURAÇÕES DO PDF
+% ============================================================
+\makeatletter
+\hypersetup{
+    pdftitle={\@title},
+    pdfauthor={\@author},
+    pdfsubject={\imprimirpreambulo},
+    pdfcreator={LaTeX with abnTeX2},
+    pdfkeywords={cfd}{openfoam}{blender}{leitos empacotados}{dsl}{pipeline},
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+    bookmarksdepth=4
+}
+\makeatother
+
+% ============================================================
+% CONFIGURAÇÕES DE ESPAÇAMENTO
+% ============================================================
+\setlength{\parindent}{1.3cm}
+\setlength{\parskip}{0.2cm}
+
+% ============================================================
+% INÍCIO DO DOCUMENTO
+% ============================================================
+\begin{document}
+
+% Seleciona idioma português
+\selectlanguage{brazil}
+
+% Retira espaço extra obsoleto entre frases
+\frenchspacing
+
+% ============================================================
+% ELEMENTOS PRÉ-TEXTUAIS
+% ============================================================
+\pretextual
+
+% Capa
+\imprimircapa
+
+% Folha de rosto
+\imprimirfolhaderosto*
+
+% Inserir ficha catalográfica (fornecida pela biblioteca)
+% \begin{fichacatalografica}
+%     \includepdf{pretextual/ficha_catalografica.pdf}
+% \end{fichacatalografica}
+
+% Folha de aprovação
+\include{pretextual/folha_aprovacao}
+
+% Dedicatória (opcional)
+\include{pretextual/dedicatoria}
+
+% Agradecimentos (opcional)
+\include{pretextual/agradecimentos}
+
+% Epígrafe (opcional)
+\include{pretextual/epigrafe}
+
+% Resumo em português
+\include{pretextual/resumo}
+
+% Abstract (resumo em inglês)
+\include{pretextual/abstract}
+
+% Lista de figuras
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
+
+% Lista de tabelas
+\pdfbookmark[0]{\listtablename}{lot}
+\listoftables*
+\cleardoublepage
+
+% Lista de abreviaturas e siglas
+\include{pretextual/siglas}
+
+% Lista de símbolos (opcional)
+% \include{pretextual/simbolos}
+
+% Sumário
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+
+% ============================================================
+% ELEMENTOS TEXTUAIS
+% ============================================================
+\textual
+
+% Capítulo 1 - Introdução
+\include{capitulos/cap01_introducao}
+
+% Capítulo 2 - Referencial Teórico
+\include{capitulos/cap02_referencial_teorico}
+
+% Capítulo 3 - Materiais e Métodos
+\include{capitulos/cap03_materiais_metodos}
+
+% Capítulo 4 - Desenvolvimento
+\include{capitulos/cap04_desenvolvimento}
+
+% Capítulo 5 - Resultados e Discussão
+\include{capitulos/cap05_resultados}
+
+% Capítulo 6 - Conclusão
+\include{capitulos/cap06_conclusao}
+
+% ============================================================
+% ELEMENTOS PÓS-TEXTUAIS
+% ============================================================
+\postextual
+
+% Referências bibliográficas
+\bibliography{bibliografia/referencias}
+
+% Glossário (opcional)
+% \glossary
+
+% Apêndices
+\begin{apendicesenv}
+    \partapendices
+    \include{apendices/apendice_a_codigo}
+    \include{apendices/apendice_b_diagramas}
+    \include{apendices/apendice_c_manual}
+\end{apendicesenv}
+
+% Anexos (opcional)
+\begin{anexosenv}
+    \partanexos
+    \include{anexos/anexo_a_documentacao}
+\end{anexosenv}
+
+% Índice remissivo (opcional)
+% \phantompart
+% \printindex
+
+\end{document}
+

@@ -1,0 +1,182 @@
+\chapter{Materiais e Métodos}
+\label{cap:materiais}
+
+% ============================================================
+% VISÃO GERAL
+% ============================================================
+\section{Visão Geral do Sistema}
+
+O sistema desenvolvido neste trabalho consiste em um pipeline automatizado para simulações CFD de leitos empacotados, composto por múltiplos módulos integrados. A arquitetura geral está ilustrada na Figura \ref{fig:arquitetura_geral}.
+
+% TODO: Adicionar figura da arquitetura
+% \begin{figure}[htb]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{figuras/arquitetura_geral.pdf}
+%     \caption{Arquitetura geral do sistema}
+%     \label{fig:arquitetura_geral}
+% \end{figure}
+
+\section{Metodologia de Desenvolvimento}
+
+\subsection{Abordagem Ágil}
+
+O desenvolvimento seguiu princípios ágeis com iterações de 1-2 semanas (sprints). Utilizou-se uma adaptação da metodologia Scrumban, combinando elementos do Scrum (sprints planejados) e Kanban (fluxo contínuo).
+
+\subsection{Ferramentas de Desenvolvimento}
+
+\begin{itemize}
+    \item \textbf{Controle de Versão}: Git e GitHub
+    \item \textbf{IDE}: VSCode com extensões para Python, JavaScript e LaTeX
+    \item \textbf{Gerenciamento de Tarefas}: GitHub Projects (Kanban)
+    \item \textbf{Documentação}: Markdown e LaTeX
+\end{itemize}
+
+% ============================================================
+% ARQUITETURA DO SISTEMA
+% ============================================================
+\section{Arquitetura do Sistema}
+
+\subsection{Arquitetura em Camadas}
+
+O sistema foi projetado seguindo uma arquitetura em camadas, separando responsabilidades:
+
+\begin{enumerate}
+    \item \textbf{Camada de Apresentação}: Interface web (React)
+    \item \textbf{Camada de API}: Backend RESTful (FastAPI)
+    \item \textbf{Camada de Negócios}: Serviços de processamento
+    \item \textbf{Camada de Dados}: PostgreSQL + MinIO
+    \item \textbf{Camada de Processamento}: Workers assíncronos (Celery)
+\end{enumerate}
+
+\subsection{Tecnologias Selecionadas}
+
+A Tabela \ref{tab:tecnologias} apresenta as tecnologias selecionadas e suas justificativas.
+
+\begin{table}[htb]
+\centering
+\caption{Tecnologias utilizadas no projeto}
+\label{tab:tecnologias}
+\begin{tabular}{lll}
+\toprule
+\textbf{Componente} & \textbf{Tecnologia} & \textbf{Versão} \\
+\midrule
+Linguagem Backend & Python & 3.11 \\
+Framework API & FastAPI & 0.104 \\
+Banco Relacional & PostgreSQL & 16 \\
+ORM & SQLAlchemy & 2.0 \\
+Cache/Fila & Redis & 7.2 \\
+Task Queue & Celery & 5.3 \\
+Object Storage & MinIO & Latest \\
+Frontend Framework & React & 18.2 \\
+Build Tool & Vite & 5.0 \\
+Visualização 3D & Three.js & r158 \\
+Parser Generator & ANTLR & 4.13.1 \\
+Modelagem 3D & Blender & 4.2 \\
+CFD Solver & OpenFOAM & 11 \\
+Containerização & Docker & 24.0 \\
+Orquestração & Docker Compose & 2.23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+% PIPELINE DE PROCESSAMENTO
+% ============================================================
+\section{Pipeline de Processamento}
+
+O pipeline completo é ilustrado na Figura \ref{fig:pipeline_completo}.
+
+\subsection{Etapas do Pipeline}
+
+\begin{enumerate}
+    \item \textbf{Especificação de Parâmetros}: Usuário define parâmetros via DSL ou interface web
+    \item \textbf{Compilação DSL}: Parser ANTLR valida e gera JSON normalizado
+    \item \textbf{Geração de Geometria}: Blender cria modelo 3D com simulação física
+    \item \textbf{Preparação CFD}: OpenFOAM gera malha e configura caso
+    \item \textbf{Simulação}: Solver executa cálculo numérico
+    \item \textbf{Pós-Processamento}: Extração de métricas e validação
+    \item \textbf{Armazenamento}: Persistência de dados e arquivos
+    \item \textbf{Visualização}: Apresentação de resultados na interface web
+\end{enumerate}
+
+% ============================================================
+% VALIDAÇÃO
+% ============================================================
+\section{Metodologia de Validação}
+
+\subsection{Comparação com Equação de Ergun}
+
+Os resultados de perda de carga obtidos nas simulações CFD são comparados com valores previstos pela equação de Ergun (Eq. \ref{eq:ergun}). O desvio relativo é calculado como:
+
+\begin{equation}
+\text{Desvio} = \frac{|\Delta P_{CFD} - \Delta P_{Ergun}|}{\Delta P_{Ergun}} \times 100\%
+\label{eq:desvio}
+\end{equation}
+
+Desvios inferiores a 10\% são considerados aceitáveis, conforme literatura \cite{dixon2006}.
+
+\subsection{Estudo de Independência de Malha}
+
+Para garantir que os resultados não dependem do refinamento da malha, foi realizado um estudo de independência utilizando o método GCI (\textit{Grid Convergence Index}) \cite{roache1994}.
+
+% ============================================================
+% CASOS DE TESTE
+% ============================================================
+\section{Casos de Teste}
+
+\subsection{Configurações Avaliadas}
+
+Foram definidos três casos de teste representativos:
+
+\begin{enumerate}
+    \item \textbf{Caso 1}: Leito cilíndrico, $D = 50$ mm, $H = 100$ mm, $d_p = 5$ mm, 500 partículas
+    \item \textbf{Caso 2}: Leito cilíndrico, $D = 100$ mm, $H = 200$ mm, $d_p = 10$ mm, 800 partículas
+    \item \textbf{Caso 3}: Leito cilíndrico, $D = 75$ mm, $H = 150$ mm, $d_p = 7.5$ mm, 650 partículas
+\end{enumerate}
+
+\subsection{Propriedades do Fluido}
+
+Em todos os casos, utilizou-se água como fluido de trabalho:
+\begin{itemize}
+    \item Densidade: $\rho = 1000$ kg/m³
+    \item Viscosidade dinâmica: $\mu = 0.001$ Pa·s
+\end{itemize}
+
+\subsection{Condições de Contorno}
+
+\begin{itemize}
+    \item \textbf{Entrada}: Velocidade uniforme (0.01, 0.05, 0.1 m/s)
+    \item \textbf{Saída}: Pressão atmosférica (0 Pa relativo)
+    \item \textbf{Paredes}: Condição de não-deslizamento
+\end{itemize}
+
+% ============================================================
+% MÉTRICAS DE AVALIAÇÃO
+% ============================================================
+\section{Métricas de Avaliação}
+
+\subsection{Performance do Sistema}
+
+\begin{itemize}
+    \item Tempo de geração de geometria
+    \item Tempo de geração de malha
+    \item Tempo de simulação CFD
+    \item Tempo total de pipeline
+\end{itemize}
+
+\subsection{Qualidade dos Resultados}
+
+\begin{itemize}
+    \item Desvio em relação à equação de Ergun
+    \item Qualidade da malha (skewness, aspect ratio)
+    \item Convergência da solução numérica
+\end{itemize}
+
+\subsection{Usabilidade}
+
+\begin{itemize}
+    \item Facilidade de especificação de parâmetros
+    \item Clareza da visualização de resultados
+    \item Tempo de resposta da interface web
+\end{itemize}
+

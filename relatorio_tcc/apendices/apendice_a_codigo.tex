@@ -1,0 +1,194 @@
+\chapter{Exemplos de Código}
+\label{ap:codigo}
+
+Este apêndice apresenta exemplos de código-fonte relevantes do sistema desenvolvido.
+
+% ============================================================
+% EXEMPLO 1: DSL
+% ============================================================
+\section{Exemplo de Arquivo .bed (DSL)}
+
+\begin{lstlisting}[caption={Exemplo de especificação de leito empacotado na DSL}]
+bed {
+  diameter: 50mm
+  height: 100mm
+  wall_thickness: 2mm
+}
+
+lids {
+  top: flat
+  bottom: flat
+  thickness: 3mm
+}
+
+particles {
+  count: 500
+  kind: sphere
+  diameter: 5mm
+}
+
+packing {
+  method: rigid_body
+  gravity: -9.81m/s²
+  friction: 0.5
+  substeps: 10
+}
+
+export {
+  formats: blend, stl
+}
+
+cfd {
+  regime: laminar
+  inlet_velocity: 0.01m/s
+  fluid_density: 1000kg/m³
+  fluid_viscosity: 0.001Pa.s
+}
+\end{lstlisting}
+
+% ============================================================
+% EXEMPLO 2: API REQUEST
+% ============================================================
+\section{Exemplo de Requisição API}
+
+\begin{lstlisting}[language=Python, caption={Exemplo de uso da API REST}]
+import requests
+
+# Criar leito no banco de dados
+bed_data = {
+    "name": "leito_teste_01",
+    "diameter": 0.05,
+    "height": 0.1,
+    "particle_count": 500,
+    "particle_diameter": 0.005,
+    "particle_kind": "sphere",
+    "packing_method": "rigid_body",
+    "porosity": 0.42
+}
+
+response = requests.post(
+    'http://localhost:8000/api/beds', 
+    json=bed_data
+)
+
+bed = response.json()
+print(f"Leito criado com ID: {bed['id']}")
+
+# Pipeline completo automatizado
+pipeline_request = {
+    "parameters": bed_data,
+    "generate_model": True,
+    "run_simulation": True
+}
+
+job = requests.post(
+    'http://localhost:8000/api/pipeline/create-bed',
+    json=pipeline_request
+).json()
+
+print(f"Job iniciado: {job['job_id']}")
+\end{lstlisting}
+
+% ============================================================
+% EXEMPLO 3: DOCKER COMPOSE
+% ============================================================
+\section{Configuração Docker Compose}
+
+\begin{lstlisting}[language=bash, caption={docker-compose.yml simplificado}]
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: cfd_user
+      POSTGRES_PASSWORD: cfd_password
+      POSTGRES_DB: cfd_pipeline
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://cfd_user:cfd_password@postgres/cfd_pipeline
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+\end{lstlisting}
+
+% ============================================================
+% EXEMPLO 4: BLENDER SCRIPT
+% ============================================================
+\section{Geração de Geometria no Blender}
+
+\begin{lstlisting}[language=Python, caption={Trecho do script Blender para criação de leito}]
+import bpy
+import json
+
+def criar_cilindro_oco(diametro, altura, espessura):
+    """cria cilindro oco para o leito"""
+    # cilindro externo
+    bpy.ops.mesh.primitive_cylinder_add(
+        radius=diametro/2,
+        depth=altura,
+        location=(0, 0, altura/2)
+    )
+    externo = bpy.context.active_object
+    
+    # cilindro interno
+    bpy.ops.mesh.primitive_cylinder_add(
+        radius=(diametro/2 - espessura),
+        depth=altura + 0.01,
+        location=(0, 0, altura/2)
+    )
+    interno = bpy.context.active_object
+    
+    # boolean difference
+    mod = externo.modifiers.new(name="boolean", type='BOOLEAN')
+    mod.operation = 'DIFFERENCE'
+    mod.object = interno
+    
+    bpy.context.view_layer.objects.active = externo
+    bpy.ops.object.modifier_apply(modifier="boolean")
+    
+    return externo
+
+def criar_particulas(quantidade, raio_leito, altura_leito, raio_particula):
+    """cria partículas esféricas"""
+    particulas = []
+    
+    for i in range(quantidade):
+        bpy.ops.mesh.primitive_uv_sphere_add(
+            radius=raio_particula,
+            location=(0, 0, altura_leito + raio_particula * 2 * i)
+        )
+        particula = bpy.context.active_object
+        particulas.append(particula)
+    
+    return particulas
+
+def aplicar_fisica(objetos, tipo='PASSIVE'):
+    """aplica física rigid body"""
+    for obj in objetos:
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.rigidbody.object_add()
+        obj.rigid_body.type = tipo
+\end{lstlisting}
+
+\end{document}
+

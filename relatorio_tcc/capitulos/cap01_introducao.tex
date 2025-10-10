@@ -1,0 +1,113 @@
+\chapter{Introdução}
+\label{cap:introducao}
+
+% ============================================================
+% CONTEXTUALIZAÇÃO
+% ============================================================
+\section{Contextualização}
+
+Leitos empacotados são amplamente utilizados em processos industriais químicos, petroquímicos e farmacêuticos para diversas operações unitárias, incluindo absorção, adsorção, reações catalíticas e separação de misturas. A eficiência desses processos depende fortemente das características do escoamento fluido através do meio poroso formado pelas partículas empacotadas.
+
+A simulação computacional por Dinâmica dos Fluidos Computacional (CFD) tem se tornado uma ferramenta essencial para o projeto e otimização de leitos empacotados, permitindo a análise detalhada de campos de velocidade, pressão e temperatura sem a necessidade de experimentos físicos custosos. No entanto, o processo de configuração e execução de simulações CFD é complexo, demorado e propenso a erros, especialmente quando múltiplas configurações geométricas precisam ser avaliadas.
+
+% ============================================================
+% MOTIVAÇÃO
+% ============================================================
+\section{Motivação}
+
+A configuração manual de simulações CFD de leitos empacotados envolve várias etapas repetitivas e suscetíveis a erros:
+
+\begin{itemize}
+    \item Geração de geometrias 3D com diferentes configurações de empacotamento
+    \item Definição de parâmetros de simulação (propriedades do fluido, condições de contorno)
+    \item Geração de malhas computacionais
+    \item Configuração de solvers e esquemas numéricos
+    \item Pós-processamento e extração de resultados
+    \item Validação com correlações empíricas (ex: equação de Ergun)
+\end{itemize}
+
+Cada uma dessas etapas pode levar horas de trabalho manual, tornando estudos paramétricos e otimizações impraticáveis. Além disso, a reprodutibilidade dos resultados é comprometida pela falta de padronização e documentação inadequada dos processos.
+
+% ============================================================
+% PROBLEMA
+% ============================================================
+\section{Definição do Problema}
+
+Atualmente, não existe uma solução integrada que automatize todo o fluxo de trabalho de simulações CFD para leitos empacotados, desde a especificação de parâmetros até a geração de resultados validados. Pesquisadores e engenheiros precisam:
+
+\begin{enumerate}
+    \item Utilizar múltiplas ferramentas de software desconexas
+    \item Realizar tarefas repetitivas manualmente
+    \item Gerenciar grande volume de arquivos e resultados
+    \item Garantir reprodutibilidade sem ferramentas adequadas
+    \item Validar resultados através de correlações empíricas
+\end{enumerate}
+
+Essa fragmentação do processo resulta em:
+\begin{itemize}
+    \item Baixa produtividade
+    \item Erros humanos frequentes
+    \item Dificuldade de colaboração entre equipes
+    \item Perda de rastreabilidade de resultados
+    \item Impossibilidade de realizar estudos paramétricos em larga escala
+\end{itemize}
+
+% ============================================================
+% OBJETIVOS
+% ============================================================
+\section{Objetivos}
+
+\subsection{Objetivo Geral}
+
+Desenvolver um pipeline automatizado e reprodutível para simulações CFD de leitos empacotados, integrando geração de geometria, simulação numérica, armazenamento de dados e visualização de resultados em uma plataforma web unificada.
+
+\subsection{Objetivos Específicos}
+
+\begin{enumerate}
+    \item Desenvolver uma Domain Specific Language (DSL) para descrição declarativa de parâmetros de leitos empacotados
+    \item Implementar geração automática de geometrias 3D utilizando Blender com simulação física de empacotamento
+    \item Integrar o OpenFOAM para automatização de simulações CFD, desde a geração de malha até a solução numérica
+    \item Projetar e implementar um banco de dados relacional (PostgreSQL) para armazenamento de metadados e resultados
+    \item Desenvolver um sistema de armazenamento escalável para arquivos grandes (MinIO)
+    \item Criar uma API RESTful (FastAPI) para gerenciamento do pipeline
+    \item Implementar um sistema de filas assíncronas para processamento de jobs em background (Redis + Celery)
+    \item Desenvolver uma interface web interativa (React) para visualização e análise de resultados
+    \item Containerizar toda a aplicação utilizando Docker para garantir reprodutibilidade
+    \item Realizar validação dos resultados através da comparação com a equação de Ergun
+\end{enumerate}
+
+% ============================================================
+% JUSTIFICATIVA
+% ============================================================
+\section{Justificativa}
+
+Este trabalho se justifica pela crescente necessidade de ferramentas que aumentem a produtividade em pesquisa e desenvolvimento de processos industriais. A automação proposta oferece os seguintes benefícios:
+
+\begin{itemize}
+    \item \textbf{Reprodutibilidade}: Todos os parâmetros e configurações são documentados automaticamente
+    \item \textbf{Escalabilidade}: Permite execução de dezenas ou centenas de simulações parametrizadas
+    \item \textbf{Rastreabilidade}: Histórico completo de simulações e resultados em banco de dados
+    \item \textbf{Colaboração}: Múltiplos usuários podem compartilhar configurações e resultados
+    \item \textbf{Validação}: Comparação automática com correlações empíricas estabelecidas
+    \item \textbf{Acessibilidade}: Interface web torna a ferramenta acessível sem instalação local complexa
+\end{itemize}
+
+% ============================================================
+% ESTRUTURA DO TRABALHO
+% ============================================================
+\section{Estrutura do Trabalho}
+
+Este trabalho está organizado da seguinte forma:
+
+\begin{itemize}
+    \item \textbf{Capítulo 2 - Referencial Teórico}: Apresenta os conceitos fundamentais sobre leitos empacotados, CFD, OpenFOAM, DSLs, arquitetura de software e tecnologias utilizadas.
+    
+    \item \textbf{Capítulo 3 - Materiais e Métodos}: Descreve a metodologia adotada, arquitetura do sistema, tecnologias escolhidas e justificativas das decisões de design.
+    
+    \item \textbf{Capítulo 4 - Desenvolvimento}: Detalha a implementação de cada componente do pipeline: DSL, geração de geometria, simulação CFD, banco de dados, API, interface web e containerização.
+    
+    \item \textbf{Capítulo 5 - Resultados e Discussão}: Apresenta casos de uso, validação com a equação de Ergun, análise de performance e exemplos de estudos paramétricos.
+    
+    \item \textbf{Capítulo 6 - Conclusão}: Sintetiza os resultados obtidos, contribuições do trabalho, limitações identificadas e perspectivas para trabalhos futuros.
+\end{itemize}
+

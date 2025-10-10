@@ -1,0 +1,248 @@
+\chapter{Referencial Teórico}
+\label{cap:referencial}
+
+% ============================================================
+% LEITOS EMPACOTADOS
+% ============================================================
+\section{Leitos Empacotados}
+
+\subsection{Definição e Aplicações}
+
+Leitos empacotados (ou \textit{packed beds}) são estruturas compostas por partículas sólidas empilhadas em um recipiente, através das quais um fluido escoa. São amplamente utilizados em diversas operações unitárias da engenharia química e de processos \cite{ergun1952}.
+
+\subsection{Parâmetros Característicos}
+
+\subsubsection{Porosidade}
+
+A porosidade $\varepsilon$ é definida como a fração de volume vazio em relação ao volume total do leito:
+
+\begin{equation}
+\varepsilon = \frac{V_{vazio}}{V_{total}}
+\label{eq:porosidade}
+\end{equation}
+
+Para leitos empacotados aleatoriamente de esferas, a porosidade típica varia entre 0,36 e 0,42 \cite{dullien1992}.
+
+\subsubsection{Perda de Carga}
+
+A perda de carga através do leito é um parâmetro crítico de projeto. A equação de Ergun \cite{ergun1952} é amplamente utilizada para prever a queda de pressão:
+
+\begin{equation}
+\frac{\Delta P}{L} = 150 \frac{(1-\varepsilon)^2}{\varepsilon^3} \frac{\mu u_s}{d_p^2} + 1.75 \frac{(1-\varepsilon)}{\varepsilon^3} \frac{\rho u_s^2}{d_p}
+\label{eq:ergun}
+\end{equation}
+
+onde:
+\begin{itemize}
+    \item $\Delta P$ = queda de pressão [Pa]
+    \item $L$ = altura do leito [m]
+    \item $\varepsilon$ = porosidade [-]
+    \item $\mu$ = viscosidade dinâmica do fluido [Pa·s]
+    \item $u_s$ = velocidade superficial [m/s]
+    \item $d_p$ = diâmetro da partícula [m]
+    \item $\rho$ = densidade do fluido [kg/m³]
+\end{itemize}
+
+% ============================================================
+% CFD E OPENFOAM
+% ============================================================
+\section{Dinâmica dos Fluidos Computacional (CFD)}
+
+\subsection{Fundamentos}
+
+CFD é a ciência de predizer o escoamento de fluidos, transferência de calor e fenômenos relacionados através da solução numérica de equações governantes \cite{versteeg2007}. As equações fundamentais são:
+
+\subsubsection{Conservação da Massa}
+
+\begin{equation}
+\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{u}) = 0
+\label{eq:continuidade}
+\end{equation}
+
+\subsubsection{Conservação da Quantidade de Movimento (Navier-Stokes)}
+
+\begin{equation}
+\frac{\partial (\rho \mathbf{u})}{\partial t} + \nabla \cdot (\rho \mathbf{u} \mathbf{u}) = -\nabla p + \nabla \cdot \boldsymbol{\tau} + \rho \mathbf{g}
+\label{eq:navier-stokes}
+\end{equation}
+
+\subsection{OpenFOAM}
+
+OpenFOAM (\textit{Open Field Operation and Manipulation}) é uma plataforma de código aberto para simulações de CFD, desenvolvida em C++. Possui as seguintes características principais:
+
+\begin{itemize}
+    \item Modular e extensível
+    \item Suporte a malhas não estruturadas
+    \item Diversos solvers especializados
+    \item Paralelização via MPI
+    \item Grande comunidade de usuários
+\end{itemize}
+
+\subsubsection{Estrutura de Casos OpenFOAM}
+
+Um caso OpenFOAM possui a seguinte estrutura de diretórios:
+
+\begin{lstlisting}[language=bash, caption={Estrutura de diretórios OpenFOAM}]
+caso/
+├── 0/              # Condições iniciais
+│   ├── U           # Campo de velocidade
+│   ├── p           # Campo de pressão
+│   └── ...
+├── constant/       # Propriedades constantes
+│   ├── polyMesh/   # Malha computacional
+│   ├── transportProperties
+│   └── turbulenceProperties
+└── system/         # Parâmetros de solução
+    ├── controlDict
+    ├── fvSchemes
+    └── fvSolution
+\end{lstlisting}
+
+% ============================================================
+% DOMAIN SPECIFIC LANGUAGES
+% ============================================================
+\section{Domain Specific Languages (DSL)}
+
+\subsection{Definição}
+
+Uma Domain Specific Language é uma linguagem de programação ou especificação dedicada a um domínio particular de aplicação \cite{fowler2010}. Diferentemente de linguagens de propósito geral (como Python ou Java), DSLs são projetadas para expressar soluções de forma concisa e legível dentro de um contexto específico.
+
+\subsection{Vantagens}
+
+\begin{itemize}
+    \item Expressividade no domínio específico
+    \item Redução de código boilerplate
+    \item Validação semântica em tempo de compilação
+    \item Documentação autodescritiva
+    \item Menor curva de aprendizado para especialistas do domínio
+\end{itemize}
+
+\subsection{ANTLR}
+
+ANTLR (\textit{ANother Tool for Language Recognition}) é um gerador de parsers poderoso para leitura, processamento, execução ou tradução de texto estruturado \cite{parr2013}. Permite definir gramáticas formais e gerar código para análise léxica e sintática.
+
+% ============================================================
+% ARQUITETURA DE SOFTWARE
+% ============================================================
+\section{Arquitetura de Software}
+
+\subsection{Arquitetura REST}
+
+REST (\textit{Representational State Transfer}) é um estilo arquitetural para sistemas distribuídos que utiliza o protocolo HTTP para comunicação \cite{fielding2000}. Características principais:
+
+\begin{itemize}
+    \item Stateless (sem estado)
+    \item Cliente-servidor
+    \item Interface uniforme
+    \item Sistema em camadas
+    \item Cache
+\end{itemize}
+
+\subsection{Microserviços}
+
+Arquitetura de microserviços é um estilo que estrutura uma aplicação como uma coleção de serviços pequenos, autônomos e independentemente implantáveis \cite{newman2015}.
+
+\subsection{Contêineres e Docker}
+
+Contêineres são unidades de software que empacotam código e suas dependências para que a aplicação execute de forma rápida e confiável em diferentes ambientes computacionais \cite{merkel2014}.
+
+% ============================================================
+% BANCOS DE DADOS
+% ============================================================
+\section{Sistemas de Armazenamento}
+
+\subsection{PostgreSQL}
+
+PostgreSQL é um sistema de gerenciamento de banco de dados relacional objeto-relacional (ORDBMS) de código aberto \cite{stonebraker1986}. Oferece:
+
+\begin{itemize}
+    \item Conformidade com SQL padrão
+    \item Transações ACID
+    \item Suporte a JSON
+    \item Extensibilidade
+    \item Alta performance
+\end{itemize}
+
+\subsection{Object Storage (MinIO)}
+
+MinIO é um servidor de armazenamento de objetos de alto desempenho, compatível com a API Amazon S3 \cite{minio2021}. Ideal para armazenamento de arquivos grandes e não estruturados.
+
+% ============================================================
+% FILAS E PROCESSAMENTO ASSÍNCRONO
+% ============================================================
+\section{Processamento Assíncrono}
+
+\subsection{Redis}
+
+Redis é um armazenamento de estrutura de dados em memória, usado como banco de dados, cache e message broker \cite{redis2021}. Características:
+
+\begin{itemize}
+    \item Extremamente rápido (operações em memória)
+    \item Estruturas de dados versáteis
+    \item Persistência opcional
+    \item Pub/Sub
+\end{itemize}
+
+\subsection{Celery}
+
+Celery é uma fila de tarefas distribuída para processar vastas quantidades de mensagens \cite{celery2021}. Permite:
+
+\begin{itemize}
+    \item Execução assíncrona de tarefas
+    \item Agendamento
+    \item Retry automático
+    \item Monitoramento em tempo real
+\end{itemize}
+
+% ============================================================
+% FRAMEWORKS WEB
+% ============================================================
+\section{Frameworks Web}
+
+\subsection{FastAPI}
+
+FastAPI é um framework web moderno e de alto desempenho para construção de APIs com Python \cite{fastapi2021}. Vantagens:
+
+\begin{itemize}
+    \item Alto desempenho (comparável a Node.js e Go)
+    \item Documentação automática (OpenAPI/Swagger)
+    \item Validação de dados com Pydantic
+    \item Suporte assíncrono nativo
+    \item Type hints completos
+\end{itemize}
+
+\subsection{React}
+
+React é uma biblioteca JavaScript para construção de interfaces de usuário \cite{react2021}. Características:
+
+\begin{itemize}
+    \item Component-based
+    \item Virtual DOM
+    \item Unidirecional data flow
+    \item Ecossistema rico
+\end{itemize}
+
+% ============================================================
+% VISUALIZAÇÃO 3D
+% ============================================================
+\section{Visualização e Modelagem 3D}
+
+\subsection{Blender}
+
+Blender é uma suíte de criação 3D de código aberto que suporta modelagem, rigging, animação, simulação, renderização, composição e rastreamento de movimento \cite{blender2021}.
+
+\subsubsection{Blender Python API}
+
+A API Python do Blender (bpy) permite automação completa através de scripts, incluindo:
+
+\begin{itemize}
+    \item Criação e manipulação de geometrias
+    \item Aplicação de modificadores
+    \item Simulações físicas (rigid body)
+    \item Exportação para diversos formatos (STL, OBJ)
+\end{itemize}
+
+\subsection{Three.js}
+
+Three.js é uma biblioteca JavaScript para criar gráficos 3D no navegador usando WebGL \cite{threejs2021}. Permite visualização interativa de modelos 3D sem plugins.
+

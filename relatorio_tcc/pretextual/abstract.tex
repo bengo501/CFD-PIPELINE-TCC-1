@@ -1,0 +1,8 @@
+\begin{resumo}[Abstract]
+\begin{otherlanguage*}{english}
+Computational Fluid Dynamics (CFD) simulations of packed beds are widely used in industrial processes, but their setup process is complex, time-consuming and error-prone. This work presents the development of an automated and reproducible pipeline that integrates geometry generation, numerical simulation, data storage and results visualization. The system uses a Domain Specific Language (DSL) for declarative parameter specification, processed by an ANTLR-based compiler. 3D geometry generation is performed automatically in Blender with physical packing simulation, while OpenFOAM executes CFD simulations in an automated manner. A microservices-based architecture was implemented, using FastAPI for RESTful API, PostgreSQL for metadata, MinIO for file storage, Redis and Celery for asynchronous processing, and React for web interface. Containerization with Docker ensures complete reproducibility. Results were validated through comparison with the Ergun equation, showing deviations below 10\%. The system demonstrated capability to execute automated parametric studies, reducing setup time from hours to minutes and ensuring complete traceability through the database. The developed platform represents a significant contribution to the automation of CFD simulations in process engineering.
+
+\textbf{Keywords}: CFD. OpenFOAM. Packed Beds. Domain Specific Language. Automated Pipeline. Docker. Microservices.
+\end{otherlanguage*}
+\end{resumo}
+
