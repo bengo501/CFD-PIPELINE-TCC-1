@@ -1,23 +1,15 @@
 \chapter{Introdução}
 \label{cap:introducao}
 
-% ============================================================
-% CONTEXTUALIZAÇÃO
-% ============================================================
-\section{Contextualização}
-
 Os leitos empacotados são parte do dia a dia da engenharia química e aparecem em estudos relacionados a absorção, destilação, reações heterogêneas e sobre transferência de calor e massa. Representá-los bem faz diferença direta no desempenho e resultado dos processos científicos e industriais. Dessa forma, a computação gráfica e as simulações ganharam protagonismo nessa área. Entre as abordagens que estão disponíveis para serem utilizadas, temos a Computational Fluid Dynamics (CFD), que nos permite enxergar, de forma detalhada os campos de velocidade e pressão em geometrias que antes dependiam quase só de correlações empíricas.
 
 Apesar de todo o potencial que esse modelo nos traz, preparar estudos utilizando CFD para leitos empacotados ainda consome tempo e carece de padronização. Criar geometrias realistas, gerar malhas adequadas e encadear todas as etapas até a análise final costuma depender de scripts rodados de forma local, conhecimento técnico em diversos softwares e muitas operações manuais. No meu laboratório de Iniciação Científica, vejo as dificuldades vivenciadas pelo meu orientador e seu doutorando em relação ao empacotamento geométrico, isso acaba por desmotivar e dificultar os estudos e as comparações consistentes entre simulações.
 
-% ============================================================
-% MOTIVAÇÃO E PROPOSTA
-% ============================================================
-\section{Motivação}
-
 Diante desse cenário, estou propondo um pipeline automatizado e reprodutível que integra desde a descrição do problema até a visualização dos resultados. O fluxo começa em uma linguagem de domínio específico (DSL), na qual descrevo partículas, arranjos, fluido, regime e objetivos. A partir dela, o sistema irá traduzir as especificações para geometrias físicas no geradas no Blender, executar os casos/simulações no OpenFOAM, armazenar metadados e artefatos em um banco de dados e disponibilizar um dashboard interativo com visualização 3D dos modelos e a possibilidade de visualizar gráficos de análises e comparações. Toda a solução será rodada de forma conteinerizada e orquestrada por Docker Compose, o que melhora portabilidade e repetibilidade entre diferentes máquinas.
 
-Essa nova abordagem que eu proponho, combate esses gargalos recorrentes, de forma que o pipeline padroniza as entradas, reduz o trabalho manual, preserva histórico de versões e parâmetros, facilita auditoria e comparação entre cenários. O uso de ferramentas de código aberto, acaba por favorecer a colaboração da ciência aberta, enquanto a conteinerização do pipeline, resulta na mitigação do custo de instalação de programas e amplia a acessibilidade da experiência.
+Essa nova abordagem que eu proponho, combate esses gargalos recorrentes, de forma que o pipeline padroniza as entradas, reduz o trabalho manual, preserva histórico de versões e parâmetros, facilita auditoria e comparação entre cenários. O uso de ferramentas de código aberto, acaba por favorecer a colaboração da ciência aberta, enquanto a conteinerização do pipeline, resulta na mitigação do custo de instalação de programas e amplia a acessibilidade da experiência. Para validar o meu sistema, utilizo referências, como a correlação de Ergun, e realizo estudos de independência de malha com o índice de Convergência de Malha (GCI), usado para verificar a precisão dos resultados de simulações numéricas, como as realizadas em dinâmica dos fluidos computacional, dessa forma, assegurando consistência física.
+
+Para guiar o texto, organizo este TCC como uma narrativa do desenvolvimento desse projeto. Primeiro apresento o problema, as minhas motivações e os objetivos. Depois reúno o referencial teórico sobre escoamento em meios empacotados, fundamentos de CFD e práticas de verificação e validação. Em seguida eu descrevo a arquitetura e a implementação do pipeline, detalhando a DSL, geração geométrica utilizando scripts Python, malha, automações e visualização. Por fim, faço uma discussão sobre a validação da metodologia, trago estudos de caso, resultados, limitações encontradas e caminhos futuros, com foco em ampliar casos de uso e robustez do sistema.
 
 % ============================================================
 % DEFINIÇÃO DO PROBLEMA
