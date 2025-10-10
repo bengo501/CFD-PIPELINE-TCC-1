@@ -3,9 +3,10 @@ serviço para criação de simulações openfoam
 """
 import subprocess
 import sys
+import json
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from backend.app.api.models import JobStatus
 
@@ -35,7 +36,9 @@ class OpenFOAMService:
         json_file: str,
         blend_file: str,
         run_simulation: bool,
-        jobs_store: Dict[str, Any]
+        jobs_store: Dict[str, Any],
+        bed_id: Optional[int] = None,
+        db_session = None
     ):
         """
         cria caso openfoam (executado em background)
@@ -96,6 +99,37 @@ class OpenFOAMService:
             case_name = blend_path.stem  # nome do arquivo sem extensão
             case_dir = self.output_dir / case_name
             
+            # criar/atualizar simulacao no banco se fornecido
+            simulation_id = None
+            if bed_id and db_session:
+                from backend.app.database import crud, schemas
+                
+                # ler parametros do json
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    params = json.load(f)
+                
+                # criar simulacao no banco
+                sim_data = schemas.SimulationCreate(
+                    bed_id=bed_id,
+                    name=f"sim_{case_name}",
+                    description=f"simulacao criada automaticamente",
+                    regime=params.get('cfd', {}).get('regime', 'laminar'),
+                    inlet_velocity=params.get('cfd', {}).get('inlet_velocity', 0.01),
+                    fluid_density=params.get('cfd', {}).get('fluid_density', 1000.0),
+                    fluid_viscosity=params.get('cfd', {}).get('fluid_viscosity', 0.001),
+                    solver='simpleFoam',
+                    max_iterations=params.get('cfd', {}).get('max_iterations', 1000),
+                    convergence_criteria=params.get('cfd', {}).get('convergence_criteria', 1e-4),
+                    case_directory=str(case_dir.relative_to(self.project_root)),
+                    status='completed' if not run_simulation else 'running',
+                    progress=100 if not run_simulation else 50,
+                    parameters_json=params,
+                    created_by='api'
+                )
+                
+                db_simulation = crud.SimulationCRUD.create(db_session, sim_data)
+                simulation_id = db_simulation.id
+            
             # atualizar job com sucesso
             job.status = JobStatus.COMPLETED
             job.progress = 100
@@ -103,6 +137,8 @@ class OpenFOAMService:
             job.output_files = [str(case_dir.relative_to(self.project_root))]
             job.metadata["case_dir"] = str(case_dir.relative_to(self.project_root))
             job.metadata["ran_simulation"] = run_simulation
+            if simulation_id:
+                job.metadata["simulation_id"] = simulation_id
             
         except subprocess.TimeoutExpired:
             job.status = JobStatus.FAILED

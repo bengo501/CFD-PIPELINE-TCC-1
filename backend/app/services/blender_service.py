@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from backend.app.api.models import JobStatus
 
@@ -69,7 +69,9 @@ class BlenderService:
         job_id: str,
         json_file: str,
         open_blender: bool,
-        jobs_store: Dict[str, Any]
+        jobs_store: Dict[str, Any],
+        bed_id: Optional[int] = None,
+        db_session = None
     ):
         """
         gera modelo 3d (executado em background)
@@ -135,6 +137,15 @@ class BlenderService:
             job.updated_at = datetime.now()
             job.output_files = [str(blend_path.relative_to(self.project_root))]
             job.metadata["blend_file"] = str(blend_path.relative_to(self.project_root))
+            
+            # atualizar bed no banco se fornecido
+            if bed_id and db_session:
+                from backend.app.database import crud, schemas
+                
+                update_data = schemas.BedUpdate(
+                    blend_file_path=str(blend_path.relative_to(self.project_root))
+                )
+                crud.BedCRUD.update(db_session, bed_id, update_data)
             
             # abrir blender gui se solicitado
             if open_blender and blend_path.exists():

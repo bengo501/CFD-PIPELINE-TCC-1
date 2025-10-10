@@ -40,6 +40,14 @@ app.mount("/files", StaticFiles(directory=str(output_dir)), name="files")
 # incluir rotas
 app.include_router(routes.router, prefix="/api")
 
+# incluir rotas do banco de dados
+from backend.app.api import routes_database
+app.include_router(routes_database.router, prefix="/api")
+
+# incluir rotas integradas (pipeline completo)
+from backend.app.api import routes_integrated
+app.include_router(routes_integrated.router, prefix="/api")
+
 # rota raiz
 @app.get("/")
 async def root():
@@ -55,12 +63,17 @@ async def root():
 @app.get("/health")
 async def health():
     """verifica saúde do serviço"""
+    from backend.app.database.connection import check_connection
+    
+    db_status = check_connection()
+    
     return {
-        "status": "healthy",
+        "status": "healthy" if db_status else "degraded",
         "services": {
             "bed_compiler": "available",
             "blender": "available",
-            "openfoam": "available"
+            "openfoam": "available",
+            "database": "connected" if db_status else "disconnected"
         }
     }
 

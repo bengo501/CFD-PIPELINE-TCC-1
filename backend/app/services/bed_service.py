@@ -20,16 +20,24 @@ class BedService:
         """verifica se compilador está disponível"""
         return self.compiler_script.exists()
     
-    async def compile_bed(self, parameters: Dict[str, Any], filename: Optional[str] = None) -> Dict[str, str]:
+    async def compile_bed(
+        self,
+        parameters: Dict[str, Any],
+        filename: Optional[str] = None,
+        save_to_db: bool = False,
+        db_session = None
+    ) -> Dict[str, Any]:
         """
         compila parâmetros em arquivo .bed e .bed.json
         
         args:
             parameters: dicionário com parâmetros do leito
             filename: nome do arquivo (opcional, gera automaticamente se None)
+            save_to_db: salvar leito no banco de dados
+            db_session: sessão do banco (necessário se save_to_db=True)
         
         returns:
-            dict com caminhos dos arquivos gerados
+            dict com caminhos dos arquivos gerados e opcionalmente bed_id
         """
         # gerar nome de arquivo se não fornecido
         if not filename:
@@ -48,10 +56,36 @@ class BedService:
         # compilar usando script existente
         json_file = await self._run_compiler(str(bed_file))
         
-        return {
+        result = {
             "bed_file": str(bed_file.relative_to(self.project_root)),
             "json_file": str(Path(json_file).relative_to(self.project_root))
         }
+        
+        # salvar no banco se solicitado
+        if save_to_db and db_session:
+            from backend.app.database import crud, schemas
+            
+            bed_data = schemas.BedCreate(
+                name=filename,
+                description=f"leito gerado automaticamente em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                diameter=parameters.get('diameter', 0.05),
+                height=parameters.get('height', 0.1),
+                wall_thickness=parameters.get('wall_thickness', 0.002),
+                particle_count=parameters.get('particle_count', 100),
+                particle_diameter=parameters.get('particle_diameter', 0.005),
+                particle_kind=parameters.get('particle_type', 'sphere'),
+                packing_method=parameters.get('packing_method', 'rigid_body'),
+                porosity=parameters.get('porosity'),
+                bed_file_path=result["bed_file"],
+                json_file_path=result["json_file"],
+                parameters_json=parameters,
+                created_by='api'
+            )
+            
+            db_bed = crud.BedCRUD.create(db_session, bed_data)
+            result["bed_id"] = db_bed.id
+        
+        return result
     
     def _generate_bed_content(self, params: Dict[str, Any]) -> str:
         """gera conteúdo do arquivo .bed"""
