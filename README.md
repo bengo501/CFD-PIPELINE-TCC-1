@@ -2,6 +2,10 @@
 
 pipeline automatizado para simulacao cfd de leitos empacotados usando dsl, blender e openfoam.
 
+https://github.com/bengo501/CFD-PIPELINE-TCC-1/issues
+
+https://github.com/bengo501/CFD-PIPELINE-TCC-1/milestones
+
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![Blender](https://img.shields.io/badge/blender-4.0+-orange.svg)](https://blender.org)
 [![OpenFOAM](https://img.shields.io/badge/openfoam-11-green.svg)](https://openfoam.org)
@@ -42,23 +46,6 @@ python3 scripts/automation/setup_complete.py
 ```
 
 **tempo estimado:** 15-60 minutos (depende dos componentes escolhidos)
-
-## componentes do pipeline
-
-```mermaid
-graph LR
-    A[usuario] -->|define parametros| B[bed_wizard.py]
-    B -->|cria| C[.bed file]
-    C -->|compila| D[compilador antlr]
-    D -->|gera| E[.bed.json]
-    E -->|entrada| F[blender headless]
-    F -->|cria| G[.blend + fisica]
-    G -->|exporta| H[.stl]
-    E -->|configura| I[openfoam case]
-    H -->|geometria| I
-    I -->|executa| J[wsl/linux]
-    J -->|resultados| K[paraview]
-```
 
 ### 1. dsl - domain specific language
 
@@ -325,49 +312,6 @@ python scripts/standalone_scripts/executar_leito_headless.py
 ```bash
 python scripts/openfoam_scripts/setup_openfoam_case.py --help
 ```
-
-## metricas do projeto
-
-| metrica | valor |
-|---------|-------|
-| linhas de codigo python | ~8000 |
-| scripts de automacao | 5 |
-| classes principais | 8 |
-| funcoes blender | 8 |
-| parametros configuracoes | 47 |
-| documentos markdown | 15 |
-| diagramas uml | 12 |
-
-## roadmap
-
-### concluido
-
-- [x] dsl (.bed) com antlr
-- [x] compilador para json
-- [x] geracao 3d com blender
-- [x] fisica rigid body
-- [x] integracao openfoam
-- [x] scripts de automacao
-- [x] documentacao completa
-- [x] wizard interativo
-- [x] sistema de ajuda
-
-### em desenvolvimento
-
-- [ ] api rest com fastapi
-- [ ] dashboard web (react + three.js + plotly)
-- [ ] banco de dados postgresql
-- [ ] storage minio
-- [ ] containerizacao docker
-
-### planejado
-
-- [ ] processamento em lote
-- [ ] analise parametrica
-- [ ] otimizacao automatica
-- [ ] machine learning para predicoes
-- [ ] ci/cd pipeline
-
 ## autor
 
 **bengo501**
