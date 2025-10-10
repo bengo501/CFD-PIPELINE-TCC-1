@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import BedForm from './components/BedForm'
+import BedWizard from './components/BedWizard'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
@@ -59,6 +60,12 @@ function App() {
           ✨ criar leito
         </button>
         <button
+          className={`tab ${activeTab === 'wizard' ? 'active' : ''}`}
+          onClick={() => setActiveTab('wizard')}
+        >
+          🧙 wizard interativo
+        </button>
+        <button
           className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
@@ -77,6 +84,12 @@ function App() {
         {activeTab === 'create' && (
           <div className="tab-content">
             <BedForm onJobCreated={handleJobCreated} />
+          </div>
+        )}
+
+        {activeTab === 'wizard' && (
+          <div className="tab-content">
+            <BedWizard />
           </div>
         )}
 
