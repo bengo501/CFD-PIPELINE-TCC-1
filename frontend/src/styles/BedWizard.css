@@ -286,6 +286,257 @@
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }
 
+/* mode header com botões */
+.mode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.mode-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-help, .btn-docs {
+  padding: 8px 16px;
+  border: 1px solid #2196F3;
+  background: white;
+  color: #2196F3;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-help:hover, .btn-docs:hover {
+  background: #2196F3;
+  color: white;
+}
+
+/* modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  max-height: 90vh;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 20px 25px;
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #333;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.modal-body {
+  padding: 25px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 20px 25px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+/* help modal */
+.help-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.help-section h3 {
+  color: #2196F3;
+  margin-bottom: 15px;
+  font-size: 18px;
+  border-bottom: 2px solid #2196F3;
+  padding-bottom: 8px;
+}
+
+.help-params {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.help-param {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #4CAF50;
+}
+
+.help-param h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+}
+
+.help-param p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.help-param strong {
+  color: #333;
+}
+
+/* docs modal */
+.modal-docs {
+  max-width: 900px;
+}
+
+.docs-content section {
+  margin-bottom: 30px;
+}
+
+.docs-content h3 {
+  color: #2196F3;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.docs-content p {
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.docs-content ul {
+  list-style: none;
+  padding: 0;
+}
+
+.docs-content li {
+  padding: 8px 0 8px 30px;
+  position: relative;
+  color: #666;
+  line-height: 1.6;
+}
+
+.docs-content li::before {
+  content: "▸";
+  position: absolute;
+  left: 10px;
+  color: #2196F3;
+  font-weight: bold;
+}
+
+.docs-content a {
+  color: #2196F3;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.docs-content a:hover {
+  border-bottom-color: #2196F3;
+}
+
+/* template editor modal */
+.modal-template {
+  max-width: 1000px;
+  max-height: 95vh;
+}
+
+.template-hint {
+  background: #e3f2fd;
+  padding: 12px 15px;
+  border-radius: 6px;
+  border-left: 3px solid #2196F3;
+  margin-bottom: 15px;
+  color: #1565C0;
+  font-size: 14px;
+}
+
+.template-editor {
+  width: 100%;
+  height: 500px;
+  font-family: 'Courier New', Monaco, monospace;
+  font-size: 13px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: vertical;
+  line-height: 1.6;
+  background: #f8f9fa;
+  color: #333;
+}
+
+.template-editor:focus {
+  outline: none;
+  border-color: #2196F3;
+  background: white;
+}
+
+/* animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* responsividade */
 @media (max-width: 768px) {
   .wizard-content {
@@ -310,6 +561,31 @@
   
   .btn {
     width: 100%;
+  }
+  
+  .mode-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .mode-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .btn-help, .btn-docs {
+    flex: 1;
+  }
+  
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .template-editor {
+    height: 400px;
+    font-size: 12px;
   }
 }
 

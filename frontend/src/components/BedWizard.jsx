@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import BedPreview3D from './BedPreview3D';
+import { HelpModal, DocsModal, TemplateEditor } from './WizardHelpers';
 import '../styles/BedWizard.css';
 
 const BedWizard = () => {
@@ -87,6 +88,12 @@ const BedWizard = () => {
       exemplo: 'partícula de 5mm = 0.005m'
     }
   };
+
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpSection, setHelpSection] = useState(null);
+  const [showDocs, setShowDocs] = useState(false);
+  const [templateText, setTemplateText] = useState('');
+  const [editingTemplate, setEditingTemplate] = useState(false);
 
   const steps = [
     { title: 'escolha o modo', section: 'mode' },
@@ -194,21 +201,38 @@ const BedWizard = () => {
   // renderizar modo de seleção
   const renderModeSelection = () => (
     <div className="mode-selection">
-      <h2>escolha o modo de criação</h2>
+      <div className="mode-header">
+        <h2>escolha o modo de criação</h2>
+        <div className="mode-actions">
+          <button className="btn-help" onClick={() => setShowHelp(true)}>
+            ajuda
+          </button>
+          <button className="btn-docs" onClick={() => setShowDocs(true)}>
+            documentação
+          </button>
+        </div>
+      </div>
+      
       <div className="mode-cards">
-        <div className="mode-card" onClick={() => handleModeSelect('interactive')}>
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('interactive')}>
           <div className="mode-icon">📋</div>
           <h3>questionário interativo</h3>
           <p>responda perguntas passo a passo para criar seu leito</p>
         </div>
         
-        <div className="mode-card" onClick={() => handleModeSelect('blender')}>
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('template')}>
+          <div className="mode-icon">📝</div>
+          <h3>editor de template</h3>
+          <p>edite um arquivo .bed de exemplo diretamente</p>
+        </div>
+        
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender')}>
           <div className="mode-icon">🎨</div>
           <h3>modo blender</h3>
           <p>geração de modelo 3D (sem parâmetros CFD)</p>
         </div>
         
-        <div className="mode-card" onClick={() => handleModeSelect('blender_interactive')}>
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender_interactive')}>
           <div className="mode-icon">🚀</div>
           <h3>blender interativo</h3>
           <p>gera modelo e abre automaticamente no blender</p>
@@ -577,8 +601,61 @@ const BedWizard = () => {
     </div>
   );
 
+  // handler para template
+  const handleTemplateSubmit = async (templateText) => {
+    setEditingTemplate(false);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/bed/template', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ template: templateText }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(`arquivo compilado com sucesso! ${data.message}`);
+      } else {
+        alert('erro ao compilar template');
+      }
+    } catch (error) {
+      console.error('erro:', error);
+      alert('erro de conexão com o backend');
+    }
+  };
+
+  // handler quando seleciona modo template
+  const handleModeSelectWithTemplate = (selectedMode) => {
+    if (selectedMode === 'template') {
+      setEditingTemplate(true);
+    } else {
+      handleModeSelect(selectedMode);
+    }
+  };
+
   return (
     <div className="bed-wizard">
+      {/* modais */}
+      <HelpModal 
+        show={showHelp} 
+        onClose={() => setShowHelp(false)} 
+        section={helpSection}
+        paramHelp={paramHelp}
+      />
+      
+      <DocsModal 
+        show={showDocs} 
+        onClose={() => setShowDocs(false)} 
+      />
+      
+      <TemplateEditor
+        show={editingTemplate}
+        onClose={() => setEditingTemplate(false)}
+        onSubmit={handleTemplateSubmit}
+      />
+    
       {/* header com progresso */}
       {step > 0 && (
         <div className="wizard-header">

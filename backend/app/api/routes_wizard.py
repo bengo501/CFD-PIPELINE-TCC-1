@@ -9,6 +9,7 @@ from pathlib import Path
 import json
 import subprocess
 import sys
+import tempfile
 
 router = APIRouter()
 
@@ -285,4 +286,74 @@ async def get_wizard_help(section: str):
         raise HTTPException(status_code=404, detail="seção não encontrada")
     
     return help_info[section]
+
+
+# modelo para template
+class TemplateRequest(BaseModel):
+    template: str
+
+
+@router.post("/bed/template")
+async def compile_template(request: TemplateRequest):
+    """
+    compilar template .bed editado manualmente
+    """
+    try:
+        # criar arquivo temporário com o template
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.bed', delete=False, encoding='utf-8') as temp_file:
+            temp_file.write(request.template)
+            temp_bed_path = Path(temp_file.name)
+        
+        # definir caminho para o json de saída
+        temp_json_path = temp_bed_path.with_suffix('.json')
+        
+        # compilar usando antlr
+        compiler_path = Path(__file__).parent.parent.parent.parent / "dsl" / "compiler" / "bed_compiler_antlr_standalone.py"
+        
+        if not compiler_path.exists():
+            raise HTTPException(status_code=500, detail="compilador não encontrado")
+        
+        result = subprocess.run([
+            sys.executable,
+            str(compiler_path),
+            str(temp_bed_path),
+            "-o", str(temp_json_path),
+            "-v"
+        ], capture_output=True, text=True, timeout=30)
+        
+        # limpar arquivo temporário .bed
+        temp_bed_path.unlink()
+        
+        if result.returncode == 0:
+            # ler json gerado
+            if temp_json_path.exists():
+                with open(temp_json_path, 'r', encoding='utf-8') as f:
+                    params_json = json.load(f)
+                
+                # limpar arquivo json temporário
+                temp_json_path.unlink()
+                
+                return {
+                    "success": True,
+                    "message": "template compilado com sucesso!",
+                    "params": params_json,
+                    "output": result.stdout
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "compilação executou mas json não foi gerado",
+                    "error": result.stdout
+                }
+        else:
+            return {
+                "success": False,
+                "message": "erro na compilação do template",
+                "error": result.stderr
+            }
+            
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=408, detail="timeout na compilação")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
 
