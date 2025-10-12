@@ -6,16 +6,30 @@
 }
 
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1e40af;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --bg: #f9fafb;
-  --card-bg: #ffffff;
-  --border: #e5e7eb;
-  --text: #111827;
-  --text-muted: #6b7280;
+  /* paleta de cores da identidade visual */
+  --wine: #5F1923;
+  --wine-2: #641E23;
+  --green: #50AF50;
+  --green-dark: #376E37;
+  --yellow: #F0B91E;
+  --orange: #DC7323;
+  --cream: #F5F087;
+  --gold-light: #F5E65F;
+  --white: #FFFFFF;
+  
+  /* mapeamento semantico */
+  --primary: var(--wine);
+  --primary-dark: var(--wine-2);
+  --success: var(--green);
+  --warning: var(--orange);
+  --error: #D32F2F;
+  --bg: var(--white);
+  --card-bg: #FFFBF5;
+  --border: #E8D5C4;
+  --text: #2C2C2C;
+  --text-muted: #666666;
+  --accent: var(--yellow);
+  --accent-secondary: var(--orange);
 }
 
 body {

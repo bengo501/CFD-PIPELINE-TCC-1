@@ -1,4 +1,4 @@
-/* cfd simulation styles */
+/* cfd simulation styles - usar paleta de cores da identidade visual */
 
 .cfd-simulation {
   padding: 20px;
@@ -40,7 +40,7 @@
 
 .btn-refresh {
   padding: 8px 16px;
-  background: #2196F3;
+  background: var(--wine, #5F1923);
   color: white;
   border: none;
   border-radius: 6px;
@@ -50,7 +50,7 @@
 }
 
 .btn-refresh:hover {
-  background: #1976D2;
+  background: var(--wine-2, #641E23);
 }
 
 .btn-refresh:disabled {
@@ -289,13 +289,15 @@
 }
 
 .btn-view {
-  background: #2196F3;
-  color: white;
+  background: var(--yellow, #F0B91E);
+  color: var(--wine, #5F1923);
+  font-weight: 600;
   flex: 1;
 }
 
 .btn-view:hover {
-  background: #1976D2;
+  background: var(--orange, #DC7323);
+  color: white;
 }
 
 .btn-delete {
@@ -319,21 +321,21 @@
 }
 
 .btn-primary {
-  background: #2196F3;
+  background: var(--wine, #5F1923);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #1976D2;
+  background: var(--wine-2, #641E23);
 }
 
 .btn-success {
-  background: #4CAF50;
+  background: var(--green, #50AF50);
   color: white;
 }
 
 .btn-success:hover {
-  background: #388E3C;
+  background: var(--green-dark, #376E37);
 }
 
 .btn:disabled {

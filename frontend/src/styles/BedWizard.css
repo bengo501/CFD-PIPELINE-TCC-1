@@ -1,3 +1,4 @@
+/* usar paleta de cores da identidade visual */
 .bed-wizard {
   max-width: 1200px;
   margin: 0 auto;
@@ -21,7 +22,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #2196F3);
+  background: linear-gradient(90deg, var(--green, #50AF50), var(--wine, #5F1923));
   transition: width 0.3s ease;
 }
 
@@ -254,14 +255,14 @@
 }
 
 .btn-primary {
-  background: #2196F3;
+  background: var(--wine, #5F1923);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1976D2;
+  background: var(--wine-2, #641E23);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 4px 8px rgba(95, 25, 35, 0.3);
 }
 
 .btn-secondary {
@@ -274,16 +275,16 @@
 }
 
 .btn-success {
-  background: #4CAF50;
+  background: var(--green, #50AF50);
   color: white;
   font-size: 18px;
   padding: 14px 40px;
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #45a049;
+  background: var(--green-dark, #376E37);
   transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 4px 12px rgba(80, 175, 80, 0.4);
 }
 
 /* mode header com botões */
@@ -301,9 +302,9 @@
 
 .btn-help, .btn-docs {
   padding: 8px 16px;
-  border: 1px solid #2196F3;
+  border: 1px solid var(--wine, #5F1923);
   background: white;
-  color: #2196F3;
+  color: var(--wine, #5F1923);
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
@@ -311,7 +312,7 @@
 }
 
 .btn-help:hover, .btn-docs:hover {
-  background: #2196F3;
+  background: var(--wine, #5F1923);
   color: white;
 }
 
