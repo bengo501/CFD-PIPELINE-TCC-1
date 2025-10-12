@@ -342,8 +342,43 @@ def main_com_parametros():
             print(f"\nsalvando arquivo em: {args.output}")
             output_path = Path(args.output)
             output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # salvar arquivo .blend
             bpy.ops.wm.save_as_mainfile(filepath=str(output_path))
-            print(f"arquivo salvo com sucesso: {output_path}")
+            print(f"arquivo .blend salvo com sucesso: {output_path}")
+            
+            # exportar para gltf (formato web)
+            try:
+                gltf_path = output_path.with_suffix('.gltf')
+                print(f"\nexportando para gltf: {gltf_path}")
+                
+                bpy.ops.export_scene.gltf(
+                    filepath=str(gltf_path),
+                    export_format='GLTF_SEPARATE',  # .gltf + .bin + texturas
+                    export_apply=True,  # aplicar transformações
+                    export_yup=True,  # y up (padrão three.js)
+                    export_lights=True,  # exportar luzes
+                    export_extras=True  # exportar metadados
+                )
+                print(f"arquivo .gltf exportado com sucesso: {gltf_path}")
+                
+                # também exportar glb (arquivo único)
+                glb_path = output_path.with_suffix('.glb')
+                print(f"exportando para glb: {glb_path}")
+                
+                bpy.ops.export_scene.gltf(
+                    filepath=str(glb_path),
+                    export_format='GLB',  # arquivo único binário
+                    export_apply=True,
+                    export_yup=True,
+                    export_lights=True,
+                    export_extras=True
+                )
+                print(f"arquivo .glb exportado com sucesso: {glb_path}")
+                
+            except Exception as e:
+                print(f"aviso: erro ao exportar gltf/glb: {e}")
+                print("arquivo .blend foi salvo normalmente")
         else:
             print("\naviso: caminho de saida nao especificado, arquivo nao foi salvo")
         

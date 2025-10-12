@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import '../styles/ModelViewer.css';
 
 function ModelViewer({ modelPath }) {
@@ -10,6 +11,73 @@ function ModelViewer({ modelPath }) {
   const sceneRef = useRef(null);
   const rendererRef = useRef(null);
   const controlsRef = useRef(null);
+
+  const loadModel = async (scene, modelPath) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // tentar carregar arquivo .glb (conversão do .blend para .glb)
+      const glbPath = modelPath.replace('.blend', '.glb');
+      
+      console.log('tentando carregar modelo glb:', glbPath);
+      
+      const loader = new GLTFLoader();
+      
+      loader.load(
+        glbPath,
+        // onLoad
+        (gltf) => {
+          console.log('modelo glb carregado com sucesso!', gltf);
+          
+          // adicionar modelo à cena
+          const model = gltf.scene;
+          
+          // ajustar escala se necessário
+          model.scale.set(1, 1, 1);
+          
+          // habilitar sombras
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+          
+          scene.add(model);
+          setLoading(false);
+          
+          // calcular bounding box para ajustar câmera
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          
+          console.log('modelo centro:', center, 'tamanho:', size);
+        },
+        // onProgress
+        (xhr) => {
+          const percentComplete = (xhr.loaded / xhr.total) * 100;
+          console.log(`carregando modelo: ${percentComplete.toFixed(2)}%`);
+        },
+        // onError
+        (error) => {
+          console.error('erro ao carregar modelo glb:', error);
+          console.log('fallback: mostrando geometria placeholder');
+          
+          // se falhar, mostrar placeholder representativo
+          createPlaceholderGeometry(scene);
+          setLoading(false);
+          setError('modelo glb não encontrado, mostrando preview representativo');
+        }
+      );
+      
+    } catch (err) {
+      console.error('erro ao tentar carregar modelo:', err);
+      createPlaceholderGeometry(scene);
+      setLoading(false);
+      setError('erro ao carregar modelo');
+    }
+  };
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -65,11 +133,8 @@ function ModelViewer({ modelPath }) {
     gridHelper.position.y = 0;
     scene.add(gridHelper);
 
-    // carregar modelo (por enquanto, mostrar placeholder)
-    // arquivos .blend não podem ser carregados diretamente no browser
-    // precisaria converter para gltf/glb ou obj
-    createPlaceholderGeometry(scene);
-    setLoading(false);
+    // carregar modelo real (glb/gltf)
+    loadModel(scene, modelPath);
 
     // animation loop
     const animate = () => {
