@@ -439,7 +439,7 @@ def main_com_parametros():
         
         # obter parametros de empacotamento
         packing = params.get('packing', {}) if params else {}
-        tempo_sim = packing.get('max_time', 5.0)
+        tempo_sim = packing.get('max_time', 20.0)  # padrao 20s para garantir acomodacao
         gravidade = packing.get('gravity', -9.81)
         substeps = packing.get('substeps', 10)
         iterations = packing.get('iterations', 10)
@@ -454,15 +454,30 @@ def main_com_parametros():
         configurar_simulacao_fisica(gravidade=gravidade, substeps=substeps, iterations=iterations)
         
         # executar simulacao para particulas cairem
-        print(f"\nexecutando simulacao fisica ({tempo_sim}s)...")
-        print("aguarde - isso pode levar alguns minutos...")
+        print(f"\n{'='*60}")
+        print(f"  executando animacao de fisica")
+        print(f"{'='*60}")
+        print(f"tempo de simulacao: {tempo_sim}s")
+        print(f"fps: 24 (frames por segundo)")
+        print(f"total de frames: {int(tempo_sim * 24)}")
+        print(f"\naguarde - as particulas estao caindo dentro do leito...")
+        print(f"isso pode levar alguns minutos dependendo da quantidade...")
+        print()
+        
         executar_simulacao_fisica(tempo_simulacao=tempo_sim, fps=24)
         
         # fazer bake para fixar posicoes finais
-        print("\ncongelando posicoes finais das particulas...")
+        print(f"\n{'='*60}")
+        print(f"  congelando posicoes finais")
+        print(f"{'='*60}")
         fazer_bake_fisica(particulas)
         
-        print("\nparticulas acomodadas dentro do leito!")
+        print(f"\n{'='*60}")
+        print(f"  animacao completa!")
+        print(f"{'='*60}")
+        print("particulas cairam e se acomodaram dentro do leito")
+        print("posicoes finais foram salvas (bake aplicado)")
+        print("pronto para exportacao\n")
         
         # salvar arquivo se caminho fornecido
         if args.output:

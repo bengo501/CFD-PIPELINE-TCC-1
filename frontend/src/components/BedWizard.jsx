@@ -123,23 +123,16 @@ const BedWizard = () => {
 
   const handleNext = () => {
     if (step < steps.length - 1) {
-      // pular seção CFD se não incluir
-      if (step === 5 && !includeCFD) {
-        setStep(step + 2);
-      } else {
-        setStep(step + 1);
-      }
+      // sempre ir para próximo passo sequencialmente
+      // não pular mais automaticamente
+      setStep(step + 1);
     }
   };
 
   const handlePrev = () => {
     if (step > 0) {
-      // pular seção CFD ao voltar se não incluir
-      if (step === 7 && !includeCFD) {
-        setStep(step - 2);
-      } else {
-        setStep(step - 1);
-      }
+      // sempre voltar sequencialmente
+      setStep(step - 1);
     }
   };
 
@@ -512,47 +505,88 @@ const BedWizard = () => {
   );
 
   // renderizar seção export
-  const renderExportSection = () => (
-    <div className="form-section">
-      <h2>exportação</h2>
-      <div className="form-grid">
-        <div className="form-group">
-          <label>modo da parede</label>
-          <select
-            value={params.export.wall_mode}
-            onChange={(e) => handleInputChange('export', 'wall_mode', e.target.value)}
-          >
-            <option value="surface">superfície (recomendado)</option>
-            <option value="solid">sólido</option>
-          </select>
-          <small>surface = melhor para CFD</small>
-        </div>
+  const renderExportSection = () => {
+    const formatosDisponiveis = [
+      { value: 'blend', label: 'blend (nativo blender)' },
+      { value: 'gltf', label: 'gltf (web - multiplos arquivos)' },
+      { value: 'glb', label: 'glb (web - arquivo unico)' },
+      { value: 'obj', label: 'obj (universal)' },
+      { value: 'fbx', label: 'fbx (unity, unreal)' },
+      { value: 'stl', label: 'stl (impressao 3d)' }
+    ];
+
+    const toggleFormato = (formato) => {
+      const formatos = params.export.formats || [];
+      const novosFormatos = formatos.includes(formato)
+        ? formatos.filter(f => f !== formato)
+        : [...formatos, formato];
+      
+      handleInputChange('export', 'formats', novosFormatos);
+    };
+
+    return (
+      <div className="form-section">
+        <h2>exportação</h2>
         
         <div className="form-group">
-          <label>modo do fluido</label>
-          <select
-            value={params.export.fluid_mode}
-            onChange={(e) => handleInputChange('export', 'fluid_mode', e.target.value)}
-          >
-            <option value="none">nenhum (recomendado)</option>
-            <option value="cavity">cavidade</option>
-          </select>
+          <label>formatos de exportação</label>
+          <div className="checkbox-group-formats">
+            {formatosDisponiveis.map(({ value, label }) => (
+              <label key={value} className="checkbox-format">
+                <input
+                  type="checkbox"
+                  checked={params.export.formats?.includes(value) || false}
+                  onChange={() => toggleFormato(value)}
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          <small>
+            selecionados: {params.export.formats?.length || 0} formato(s) - 
+            recomendado: blend + glb + obj
+          </small>
         </div>
         
-        <div className="form-group checkbox-group">
-          <label>
-            <input
-              type="checkbox"
-              checked={params.export.manifold_check}
-              onChange={(e) => handleInputChange('export', 'manifold_check', e.target.checked)}
-            />
-            verificar manifold (recomendado)
-          </label>
-          <small>garante integridade da malha</small>
+        <div className="form-grid">
+          <div className="form-group">
+            <label>modo da parede</label>
+            <select
+              value={params.export.wall_mode}
+              onChange={(e) => handleInputChange('export', 'wall_mode', e.target.value)}
+            >
+              <option value="surface">superfície (recomendado)</option>
+              <option value="solid">sólido</option>
+            </select>
+            <small>surface = melhor para cfd</small>
+          </div>
+          
+          <div className="form-group">
+            <label>modo do fluido</label>
+            <select
+              value={params.export.fluid_mode}
+              onChange={(e) => handleInputChange('export', 'fluid_mode', e.target.value)}
+            >
+              <option value="none">nenhum (recomendado)</option>
+              <option value="cavity">cavidade</option>
+            </select>
+          </div>
+          
+          <div className="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={params.export.manifold_check}
+                onChange={(e) => handleInputChange('export', 'manifold_check', e.target.checked)}
+              />
+              verificar manifold (recomendado)
+            </label>
+            <small>garante integridade da malha</small>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // renderizar confirmação
   const renderConfirmation = () => (
