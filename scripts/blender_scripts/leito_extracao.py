@@ -66,12 +66,13 @@ def criar_cilindro_oco(altura=0.1, diametro_externo=0.025, espessura_parede=0.00
 # =============
 # Criar tampa =
 # =========================================================================================
-def criar_tampa(posicao_z, diametro=0.025, espessura=0.003, nome="tampa"):
+def criar_tampa(posicao_z, diametro=0.025, espessura=0.003, nome="tampa", tem_colisao=True):
     # cria uma tampa circular
     # parametros: posicao_z: posicao vertical da tampa
     #             diametro: diametro da tampa
     #             espessura: espessura da tampa
     #             nome: nome do objeto
+    #             tem_colisao: se false, particulas atravessam (tampa superior)
     bpy.ops.mesh.primitive_cylinder_add( # criar cilindro com tamanho especifico e localizacao 0,0,0 (centro)
         radius=diametro/2,
         depth=espessura, # espessura do cilindro
@@ -79,8 +80,9 @@ def criar_tampa(posicao_z, diametro=0.025, espessura=0.003, nome="tampa"):
     )
     tampa = bpy.context.active_object # objeto ativo atual
     tampa.name = nome # nome do objeto
+    tampa["tem_colisao"] = tem_colisao  # marcar se tem colisao
     
-    print(f"{nome} criada na posicao z={posicao_z}m")
+    print(f"{nome} criada na posicao z={posicao_z}m (colisao: {tem_colisao})")
     return tampa
 # =========================================================================================
 
@@ -118,14 +120,20 @@ def criar_particulas(quantidade=30, raio_leito=0.0125, altura_leito=0.1, raio_pa
 # ================
 # Aplicar fisica =
 # =========================================================================================
-def aplicar_fisica(objeto, eh_movel=True):
+def aplicar_fisica(objeto, eh_movel=True, tem_colisao=True):
     # aplica fisica de corpo rigido aos objetos    
     # parametros: objeto: objeto do blender
     #             eh_movel: se true, objeto pode se mover (particulas)
     #             se false, objeto eh estatico (leito e tampas)
+    #             tem_colisao: se false, objeto nao colide (tampa superior)
 
     # selecionar o objeto
     bpy.context.view_layer.objects.active = objeto
+    
+    # verificar se objeto tem marcacao de colisao customizada
+    if "tem_colisao" in objeto and not objeto["tem_colisao"]:
+        print(f"fisica nao aplicada (sem colisao): {objeto.name}")
+        return
     
     #aplicar fisica de acordo com o tipo de objeto
     if eh_movel:
@@ -134,19 +142,26 @@ def aplicar_fisica(objeto, eh_movel=True):
         objeto.rigid_body.mass = 0.01  # massa pequena
         objeto.rigid_body.friction = 0.5  # atrito medio
         objeto.rigid_body.restitution = 0.3  # pouco elastica
+        objeto.rigid_body.linear_damping = 0.1  # amortecimento linear
+        objeto.rigid_body.angular_damping = 0.1  # amortecimento angular
         print(f"fisica aplicada (movel): {objeto.name}")
     else:
         # leito e tampas: corpo rigido sem gravidade (estatico)
         bpy.ops.rigidbody.object_add(type='PASSIVE')
         objeto.rigid_body.friction = 0.8  # muito atrito para segurar particulas
         objeto.rigid_body.restitution = 0.1  # pouco elastico
-        print(f"fisica aplicada (estatico): {objeto.name}")
+        
+        # importante: usar mesh collision para cilindro oco
+        objeto.rigid_body.collision_shape = 'MESH'
+        objeto.rigid_body.mesh_source = 'FINAL'  # usar geometria final (pos-boolean)
+        
+        print(f"fisica aplicada (estatico, mesh collision): {objeto.name}")
 # =========================================================================================
 
 # =============================
 # Configurar simulacao fisica =
 # =========================================================================================
-def configurar_simulacao_fisica():
+def configurar_simulacao_fisica(gravidade=-9.81, substeps=10, iterations=10):
     #configura parametros globais da simulacao fisica
     scene = bpy.context.scene
     
@@ -157,24 +172,101 @@ def configurar_simulacao_fisica():
     # configurar propriedades do mundo da fisica
     if scene.rigidbody_world:
         try:
-            # tentar configurar gravidade (pode variar entre versoes do blender)
-            if hasattr(scene.rigidbody_world, 'gravity'):
-                scene.rigidbody_world.gravity = (0, 0, -9.81)
+            # configurar gravidade
+            if hasattr(scene.rigidbody_world, 'effector_weights'):
+                scene.rigidbody_world.effector_weights.gravity = abs(gravidade) / 9.81
             
             # configurar qualidade da simulacao
             if hasattr(scene.rigidbody_world, 'substeps_per_frame'):
-                scene.rigidbody_world.substeps_per_frame = 10
+                scene.rigidbody_world.substeps_per_frame = substeps
             
             if hasattr(scene.rigidbody_world, 'solver_iterations'):
-                scene.rigidbody_world.solver_iterations = 10
+                scene.rigidbody_world.solver_iterations = iterations
+            
+            # configurar velocidade de repouso
+            if hasattr(scene.rigidbody_world, 'use_split_impulse'):
+                scene.rigidbody_world.use_split_impulse = True
                 
-            print("simulacao fisica configurada")
+            print(f"simulacao fisica configurada (gravidade: {gravidade}, substeps: {substeps}, iterations: {iterations})")
             
         except AttributeError as e:
             print(f"aviso: nao foi possivel configurar todas as propriedades da fisica: {e}")
             print("usando configuracao padrao do blender")
     else:
         print("erro: nao foi possivel criar mundo da fisica")
+# =========================================================================================
+
+# =====================
+# Executar simulacao =
+# =========================================================================================
+def executar_simulacao_fisica(tempo_simulacao=5.0, fps=24):
+    """
+    executa a animacao de fisica para fazer particulas cairem
+    
+    parametros:
+        tempo_simulacao: tempo em segundos da simulacao
+        fps: frames por segundo (padrao 24)
+    """
+    scene = bpy.context.scene
+    
+    # configurar range de frames
+    total_frames = int(tempo_simulacao * fps)
+    scene.frame_start = 1
+    scene.frame_end = total_frames
+    scene.frame_current = 1
+    
+    print(f"\nexecutando simulacao fisica...")
+    print(f"tempo: {tempo_simulacao}s | frames: {total_frames} | fps: {fps}")
+    
+    # executar frame por frame para garantir fisica
+    for frame in range(1, total_frames + 1):
+        scene.frame_set(frame)
+        
+        # mostrar progresso a cada 10%
+        if frame % (total_frames // 10) == 0 or frame == 1 or frame == total_frames:
+            progresso = (frame / total_frames) * 100
+            print(f"  progresso: {progresso:.0f}% (frame {frame}/{total_frames})")
+    
+    print("simulacao fisica executada com sucesso!")
+    print("particulas acomodadas no leito\n")
+# =========================================================================================
+
+# ==================
+# Bake da fisica =
+# =========================================================================================
+def fazer_bake_fisica(particulas):
+    """
+    faz bake (congelamento) da fisica nas particulas
+    isso converte a simulacao em keyframes fixos
+    """
+    print("\nfazendo bake da fisica...")
+    
+    # selecionar todas as particulas
+    bpy.ops.object.select_all(action='DESELECT')
+    for particula in particulas:
+        particula.select_set(True)
+    
+    # fazer bake
+    try:
+        # bake to keyframes (converte fisica em animacao)
+        bpy.ops.rigidbody.bake_to_keyframes(
+            frame_start=bpy.context.scene.frame_start,
+            frame_end=bpy.context.scene.frame_end,
+            step=1
+        )
+        print("bake concluido - fisica convertida em keyframes")
+        
+        # remover rigid body das particulas (agora sao keyframes)
+        for particula in particulas:
+            if particula.rigid_body:
+                bpy.context.view_layer.objects.active = particula
+                bpy.ops.rigidbody.object_remove()
+        
+        print("rigid body removido - particulas estao fixas nas posicoes finais")
+        
+    except Exception as e:
+        print(f"aviso: erro no bake: {e}")
+        print("particulas manterao fisica ativa")
 # =========================================================================================
 
 # ======
@@ -192,8 +284,8 @@ def main():
     # criar geometria
     print("criando geometria...")
     leito = criar_cilindro_oco(altura, diametro, espessura)
-    tampa_inferior = criar_tampa(-espessura/2, diametro, espessura, "tampa_inferior")
-    tampa_superior = criar_tampa(altura + espessura/2, diametro, espessura, "tampa_superior")
+    tampa_inferior = criar_tampa(-espessura/2, diametro, espessura, "tampa_inferior", tem_colisao=True)
+    tampa_superior = criar_tampa(altura + espessura/2, diametro, espessura, "tampa_superior", tem_colisao=False)
     # criar particulas
     particulas = criar_particulas(30, diametro/2, altura, 0.001)
     # configurar fisica
@@ -201,23 +293,29 @@ def main():
     configurar_simulacao_fisica()
     # aplicar fisica ao leito e tampas (estaticos)
     aplicar_fisica(leito, eh_movel=False)
-    aplicar_fisica(tampa_inferior, eh_movel=False)  
+    aplicar_fisica(tampa_inferior, eh_movel=False)
+    # tampa superior sem colisao (particulas atravessam)
     aplicar_fisica(tampa_superior, eh_movel=False)
     # aplicar fisica as particulas (moveis)
     for particula in particulas:
         aplicar_fisica(particula, eh_movel=True)
     
+    # executar simulacao para particulas cairem
+    executar_simulacao_fisica(tempo_simulacao=5.0, fps=24)
+    
+    # fazer bake para fixar posicoes finais
+    fazer_bake_fisica(particulas)
+    
     print()
     print("=====pronto=====")
-    print("para ver a simulacao:")
-    print("1. pressione spacebar para iniciar animacao")
-    print("2. ou pressione alt + a ")
-    print("3. as particulas vao cair e se acomodar no leito")
-    print()
     print(f"objetos criados:")
-    print(f"- leito cilindrico oco")
-    print(f"- 2 tampas")
-    print(f"- {len(particulas)} particulas com fisica")
+    print(f"- leito cilindrico oco (colisao: mesh)")
+    print(f"- tampa inferior (colisao: ativa)")
+    print(f"- tampa superior (colisao: desativada)")
+    print(f"- {len(particulas)} particulas (posicoes finais apos fisica)")
+    print()
+    print("particulas ja estao acomodadas dentro do leito!")
+    print("abra o arquivo para ver o resultado final")
 
 def ler_parametros_json(json_path):
     """ler parametros do arquivo json"""
@@ -302,11 +400,11 @@ def main_com_parametros():
         leito = criar_cilindro_oco(altura, diametro, espessura)
         print(f"leito criado: altura={altura}m, diametro={diametro}m")
         
-        tampa_inferior = criar_tampa(posicao_z=0, diametro=diametro, espessura=0.003, nome="tampa_inferior")
-        print("tampa inferior criada")
+        tampa_inferior = criar_tampa(posicao_z=0, diametro=diametro, espessura=0.003, nome="tampa_inferior", tem_colisao=True)
+        print("tampa inferior criada (com colisao)")
         
-        tampa_superior = criar_tampa(posicao_z=altura, diametro=diametro, espessura=0.003, nome="tampa_superior")
-        print("tampa superior criada")
+        tampa_superior = criar_tampa(posicao_z=altura, diametro=diametro, espessura=0.003, nome="tampa_superior", tem_colisao=False)
+        print("tampa superior criada (sem colisao - particulas atravessam)")
         
         # calcular raio do leito e raio da particula
         raio_leito = (diametro / 2) - espessura  # raio interno
@@ -338,6 +436,33 @@ def main_com_parametros():
                 print(f"  {i + 1}/{num_particulas} particulas processadas")
         
         print("fisica aplicada a todas as particulas")
+        
+        # obter parametros de empacotamento
+        packing = params.get('packing', {}) if params else {}
+        tempo_sim = packing.get('max_time', 5.0)
+        gravidade = packing.get('gravity', -9.81)
+        substeps = packing.get('substeps', 10)
+        iterations = packing.get('iterations', 10)
+        
+        # reconfigurar fisica com parametros do json
+        print(f"\nreconfigurando fisica com parametros do arquivo...")
+        print(f"  gravidade: {gravidade} m/s2")
+        print(f"  tempo simulacao: {tempo_sim}s")
+        print(f"  substeps: {substeps}")
+        print(f"  iterations: {iterations}")
+        
+        configurar_simulacao_fisica(gravidade=gravidade, substeps=substeps, iterations=iterations)
+        
+        # executar simulacao para particulas cairem
+        print(f"\nexecutando simulacao fisica ({tempo_sim}s)...")
+        print("aguarde - isso pode levar alguns minutos...")
+        executar_simulacao_fisica(tempo_simulacao=tempo_sim, fps=24)
+        
+        # fazer bake para fixar posicoes finais
+        print("\ncongelando posicoes finais das particulas...")
+        fazer_bake_fisica(particulas)
+        
+        print("\nparticulas acomodadas dentro do leito!")
         
         # salvar arquivo se caminho fornecido
         if args.output:
