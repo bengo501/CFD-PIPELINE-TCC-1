@@ -1,0 +1,369 @@
+/* cfd simulation styles */
+
+.cfd-simulation {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cfd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.cfd-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.cfd-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.auto-refresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auto-refresh input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.btn-refresh:hover {
+  background: #1976D2;
+}
+
+.btn-refresh:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* criar nova simulacao */
+.cfd-create {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  border: 2px solid #e0e0e0;
+}
+
+.cfd-create h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.cfd-create p {
+  margin: 10px 0;
+  color: #666;
+}
+
+.create-buttons {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.hint {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+}
+
+/* mensagens de erro */
+.error-message {
+  background: #ffebee;
+  border: 1px solid #f44336;
+  color: #c62828;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+/* lista de simulacoes */
+.simulations-list h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.no-simulations {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-style: italic;
+}
+
+.simulations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+/* card de simulacao */
+.simulation-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.simulation-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.sim-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.sim-id {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #666;
+  font-size: 14px;
+}
+
+/* status badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-queued {
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+.status-preparing {
+  background: #FFF3E0;
+  color: #F57C00;
+}
+
+.status-meshing {
+  background: #FFF3E0;
+  color: #F57C00;
+}
+
+.status-running {
+  background: #E8F5E9;
+  color: #388E3C;
+  animation: pulse 2s infinite;
+}
+
+.status-completed {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.status-error {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.status-unknown {
+  background: #EEEEEE;
+  color: #616161;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* progress bar */
+.sim-progress {
+  margin: 15px 0;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progress-text {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+}
+
+/* info e mensagens */
+.sim-message {
+  color: #666;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.sim-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 15px 0;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.sim-info small {
+  color: #999;
+  font-size: 12px;
+}
+
+.sim-path {
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.sim-path code {
+  font-family: 'Courier New', monospace;
+  color: #666;
+  word-break: break-all;
+}
+
+.sim-error {
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: #c62828;
+}
+
+/* acoes do card */
+.sim-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view {
+  background: #2196F3;
+  color: white;
+  flex: 1;
+}
+
+.btn-view:hover {
+  background: #1976D2;
+}
+
+.btn-delete {
+  background: #f44336;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #d32f2f;
+}
+
+/* botoes gerais */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1976D2;
+}
+
+.btn-success {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #388E3C;
+}
+
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* responsividade */
+@media (max-width: 768px) {
+  .cfd-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .cfd-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .simulations-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .create-buttons {
+    flex-direction: column;
+  }
+  
+  .create-buttons .btn {
+    width: 100%;
+  }
+}
+

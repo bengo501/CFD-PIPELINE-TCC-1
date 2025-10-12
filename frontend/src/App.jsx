@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
+import CFDSimulation from './components/CFDSimulation'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import { getSystemStatus } from './services/api'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('create') // create, jobs, results
+  const [activeTab, setActiveTab] = useState('create') // create, wizard, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
+  const [lastBedFile, setLastBedFile] = useState(null)
 
   useEffect(() => {
     // verificar status do sistema ao carregar
@@ -66,6 +68,12 @@ function App() {
           🧙 wizard interativo
         </button>
         <button
+          className={`tab ${activeTab === 'cfd' ? 'active' : ''}`}
+          onClick={() => setActiveTab('cfd')}
+        >
+          🌊 simulacao cfd
+        </button>
+        <button
           className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
@@ -90,6 +98,12 @@ function App() {
         {activeTab === 'wizard' && (
           <div className="tab-content">
             <BedWizard />
+          </div>
+        )}
+
+        {activeTab === 'cfd' && (
+          <div className="tab-content">
+            <CFDSimulation bedFileName={lastBedFile} />
           </div>
         )}
 
