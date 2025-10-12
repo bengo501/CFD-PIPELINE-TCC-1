@@ -1,0 +1,440 @@
+/* casos cfd styles */
+
+.casos-cfd {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.casos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid var(--wine, #5F1923);
+}
+
+.casos-header h2 {
+  color: var(--wine, #5F1923);
+  margin-bottom: 5px;
+}
+
+.casos-desc {
+  color: var(--text-muted, #666);
+  font-size: 1.05rem;
+}
+
+.btn-refresh {
+  padding: 10px 20px;
+  background: var(--wine, #5F1923);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+  background: var(--wine-2, #641E23);
+  transform: translateY(-2px);
+}
+
+/* loading e erros */
+.loading {
+  text-align: center;
+  padding: 60px;
+  font-size: 1.2rem;
+  color: var(--text-muted, #666);
+}
+
+.error-message {
+  background: #FFEBEE;
+  border: 2px solid #FFCDD2;
+  color: #C62828;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.sem-casos {
+  text-align: center;
+  padding: 80px 40px;
+  background: var(--card-bg, #FFFBF5);
+  border-radius: 12px;
+  border: 2px dashed var(--border, #E8D5C4);
+}
+
+.sem-casos p {
+  font-size: 1.2rem;
+  color: var(--text-secondary, #555);
+  margin-bottom: 10px;
+}
+
+.hint {
+  color: var(--text-muted, #888);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+/* grid de casos */
+.casos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+/* card de caso */
+.caso-card {
+  background: white;
+  border: 2px solid var(--border, #E8D5C4);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(95, 25, 35, 0.1);
+}
+
+.caso-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(95, 25, 35, 0.2);
+  border-color: var(--wine, #5F1923);
+}
+
+.caso-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border, #E8D5C4);
+}
+
+.caso-header h3 {
+  margin: 0;
+  color: var(--wine, #5F1923);
+  font-size: 1.3rem;
+}
+
+/* status badges */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-configured {
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+.status-meshed {
+  background: #FFF3E0;
+  color: #F57C00;
+}
+
+.status-running {
+  background: #FFF9C4;
+  color: #F57F17;
+  animation: pulse-badge 2s infinite;
+}
+
+.status-completed {
+  background: #E8F5E9;
+  color: var(--green-dark, #376E37);
+}
+
+.status-unknown {
+  background: #F5F5F5;
+  color: #757575;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* informações do caso */
+.caso-info {
+  margin: 15px 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.95rem;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--text, #2C2C2C);
+}
+
+.info-row span:last-child {
+  color: var(--text-secondary, #555);
+}
+
+/* caminho */
+.caso-caminho {
+  margin: 15px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid var(--yellow, #F0B91E);
+}
+
+.caso-caminho strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: var(--text, #2C2C2C);
+}
+
+.caso-caminho code {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--wine, #5F1923);
+  cursor: pointer;
+  padding: 6px 8px;
+  background: white;
+  border-radius: 4px;
+  word-break: break-all;
+  transition: all 0.2s;
+}
+
+.caso-caminho code:hover {
+  background: #FFFBF5;
+  border: 1px solid var(--yellow, #F0B91E);
+}
+
+/* logs */
+.caso-logs {
+  margin: 15px 0;
+}
+
+.caso-logs strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.logs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.log-badge {
+  padding: 4px 10px;
+  background: #E8F5E9;
+  color: var(--green-dark, #376E37);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ações */
+.caso-acoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid var(--border, #E8D5C4);
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 100px;
+}
+
+.btn-details {
+  background: var(--yellow, #F0B91E);
+  color: var(--wine, #5F1923);
+}
+
+.btn-details:hover {
+  background: var(--orange, #DC7323);
+  color: white;
+}
+
+.btn-execute {
+  background: var(--green, #50AF50);
+  color: white;
+}
+
+.btn-execute:hover {
+  background: var(--green-dark, #376E37);
+}
+
+.btn-delete {
+  background: #f44336;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #d32f2f;
+}
+
+/* modal de detalhes */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-detalhes {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  max-height: 90vh;
+  width: 90%;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 20px 25px;
+  border-bottom: 3px solid var(--wine, #5F1923);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg, #FFFBF5);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--wine, #5F1923);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  color: var(--wine, #5F1923);
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+.detalhe-secao {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid var(--wine, #5F1923);
+}
+
+.detalhe-secao h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: var(--wine, #5F1923);
+}
+
+.detalhe-secao p {
+  margin: 8px 0;
+  color: var(--text, #2C2C2C);
+}
+
+.tempos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tempo-badge {
+  padding: 4px 10px;
+  background: var(--wine, #5F1923);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+.comando-wsl {
+  background: #1e1e1e;
+  color: #ddd;
+  padding: 15px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+/* animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* responsividade */
+@media (max-width: 768px) {
+  .casos-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .caso-acoes {
+    flex-direction: column;
+  }
+  
+  .btn-small {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .casos-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .btn-refresh {
+    width: 100%;
+  }
+}
+

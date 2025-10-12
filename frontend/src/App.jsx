@@ -3,6 +3,7 @@ import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
 import PipelineCompleto from './components/PipelineCompleto'
+import CasosCFD from './components/CasosCFD'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
@@ -89,6 +90,12 @@ function App() {
           🌊 {t('cfdSimulation')}
         </button>
         <button
+          className={`tab ${activeTab === 'casos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('casos')}
+        >
+          📂 casos cfd
+        </button>
+        <button
           className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
@@ -125,6 +132,12 @@ function App() {
         {activeTab === 'cfd' && (
           <div className="tab-content">
             <CFDSimulation bedFileName={lastBedFile} />
+          </div>
+        )}
+
+        {activeTab === 'casos' && (
+          <div className="tab-content">
+            <CasosCFD />
           </div>
         )}
 
