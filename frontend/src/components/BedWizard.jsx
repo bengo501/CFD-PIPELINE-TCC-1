@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import BedPreview3D from './BedPreview3D';
 import '../styles/BedWizard.css';
 
 const BedWizard = () => {
@@ -533,6 +534,9 @@ const BedWizard = () => {
   const renderConfirmation = () => (
     <div className="form-section confirmation">
       <h2>confirmação dos parâmetros</h2>
+      
+      {/* preview 3D */}
+      <BedPreview3D params={params} />
       
       <div className="summary-grid">
         <div className="summary-card">

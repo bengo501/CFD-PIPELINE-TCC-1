@@ -1,0 +1,170 @@
+.bed-preview-3d {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.preview-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.preview-controls-info {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+  color: #666;
+}
+
+.preview-controls-info span {
+  padding: 4px 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.preview-canvas {
+  width: 100%;
+  height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 1px solid #e0e0e0;
+  cursor: grab;
+}
+
+.preview-canvas:active {
+  cursor: grabbing;
+}
+
+.preview-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.preview-info {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.info-item {
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #2196F3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 13px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+}
+
+/* animação de loading */
+.preview-canvas.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-canvas.loading::after {
+  content: "carregando preview 3D...";
+  color: #666;
+  font-size: 14px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* responsividade */
+@media (max-width: 768px) {
+  .preview-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .preview-controls-info {
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+  }
+
+  .preview-canvas {
+    height: 300px;
+  }
+
+  .preview-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* modo escuro (opcional) */
+@media (prefers-color-scheme: dark) {
+  .bed-preview-3d {
+    background: #2d2d2d;
+  }
+
+  .preview-header h3 {
+    color: #fff;
+  }
+
+  .preview-header {
+    border-bottom-color: #444;
+  }
+
+  .preview-controls-info span {
+    background: #3d3d3d;
+    color: #ccc;
+  }
+
+  .preview-canvas {
+    border-color: #444;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  }
+
+  .info-item {
+    background: #3d3d3d;
+    border-left-color: #2196F3;
+  }
+
+  .info-label {
+    color: #ccc;
+  }
+
+  .info-value {
+    color: #fff;
+  }
+}
+
