@@ -1,0 +1,82 @@
+# dependências node
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# arquivos de build
+frontend/dist/
+frontend/build/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ambientes virtuais python
+venv/
+env/
+ENV/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# arquivos temporários
+*.tmp
+*.temp
+*.log
+*.cache
+
+# arquivos de saída (opcional - descomentar se não quiser versionar)
+# output/
+# output/models/*.blend
+# output/models/*.gltf
+# output/models/*.glb
+# output/models/*.obj
+# output/models/*.fbx
+# output/models/*.stl
+
+# arquivos de configuração local
+.env
+.env.local
+.env.*.local
+
+# arquivos do sistema
+Thumbs.db
+desktop.ini
+
+# coverage e testes
+coverage/
+.coverage
+.pytest_cache/
+htmlcov/
+
+# banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+
+# arquivos antlr gerados
+dsl/compiler/antlr_output/
+dsl/compiler/*.interp
+dsl/compiler/*.tokens
+dsl/compiler/*Lexer.py
+dsl/compiler/*Parser.py
+dsl/compiler/*Listener.py
+dsl/compiler/*Visitor.py
+
+# jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# documentação gerada
+docs/_build/
+site/
+

@@ -246,6 +246,8 @@ def main_com_parametros():
     parser = argparse.ArgumentParser(description='gerar leito empacotado no blender')
     parser.add_argument('--params', type=str, help='caminho do arquivo json com parametros')
     parser.add_argument('--output', type=str, help='caminho do arquivo de saida .blend')
+    parser.add_argument('--formats', type=str, default='blend,gltf,glb', 
+                        help='formatos de exportacao separados por virgula (blend,gltf,glb,obj,fbx,stl)')
     
     try:
         args = parser.parse_args(argv)
@@ -343,42 +345,98 @@ def main_com_parametros():
             output_path = Path(args.output)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # salvar arquivo .blend
-            bpy.ops.wm.save_as_mainfile(filepath=str(output_path))
-            print(f"arquivo .blend salvo com sucesso: {output_path}")
+            # obter formatos desejados
+            formats = [f.strip().lower() for f in args.formats.split(',')]
+            print(f"formatos selecionados: {', '.join(formats)}")
             
-            # exportar para gltf (formato web)
-            try:
-                gltf_path = output_path.with_suffix('.gltf')
-                print(f"\nexportando para gltf: {gltf_path}")
-                
-                bpy.ops.export_scene.gltf(
-                    filepath=str(gltf_path),
-                    export_format='GLTF_SEPARATE',  # .gltf + .bin + texturas
-                    export_apply=True,  # aplicar transformações
-                    export_yup=True,  # y up (padrão three.js)
-                    export_lights=True,  # exportar luzes
-                    export_extras=True  # exportar metadados
-                )
-                print(f"arquivo .gltf exportado com sucesso: {gltf_path}")
-                
-                # também exportar glb (arquivo único)
-                glb_path = output_path.with_suffix('.glb')
-                print(f"exportando para glb: {glb_path}")
-                
-                bpy.ops.export_scene.gltf(
-                    filepath=str(glb_path),
-                    export_format='GLB',  # arquivo único binário
-                    export_apply=True,
-                    export_yup=True,
-                    export_lights=True,
-                    export_extras=True
-                )
-                print(f"arquivo .glb exportado com sucesso: {glb_path}")
-                
-            except Exception as e:
-                print(f"aviso: erro ao exportar gltf/glb: {e}")
-                print("arquivo .blend foi salvo normalmente")
+            # salvar arquivo .blend
+            if 'blend' in formats:
+                try:
+                    bpy.ops.wm.save_as_mainfile(filepath=str(output_path))
+                    print(f"✓ arquivo .blend salvo: {output_path}")
+                except Exception as e:
+                    print(f"✗ erro ao salvar .blend: {e}")
+            
+            # exportar para gltf
+            if 'gltf' in formats:
+                try:
+                    gltf_path = output_path.with_suffix('.gltf')
+                    bpy.ops.export_scene.gltf(
+                        filepath=str(gltf_path),
+                        export_format='GLTF_SEPARATE',
+                        export_apply=True,
+                        export_yup=True,
+                        export_lights=True,
+                        export_extras=True
+                    )
+                    print(f"✓ arquivo .gltf exportado: {gltf_path}")
+                except Exception as e:
+                    print(f"✗ erro ao exportar .gltf: {e}")
+            
+            # exportar para glb
+            if 'glb' in formats:
+                try:
+                    glb_path = output_path.with_suffix('.glb')
+                    bpy.ops.export_scene.gltf(
+                        filepath=str(glb_path),
+                        export_format='GLB',
+                        export_apply=True,
+                        export_yup=True,
+                        export_lights=True,
+                        export_extras=True
+                    )
+                    print(f"✓ arquivo .glb exportado: {glb_path}")
+                except Exception as e:
+                    print(f"✗ erro ao exportar .glb: {e}")
+            
+            # exportar para obj
+            if 'obj' in formats:
+                try:
+                    obj_path = output_path.with_suffix('.obj')
+                    bpy.ops.wm.obj_export(
+                        filepath=str(obj_path),
+                        export_selected_objects=False,
+                        apply_modifiers=True,
+                        export_normals=True,
+                        export_uv=True,
+                        export_materials=True
+                    )
+                    print(f"✓ arquivo .obj exportado: {obj_path}")
+                except Exception as e:
+                    print(f"✗ erro ao exportar .obj: {e}")
+            
+            # exportar para fbx
+            if 'fbx' in formats:
+                try:
+                    fbx_path = output_path.with_suffix('.fbx')
+                    bpy.ops.export_scene.fbx(
+                        filepath=str(fbx_path),
+                        use_selection=False,
+                        apply_scale_options='FBX_SCALE_ALL',
+                        axis_forward='-Z',
+                        axis_up='Y',
+                        apply_unit_scale=True,
+                        mesh_smooth_type='FACE'
+                    )
+                    print(f"✓ arquivo .fbx exportado: {fbx_path}")
+                except Exception as e:
+                    print(f"✗ erro ao exportar .fbx: {e}")
+            
+            # exportar para stl
+            if 'stl' in formats:
+                try:
+                    stl_path = output_path.with_suffix('.stl')
+                    bpy.ops.wm.stl_export(
+                        filepath=str(stl_path),
+                        export_selected_objects=False,
+                        apply_modifiers=True,
+                        ascii_format=False  # binário é mais compacto
+                    )
+                    print(f"✓ arquivo .stl exportado: {stl_path}")
+                except Exception as e:
+                    print(f"✗ erro ao exportar .stl: {e}")
+            
+            print(f"\nexportação concluída! {len(formats)} formato(s) processado(s)")
         else:
             print("\naviso: caminho de saida nao especificado, arquivo nao foi salvo")
         
