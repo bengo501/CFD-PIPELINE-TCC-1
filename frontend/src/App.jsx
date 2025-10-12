@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
+import PipelineCompleto from './components/PipelineCompleto'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
@@ -10,7 +11,7 @@ import { useLanguage } from './context/LanguageContext'
 
 function App() {
   const { language, toggleLanguage, t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('create') // create, wizard, cfd, jobs, results
+  const [activeTab, setActiveTab] = useState('create') // create, wizard, pipeline, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
@@ -76,6 +77,12 @@ function App() {
           🧙 {t('interactiveWizard')}
         </button>
         <button
+          className={`tab ${activeTab === 'pipeline' ? 'active' : ''}`}
+          onClick={() => setActiveTab('pipeline')}
+        >
+          🚀 pipeline completo
+        </button>
+        <button
           className={`tab ${activeTab === 'cfd' ? 'active' : ''}`}
           onClick={() => setActiveTab('cfd')}
         >
@@ -106,6 +113,12 @@ function App() {
         {activeTab === 'wizard' && (
           <div className="tab-content">
             <BedWizard />
+          </div>
+        )}
+
+        {activeTab === 'pipeline' && (
+          <div className="tab-content">
+            <PipelineCompleto />
           </div>
         )}
 
