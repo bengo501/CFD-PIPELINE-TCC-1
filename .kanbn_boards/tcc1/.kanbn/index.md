@@ -25,6 +25,17 @@ completedColumns:
 - task-018.md  # backend fastapi
 - task-019.md  # frontend react
 
+### sprint 4 - interface completa e cfd (concluído - 12/10/2025)
+- task-032.md  # wizard web completo (4 modos)
+- task-033.md  # correção física blender
+- task-034.md  # integração cfd openfoam
+- task-035.md  # identidade visual institucional
+- task-036.md  # internacionalização pt/en
+- task-037.md  # tipografia profissional
+- task-038.md  # formatos de exportação
+- task-039.md  # visualização casos cfd
+- task-040.md  # pipeline completo end-to-end
+
 ## In Progress
 
 ## Todo
