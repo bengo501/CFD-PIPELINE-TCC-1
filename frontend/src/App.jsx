@@ -6,8 +6,10 @@ import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import { getSystemStatus } from './services/api'
+import { useLanguage } from './context/LanguageContext'
 
 function App() {
+  const { language, toggleLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState('create') // create, wizard, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
@@ -37,18 +39,24 @@ function App() {
       {/* header */}
       <header className="header">
         <div className="header-content">
-          <h1>🔬 CFD Pipeline - Leitos Empacotados</h1>
-          <div className="system-status">
-            {systemStatus && (
-              <>
-                <span className={`status-indicator ${systemStatus.api === 'running' ? 'online' : 'offline'}`}>
-                  {systemStatus.api === 'running' ? '🟢 online' : '🔴 offline'}
-                </span>
-                <span className="jobs-count">
-                  jobs: {systemStatus.jobs?.running || 0} em execução
-                </span>
-              </>
-            )}
+          <h1>🔬 {t('appTitle')}</h1>
+          <div className="header-actions">
+            <div className="system-status">
+              {systemStatus && (
+                <>
+                  <span className={`status-indicator ${systemStatus.api === 'running' ? 'online' : 'offline'}`}>
+                    {systemStatus.api === 'running' ? `🟢 ${t('online')}` : `🔴 ${t('offline')}`}
+                  </span>
+                  <span className="jobs-count">
+                    {t('jobs')}: {systemStatus.jobs?.running || 0} {t('running')}
+                  </span>
+                </>
+              )}
+            </div>
+            <button className="language-toggle" onClick={toggleLanguage} title={language === 'pt' ? 'Switch to English' : 'Mudar para Português'}>
+              <span className="flag">{language === 'pt' ? '🇧🇷' : '🇺🇸'}</span>
+              <span className="lang-text">{language === 'pt' ? 'PT' : 'EN'}</span>
+            </button>
           </div>
         </div>
       </header>
@@ -59,31 +67,31 @@ function App() {
           className={`tab ${activeTab === 'create' ? 'active' : ''}`}
           onClick={() => setActiveTab('create')}
         >
-          ✨ criar leito
+          ✨ {t('createBed')}
         </button>
         <button
           className={`tab ${activeTab === 'wizard' ? 'active' : ''}`}
           onClick={() => setActiveTab('wizard')}
         >
-          🧙 wizard interativo
+          🧙 {t('interactiveWizard')}
         </button>
         <button
           className={`tab ${activeTab === 'cfd' ? 'active' : ''}`}
           onClick={() => setActiveTab('cfd')}
         >
-          🌊 simulacao cfd
+          🌊 {t('cfdSimulation')}
         </button>
         <button
           className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
-          📊 jobs ({systemStatus?.jobs?.total || 0})
+          📊 {t('jobs')} ({systemStatus?.jobs?.total || 0})
         </button>
         <button
           className={`tab ${activeTab === 'results' ? 'active' : ''}`}
           onClick={() => setActiveTab('results')}
         >
-          📁 resultados
+          📁 {t('results')}
         </button>
       </nav>
 
@@ -122,7 +130,7 @@ function App() {
 
       {/* footer */}
       <footer className="footer">
-        <p>cfd pipeline v0.1.0 | tcc - eng. mecânica</p>
+        <p>cfd pipeline v0.1.0 | tcc - CC - Eng.Qui</p>
       </footer>
     </div>
   )
