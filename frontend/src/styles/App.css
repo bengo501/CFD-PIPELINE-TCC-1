@@ -128,8 +128,9 @@ input, textarea, select {
 }
 
 .logo-icon {
-  font-size: 3rem;
-  line-height: 1;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -287,6 +288,15 @@ input, textarea, select {
   cursor: pointer;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .tab:hover {
@@ -811,8 +821,8 @@ legend {
   margin: 0 auto;
   padding: 3rem 2rem 2rem;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 3rem;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 2.5rem;
 }
 
 .footer-section h4 {
@@ -839,8 +849,9 @@ legend {
 }
 
 .footer-icon {
-  font-size: 2rem;
-  line-height: 1;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .footer-title {
@@ -910,7 +921,9 @@ legend {
 }
 
 .link-icon {
-  font-size: 1.1rem;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 /* seção tecnologias */
@@ -925,6 +938,19 @@ legend {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.tech-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.openfoam-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tech-badge {
@@ -947,7 +973,71 @@ legend {
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* seção banco de dados */
+.footer-database ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-database li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.db-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.db-badge {
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+.db-version {
+  padding: 0.4rem 0.6rem;
+  background: var(--orange);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
 /* seção acadêmica */
+.academic-logos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.academic-logo {
+  width: 100%;
+  height: auto;
+  max-height: 40px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.academic-logo:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
 .academic-info {
   font-size: 0.95rem;
   line-height: 1.7;
@@ -1023,10 +1113,24 @@ legend {
 }
 
 /* responsividade do footer */
+@media (max-width: 1200px) {
+  .footer-content {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .footer-content {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
   }
 }
 
@@ -1044,6 +1148,16 @@ legend {
   
   .footer-description {
     max-width: 100%;
+  }
+  
+  .academic-logos {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+  
+  .academic-logo {
+    max-height: 30px;
+    padding: 0.3rem;
   }
 }
 

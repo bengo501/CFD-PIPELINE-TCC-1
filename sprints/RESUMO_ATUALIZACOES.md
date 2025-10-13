@@ -9,7 +9,7 @@
 
 ### 1. kanban (.kanbn_boards/tcc1/.kanbn/index.md)
 
-**antes:**
+**antes:**images
 - lista simples de tasks done
 - sem organização por sprint
 

@@ -43,7 +43,11 @@ function App() {
         <div className="header-content">
           <div className="header-left">
             <div className="logo-container">
-              <div className="logo-icon">🔬</div>
+              <img 
+                src="/image/logoCFDpipeline.png" 
+                alt="cfd pipeline logo" 
+                className="logo-icon"
+              />
               <div className="logo-text">
                 <h1>{t('appTitle')}</h1>
                 <span className="subtitle">computational fluid dynamics</span>
@@ -126,7 +130,8 @@ function App() {
           className={`tab ${activeTab === 'results' ? 'active' : ''}`}
           onClick={() => setActiveTab('results')}
         >
-          📁 {t('results')}
+          <img src="/image/results-svgrepo-com.svg" alt="results" className="tab-icon" />
+          {t('results')}
         </button>
       </nav>
 
@@ -180,7 +185,11 @@ function App() {
         <div className="footer-content">
           <div className="footer-section footer-info">
             <div className="footer-logo">
-              <span className="footer-icon">🔬</span>
+              <img 
+                src="/image/logoCFDpipeline.png" 
+                alt="cfd pipeline logo" 
+                className="footer-icon"
+              />
               <span className="footer-title">cfd pipeline</span>
             </div>
             <p className="footer-description">
@@ -199,7 +208,8 @@ function App() {
             <ul>
               <li>
                 <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1" target="_blank" rel="noopener noreferrer">
-                  <span className="link-icon">📦</span> github
+                  <img src="/image/github.png" alt="github" className="link-icon" />
+                  github
                 </a>
               </li>
               <li>
@@ -219,10 +229,12 @@ function App() {
             <h4>{language === 'pt' ? 'tecnologias' : 'technologies'}</h4>
             <ul>
               <li>
+                <span className="tech-icon openfoam-icon">🌊</span>
                 <span className="tech-badge">openfoam</span>
                 <span className="tech-version">11</span>
               </li>
               <li>
+                <img src="/image/blender-svgrepo-com.svg" alt="blender" className="tech-icon" />
                 <span className="tech-badge">blender</span>
                 <span className="tech-version">4.x</span>
               </li>
@@ -237,8 +249,46 @@ function App() {
             </ul>
           </div>
 
+          <div className="footer-section footer-database">
+            <h4>{language === 'pt' ? 'banco de dados' : 'database'}</h4>
+            <ul>
+              <li>
+                <img src="/image/database-01-svgrepo-com.svg" alt="database" className="db-icon" />
+                <span className="db-badge">postgresql</span>
+                <span className="db-version">15</span>
+              </li>
+              <li>
+                <img src="/image/database-data-base-config-cog-options-svgrepo-com.svg" alt="redis" className="db-icon" />
+                <span className="db-badge">redis</span>
+                <span className="db-version">7</span>
+              </li>
+              <li>
+                <img src="/image/database-data-base-stats-report-svgrepo-com.svg" alt="minio" className="db-icon" />
+                <span className="db-badge">minio</span>
+                <span className="db-version">s3</span>
+              </li>
+            </ul>
+          </div>
+
           <div className="footer-section footer-academic">
             <h4>{language === 'pt' ? 'acadêmico' : 'academic'}</h4>
+            <div className="academic-logos">
+              <img 
+                src="/image/logo-light.png" 
+                alt="pucrs logo" 
+                className="academic-logo"
+              />
+              <img 
+                src="/image/escola-politecnica.png" 
+                alt="escola politecnica" 
+                className="academic-logo"
+              />
+              <img 
+                src="/image/logo_lope.png" 
+                alt="lope laboratorio" 
+                className="academic-logo"
+              />
+            </div>
             <p className="academic-info">
               <strong>{language === 'pt' ? 'tcc' : 'final project'}</strong><br />
               {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
