@@ -88,97 +88,118 @@ function App() {
         </div>
       </header>
 
-      {/* navegação */}
-      <nav className="tabs">
-        <button
-          className={`tab ${activeTab === 'create' ? 'active' : ''}`}
-          onClick={() => setActiveTab('create')}
-        >
-          ✨ {t('createBed')}
-        </button>
-        <button
-          className={`tab ${activeTab === 'wizard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('wizard')}
-        >
-          🧙 {t('interactiveWizard')}
-        </button>
-        <button
-          className={`tab ${activeTab === 'pipeline' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pipeline')}
-        >
-          🚀 pipeline completo
-        </button>
-        <button
-          className={`tab ${activeTab === 'cfd' ? 'active' : ''}`}
-          onClick={() => setActiveTab('cfd')}
-        >
-          🌊 {t('cfdSimulation')}
-        </button>
-        <button
-          className={`tab ${activeTab === 'casos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('casos')}
-        >
-          📂 casos cfd
-        </button>
-        <button
-          className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
-          onClick={() => setActiveTab('jobs')}
-        >
-          📊 {t('jobs')} ({systemStatus?.jobs?.total || 0})
-        </button>
-        <button
-          className={`tab ${activeTab === 'results' ? 'active' : ''}`}
-          onClick={() => setActiveTab('results')}
-        >
-          <img src="/image/results-svgrepo-com.svg" alt="results" className="tab-icon" />
-          {t('results')}
-        </button>
-      </nav>
+      <div className="app-body">
+        {/* sidebar */}
+        <aside className="sidebar">
+          <nav className="sidebar-nav">
+            <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'criar' : 'create'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'create' ? 'active' : ''}`}
+                onClick={() => setActiveTab('create')}
+              >
+                <span className="nav-icon">✨</span>
+                <span className="nav-label">{t('createBed')}</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('wizard')}
+              >
+                <span className="nav-icon">🧙</span>
+                <span className="nav-label">{t('interactiveWizard')}</span>
+              </button>
+            </div>
 
-      {/* conteúdo */}
-      <main className="main-content">
-        {activeTab === 'create' && (
-          <div className="tab-content">
-            <BedForm onJobCreated={handleJobCreated} />
-          </div>
-        )}
+            <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'simulação' : 'simulation'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'pipeline' ? 'active' : ''}`}
+                onClick={() => setActiveTab('pipeline')}
+              >
+                <span className="nav-icon">🚀</span>
+                <span className="nav-label">pipeline completo</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
+                onClick={() => setActiveTab('cfd')}
+              >
+                <span className="nav-icon">🌊</span>
+                <span className="nav-label">{t('cfdSimulation')}</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'casos' ? 'active' : ''}`}
+                onClick={() => setActiveTab('casos')}
+              >
+                <span className="nav-icon">📂</span>
+                <span className="nav-label">casos cfd</span>
+              </button>
+            </div>
 
-        {activeTab === 'wizard' && (
-          <div className="tab-content">
-            <BedWizard />
-          </div>
-        )}
+            <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'resultados' : 'results'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`}
+                onClick={() => setActiveTab('jobs')}
+              >
+                <span className="nav-icon">📊</span>
+                <span className="nav-label">{t('jobs')} ({systemStatus?.jobs?.total || 0})</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'results' ? 'active' : ''}`}
+                onClick={() => setActiveTab('results')}
+              >
+                <img src="/image/results-svgrepo-com.svg" alt="results" className="nav-icon" />
+                <span className="nav-label">{t('results')}</span>
+              </button>
+            </div>
+          </nav>
+        </aside>
 
-        {activeTab === 'pipeline' && (
-          <div className="tab-content">
-            <PipelineCompleto />
-          </div>
-        )}
+        {/* conteúdo principal */}
+        <main className="main-content">
+          {activeTab === 'create' && (
+            <div className="tab-content">
+              <BedForm onJobCreated={handleJobCreated} />
+            </div>
+          )}
 
-        {activeTab === 'cfd' && (
-          <div className="tab-content">
-            <CFDSimulation bedFileName={lastBedFile} />
-          </div>
-        )}
+          {activeTab === 'wizard' && (
+            <div className="tab-content">
+              <BedWizard />
+            </div>
+          )}
 
-        {activeTab === 'casos' && (
-          <div className="tab-content">
-            <CasosCFD />
-          </div>
-        )}
+          {activeTab === 'pipeline' && (
+            <div className="tab-content">
+              <PipelineCompleto />
+            </div>
+          )}
 
-        {activeTab === 'jobs' && (
-          <div className="tab-content">
-            <JobStatus currentJob={currentJob} />
-          </div>
-        )}
+          {activeTab === 'cfd' && (
+            <div className="tab-content">
+              <CFDSimulation bedFileName={lastBedFile} />
+            </div>
+          )}
 
-        {activeTab === 'results' && (
-          <div className="tab-content">
-            <ResultsList />
-          </div>
-        )}
-      </main>
+          {activeTab === 'casos' && (
+            <div className="tab-content">
+              <CasosCFD />
+            </div>
+          )}
+
+          {activeTab === 'jobs' && (
+            <div className="tab-content">
+              <JobStatus currentJob={currentJob} />
+            </div>
+          )}
+
+          {activeTab === 'results' && (
+            <div className="tab-content">
+              <ResultsList />
+            </div>
+          )}
+        </main>
+      </div>
 
       {/* footer */}
       <footer className="footer">
@@ -239,12 +260,18 @@ function App() {
                 <span className="tech-version">4.x</span>
               </li>
               <li>
+                <img src="/image/free-react-logo-icon-svg-download-png-3032257.png" alt="react" className="tech-icon" />
                 <span className="tech-badge">react</span>
                 <span className="tech-version">18</span>
               </li>
               <li>
                 <span className="tech-badge">fastapi</span>
                 <span className="tech-version">0.x</span>
+              </li>
+              <li>
+                <img src="/image/railway.png" alt="railway" className="tech-icon" />
+                <span className="tech-badge">railway</span>
+                <span className="tech-version">cloud</span>
               </li>
             </ul>
           </div>
@@ -253,17 +280,17 @@ function App() {
             <h4>{language === 'pt' ? 'banco de dados' : 'database'}</h4>
             <ul>
               <li>
-                <img src="/image/database-01-svgrepo-com.svg" alt="database" className="db-icon" />
+                <img src="/image/2106624.png" alt="postgresql" className="db-icon" />
                 <span className="db-badge">postgresql</span>
                 <span className="db-version">15</span>
               </li>
               <li>
-                <img src="/image/database-data-base-config-cog-options-svgrepo-com.svg" alt="redis" className="db-icon" />
+                <img src="/image/redis.png" alt="redis" className="db-icon" />
                 <span className="db-badge">redis</span>
                 <span className="db-version">7</span>
               </li>
               <li>
-                <img src="/image/database-data-base-stats-report-svgrepo-com.svg" alt="minio" className="db-icon" />
+                <img src="/image/minio.png" alt="minio" className="db-icon" />
                 <span className="db-badge">minio</span>
                 <span className="db-version">s3</span>
               </li>

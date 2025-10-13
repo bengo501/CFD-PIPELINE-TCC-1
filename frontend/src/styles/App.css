@@ -96,6 +96,12 @@ input, textarea, select {
   flex-direction: column;
 }
 
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
 /* ==================== header ==================== */
 .header {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -270,52 +276,125 @@ input, textarea, select {
   }
 }
 
-/* navegação */
-.tabs {
-  background: white;
-  border-bottom: 2px solid var(--border);
-  padding: 0 2rem;
+/* ==================== sidebar ==================== */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(95, 25, 35, 0.2);
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
-.tab {
-  background: none;
-  border: none;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+.sidebar-nav {
+  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nav-section {
+  padding: 0 1rem;
+}
+
+.nav-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+  padding: 0 1rem;
+}
+
+.nav-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 500;
+  position: relative;
 }
 
-.tab-icon {
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(4px);
+}
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+.nav-icon {
   width: 20px;
   height: 20px;
-  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
-.tab:hover {
-  color: var(--primary);
+.nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-  font-weight: 600;
+/* scrollbar da sidebar */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* conteúdo principal */
 .main-content {
   flex: 1;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
   padding: 2rem;
+  background: var(--bg);
+  overflow-y: auto;
+  min-height: calc(100vh - 80px);
 }
 
 .tab-content {
@@ -1168,8 +1247,33 @@ legend {
     gap: 1rem;
   }
 
-  .tabs {
-    overflow-x: auto;
+  .sidebar {
+    width: 200px;
+  }
+  
+  .nav-section-title {
+    font-size: 0.7rem;
+    padding: 0 0.8rem;
+  }
+  
+  .nav-item {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .nav-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 0.9rem;
+  }
+  
+  .nav-label {
+    display: none;
+  }
+  
+  .sidebar-nav {
+    padding: 1rem 0;
+    gap: 1rem;
   }
 
   .jobs-layout {
@@ -1178,6 +1282,52 @@ legend {
 
   .files-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-body {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    order: 2;
+  }
+  
+  .sidebar-nav {
+    flex-direction: row;
+    padding: 1rem;
+    gap: 0.5rem;
+    overflow-x: auto;
+  }
+  
+  .nav-section {
+    display: flex;
+    gap: 0.5rem;
+    min-width: max-content;
+  }
+  
+  .nav-section-title {
+    display: none;
+  }
+  
+  .nav-item {
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 0;
+    min-width: max-content;
+    border-radius: 20px;
+  }
+  
+  .nav-label {
+    display: block;
+  }
+  
+  .main-content {
+    order: 1;
+    padding: 1rem;
   }
 }
 
