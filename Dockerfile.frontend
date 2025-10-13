@@ -1,0 +1,15 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# copiar package files
+COPY frontend/package*.json ./
+
+# instalar dependências
+RUN npm ci
+
+# copiar código
+COPY frontend/ .
+
+# comando padrão
+CMD ["npm", "run", "dev"]
