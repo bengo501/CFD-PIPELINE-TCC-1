@@ -41,23 +41,44 @@ function App() {
       {/* header */}
       <header className="header">
         <div className="header-content">
-          <h1>🔬 {t('appTitle')}</h1>
-          <div className="header-actions">
+          <div className="header-left">
+            <div className="logo-container">
+              <div className="logo-icon">🔬</div>
+              <div className="logo-text">
+                <h1>{t('appTitle')}</h1>
+                <span className="subtitle">computational fluid dynamics</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="header-right">
             <div className="system-status">
               {systemStatus && (
                 <>
-                  <span className={`status-indicator ${systemStatus.api === 'running' ? 'online' : 'offline'}`}>
-                    {systemStatus.api === 'running' ? `🟢 ${t('online')}` : `🔴 ${t('offline')}`}
-                  </span>
-                  <span className="jobs-count">
-                    {t('jobs')}: {systemStatus.jobs?.running || 0} {t('running')}
-                  </span>
+                  <div className="status-item">
+                    <span className={`status-dot ${systemStatus.api === 'running' ? 'online' : 'offline'}`}></span>
+                    <span className="status-label">
+                      {systemStatus.api === 'running' ? t('online') : t('offline')}
+                    </span>
+                  </div>
+                  <div className="status-item">
+                    <span className="status-icon">⚙️</span>
+                    <span className="status-label">
+                      {systemStatus.jobs?.running || 0} {t('running')}
+                    </span>
+                  </div>
                 </>
               )}
             </div>
-            <button className="language-toggle" onClick={toggleLanguage} title={language === 'pt' ? 'Switch to English' : 'Mudar para Português'}>
+            
+            <button 
+              className="language-toggle" 
+              onClick={toggleLanguage} 
+              title={language === 'pt' ? 'switch to english' : 'mudar para português'}
+              aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
+            >
               <span className="flag">{language === 'pt' ? '🇧🇷' : '🇺🇸'}</span>
-              <span className="lang-text">{language === 'pt' ? 'PT' : 'EN'}</span>
+              <span className="lang-text">{language === 'pt' ? 'pt' : 'en'}</span>
             </button>
           </div>
         </div>
@@ -156,7 +177,90 @@ function App() {
 
       {/* footer */}
       <footer className="footer">
-        <p>cfd pipeline v0.1.0 | tcc - CC - Eng.Qui</p>
+        <div className="footer-content">
+          <div className="footer-section footer-info">
+            <div className="footer-logo">
+              <span className="footer-icon">🔬</span>
+              <span className="footer-title">cfd pipeline</span>
+            </div>
+            <p className="footer-description">
+              {language === 'pt' 
+                ? 'sistema de simulação de leitos empacotados com openfoam e blender'
+                : 'packed bed simulation system with openfoam and blender'}
+            </p>
+            <div className="footer-version">
+              <span className="version-badge">v0.1.0</span>
+              <span className="version-status">beta</span>
+            </div>
+          </div>
+
+          <div className="footer-section footer-links">
+            <h4>{language === 'pt' ? 'projeto' : 'project'}</h4>
+            <ul>
+              <li>
+                <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1" target="_blank" rel="noopener noreferrer">
+                  <span className="link-icon">📦</span> github
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1/issues" target="_blank" rel="noopener noreferrer">
+                  <span className="link-icon">🐛</span> {language === 'pt' ? 'issues' : 'issues'}
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/users/bengo501/projects/2" target="_blank" rel="noopener noreferrer">
+                  <span className="link-icon">📊</span> {language === 'pt' ? 'kanban' : 'kanban'}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="footer-section footer-tech">
+            <h4>{language === 'pt' ? 'tecnologias' : 'technologies'}</h4>
+            <ul>
+              <li>
+                <span className="tech-badge">openfoam</span>
+                <span className="tech-version">11</span>
+              </li>
+              <li>
+                <span className="tech-badge">blender</span>
+                <span className="tech-version">4.x</span>
+              </li>
+              <li>
+                <span className="tech-badge">react</span>
+                <span className="tech-version">18</span>
+              </li>
+              <li>
+                <span className="tech-badge">fastapi</span>
+                <span className="tech-version">0.x</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="footer-section footer-academic">
+            <h4>{language === 'pt' ? 'acadêmico' : 'academic'}</h4>
+            <p className="academic-info">
+              <strong>{language === 'pt' ? 'tcc' : 'final project'}</strong><br />
+              {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
+              {language === 'pt' ? 'engenharia química' : 'chemical engineering'}
+            </p>
+            <p className="academic-year">2024/2025</p>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <div className="footer-bottom-content">
+            <p className="copyright">
+              © 2024-2025 cfd pipeline. 
+              {language === 'pt' ? ' código aberto sob licença mit.' : ' open source under mit license.'}
+            </p>
+            <div className="footer-social">
+              <a href="https://github.com/bengo501" target="_blank" rel="noopener noreferrer" title="github profile">
+                <span className="social-icon">🐙</span>
+              </a>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   )
