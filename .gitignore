@@ -80,3 +80,23 @@ dsl/compiler/*Visitor.py
 docs/_build/
 site/
 
+# arquivos markdown de documentação (não versionar)
+# guias e documentação auxiliar
+docs/guias/*.md
+docs/implementacao/*.md
+docs/setup/*.md
+docs/backend/*.md
+docs/documentacao/*.md
+
+# arquivos markdown na raiz
+*.md
+!README.md
+!CONTRIBUTING.md
+!LICENSE.md
+!CHANGELOG.md
+
+# excluir pastas específicas do gitignore de md
+!bibliografia/**/*.md
+!relatorio_tcc/**/*.md
+!sprints/**/*.md
+
