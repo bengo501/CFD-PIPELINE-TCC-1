@@ -1,3 +1,6 @@
+/* importar fontes profissionais */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Orbitron:wght@700;800;900&display=swap');
+
 /* reset e variáveis */
 * {
   margin: 0;
@@ -47,9 +50,6 @@
   --accent: #F0B91E;
   --accent-secondary: #DC7323;
 }
-
-/* importar fontes profissionais */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Orbitron:wght@700;800;900&display=swap');
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1141,6 +1141,24 @@ legend {
   height: 24px;
   object-fit: contain;
   filter: brightness(0) invert(1);
+}
+
+/* ícones de seção */
+.section-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* ícones de legend */
+.legend-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 0.5rem;
+  vertical-align: middle;
 }
 
 .db-badge {

@@ -133,7 +133,7 @@ function App() {
                 className={`nav-item ${activeTab === 'create' ? 'active' : ''}`}
                 onClick={() => setActiveTab('create')}
               >
-                <span className="nav-icon">✨</span>
+                <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="criar leito" className="nav-icon" />
                 <span className="nav-label">{t('createBed')}</span>
               </button>
               <button
@@ -287,7 +287,7 @@ function App() {
             <h4>{language === 'pt' ? 'tecnologias' : 'technologies'}</h4>
             <ul>
               <li>
-                <span className="tech-icon openfoam-icon">🌊</span>
+                <ThemeIcon light="triangle_white_outline.png" dark="triangle_black_outline.png" alt="openfoam" className="tech-icon openfoam-icon" />
                 <span className="tech-badge">openfoam</span>
                 <span className="tech-version">11</span>
               </li>

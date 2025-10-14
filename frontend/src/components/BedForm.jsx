@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { compileBed, generateModel } from '../services/api'
+import { useTheme } from '../context/ThemeContext'
+import ThemeIcon from './ThemeIcon'
 
 function BedForm({ onJobCreated }) {
+  const { theme } = useTheme()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
@@ -61,7 +64,10 @@ function BedForm({ onJobCreated }) {
 
   return (
     <div className="bed-form-container">
-      <h2>📐 parâmetros do leito</h2>
+      <h2>
+        <ThemeIcon light="parametros_leito_white_v2.png" dark="image-removebg-preview(9).png" alt="parâmetros" className="section-icon" />
+        parâmetros do leito
+      </h2>
       
       {error && (
         <div className="alert alert-error">
@@ -78,7 +84,10 @@ function BedForm({ onJobCreated }) {
       <form onSubmit={handleSubmit} className="bed-form">
         {/* geometria do leito */}
         <fieldset>
-          <legend>🔵 geometria do leito</legend>
+          <legend>
+            <ThemeIcon light="bed_geometry_white.png" dark="bed_geometry_black.png" alt="geometria" className="legend-icon" />
+            geometria do leito
+          </legend>
           
           <div className="form-group">
             <label>
@@ -132,7 +141,10 @@ function BedForm({ onJobCreated }) {
 
         {/* partículas */}
         <fieldset>
-          <legend>⚫ partículas</legend>
+          <legend>
+            <ThemeIcon light="particles_grid_white.png" dark="particles_grid_black.png" alt="partículas" className="legend-icon" />
+            partículas
+          </legend>
           
           <div className="form-group">
             <label>
@@ -184,7 +196,10 @@ function BedForm({ onJobCreated }) {
 
         {/* física */}
         <fieldset>
-          <legend>⚙️ empacotamento</legend>
+          <legend>
+            <ThemeIcon light="packingLight.png" dark="packingDark.png" alt="empacotamento" className="legend-icon" />
+            empacotamento
+          </legend>
           
           <div className="form-group">
             <label>
