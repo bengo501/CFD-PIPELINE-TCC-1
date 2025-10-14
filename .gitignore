@@ -94,6 +94,7 @@ docs/documentacao/*.md
 !docs/setup/README.md
 !docs/backend/README.md
 !docs/mvp/README.md
+!docs/deploy/README.md
 
 # manter documentação de organização versionada
 !docs/ORGANIZACAO_DOCUMENTACAO.md
