@@ -88,6 +88,16 @@ docs/setup/*.md
 docs/backend/*.md
 docs/documentacao/*.md
 
+# manter índices (README.md) versionados em cada pasta
+!docs/guias/README.md
+!docs/implementacao/README.md
+!docs/setup/README.md
+!docs/backend/README.md
+
+# manter documentação de organização versionada
+!docs/ORGANIZACAO_DOCUMENTACAO.md
+!docs/RESUMO_ORGANIZACAO.md
+
 # arquivos markdown na raiz
 *.md
 !README.md
