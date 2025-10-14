@@ -9,9 +9,11 @@ import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import { getSystemStatus } from './services/api'
 import { useLanguage } from './context/LanguageContext'
+import { useTheme } from './context/ThemeContext'
 
 function App() {
   const { language, toggleLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('create') // create, wizard, pipeline, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
@@ -87,6 +89,25 @@ function App() {
                 </>
               )}
             </div>
+            
+            <button 
+              className="theme-toggle" 
+              onClick={toggleTheme} 
+              title={theme === 'light' ? (language === 'pt' ? 'modo escuro' : 'dark mode') : (language === 'pt' ? 'modo claro' : 'light mode')}
+              aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
+            >
+              {theme === 'light' ? (
+                <>
+                  <span className="theme-icon">🌙</span>
+                  <span className="theme-text">{language === 'pt' ? 'escuro' : 'dark'}</span>
+                </>
+              ) : (
+                <>
+                  <span className="theme-icon">☀️</span>
+                  <span className="theme-text">{language === 'pt' ? 'claro' : 'light'}</span>
+                </>
+              )}
+            </button>
             
             <button 
               className="language-toggle" 

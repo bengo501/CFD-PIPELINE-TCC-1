@@ -17,7 +17,7 @@
   --gold-light: #F5E65F;
   --white: #FFFFFF;
   
-  /* mapeamento semantico */
+  /* tema light (padrão) */
   --primary: var(--wine);
   --primary-dark: var(--wine-2);
   --success: var(--green);
@@ -30,6 +30,22 @@
   --text-muted: #666666;
   --accent: var(--yellow);
   --accent-secondary: var(--orange);
+}
+
+/* tema dark */
+[data-theme="dark"] {
+  --primary: #8B2E3A;
+  --primary-dark: #6B1E2A;
+  --success: #60C060;
+  --warning: #EC8333;
+  --error: #E34F4F;
+  --bg: #1A1A1A;
+  --card-bg: #252525;
+  --border: #3A3A3A;
+  --text: #E8E8E8;
+  --text-muted: #A0A0A0;
+  --accent: #F0B91E;
+  --accent-secondary: #DC7323;
 }
 
 /* importar fontes profissionais */
@@ -244,7 +260,8 @@ input, textarea, select {
   white-space: nowrap;
 }
 
-/* botão de idioma */
+/* botões de tema e idioma */
+.theme-toggle,
 .language-toggle {
   display: flex;
   align-items: center;
@@ -261,6 +278,7 @@ input, textarea, select {
   backdrop-filter: blur(10px);
 }
 
+.theme-toggle:hover,
 .language-toggle:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: var(--accent);
@@ -268,12 +286,14 @@ input, textarea, select {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.language-toggle .flag {
+.theme-icon,
+.flag {
   font-size: 1.5rem;
   line-height: 1;
 }
 
-.language-toggle .lang-text {
+.theme-text,
+.lang-text {
   font-size: 0.9rem;
   letter-spacing: 1px;
   text-transform: uppercase;
