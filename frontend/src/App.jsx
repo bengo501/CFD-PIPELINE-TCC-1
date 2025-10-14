@@ -62,11 +62,11 @@ function App() {
               <img 
                 src="/image/logoCFDpipeline.png" 
                 alt="cfd pipeline logo" 
-                className="logo-icon"
+                className={`logo-icon ${theme === 'dark' ? 'logo-dark' : 'logo-light'}`}
               />
               <div className="logo-text">
-                <h1>{t('appTitle')}</h1>
-                <span className="subtitle">computational fluid dynamics</span>
+                <h1>CFD Pipeline</h1>
+                <span className="subtitle">packed beds - computational fluid dynamics</span>
               </div>
             </div>
           </div>
