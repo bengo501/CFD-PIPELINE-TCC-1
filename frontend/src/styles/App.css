@@ -112,6 +112,31 @@ input, textarea, select {
   top: 0;
   z-index: 100;
   border-bottom: 3px solid var(--accent);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* header encolhido ao scrollar */
+.header.header-scrolled {
+  padding: 0.75rem 2rem;
+  box-shadow: 0 2px 8px rgba(95, 25, 35, 0.4);
+}
+
+.header.header-scrolled .logo-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.header.header-scrolled .logo-text h1 {
+  font-size: 1.25rem;
+}
+
+.header.header-scrolled .logo-text .subtitle {
+  font-size: 0.75rem;
+}
+
+.header.header-scrolled .status-item {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
 }
 
 .header-content {
@@ -284,10 +309,19 @@ input, textarea, select {
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(95, 25, 35, 0.2);
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
-  height: calc(100vh - 80px);
+  height: 100vh;
   overflow-y: auto;
+  z-index: 90;
+  padding-top: 140px; /* espaço para o header */
+  transition: padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ajustar padding da sidebar quando header encolhe */
+.header.header-scrolled ~ .app-body .sidebar {
+  padding-top: 90px;
 }
 
 .sidebar-nav {
@@ -391,10 +425,12 @@ input, textarea, select {
 /* conteúdo principal */
 .main-content {
   flex: 1;
+  margin-left: 280px; /* espaço para sidebar fixa */
   padding: 2rem;
   background: var(--bg);
   overflow-y: auto;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 140px);
+  transition: margin-left 0.3s ease;
 }
 
 .tab-content {
@@ -1251,6 +1287,10 @@ legend {
     width: 200px;
   }
   
+  .main-content {
+    margin-left: 200px;
+  }
+  
   .nav-section-title {
     font-size: 0.7rem;
     padding: 0 0.8rem;
@@ -1293,7 +1333,12 @@ legend {
   .sidebar {
     width: 100%;
     height: auto;
-    position: static;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    z-index: 95;
+    padding-top: 0;
     order: 2;
   }
   
@@ -1328,6 +1373,8 @@ legend {
   .main-content {
     order: 1;
     padding: 1rem;
+    margin-left: 0;
+    padding-bottom: 100px; /* espaço para sidebar no bottom */
   }
 }
 

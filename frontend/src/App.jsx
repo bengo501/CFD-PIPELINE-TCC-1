@@ -16,10 +16,23 @@ function App() {
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     // verificar status do sistema ao carregar
     checkSystemStatus()
+    
+    // detectar scroll para encolher header
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true)
+      } else {
+        setIsScrolled(false)
+      }
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const checkSystemStatus = async () => {
@@ -39,7 +52,7 @@ function App() {
   return (
     <div className="app">
       {/* header */}
-      <header className="header">
+      <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
         <div className="header-content">
           <div className="header-left">
             <div className="logo-container">
