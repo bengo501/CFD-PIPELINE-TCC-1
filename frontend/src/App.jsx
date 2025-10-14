@@ -7,6 +7,7 @@ import CasosCFD from './components/CasosCFD'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
+import ThemeIcon from './components/ThemeIcon'
 import { getSystemStatus } from './services/api'
 import { useLanguage } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
@@ -263,18 +264,20 @@ function App() {
             <ul>
               <li>
                 <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1" target="_blank" rel="noopener noreferrer">
-                  <img src="/image/github.png" alt="github" className="link-icon" />
+                  <ThemeIcon light="githubLight.png" dark="github.png" alt="github" className="link-icon" />
                   github
                 </a>
               </li>
               <li>
                 <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1/issues" target="_blank" rel="noopener noreferrer">
-                  <span className="link-icon">🐛</span> {language === 'pt' ? 'issues' : 'issues'}
+                  <ThemeIcon light="issuesLight.png" dark="issuesDark.png" alt="issues" className="link-icon" />
+                  {language === 'pt' ? 'issues' : 'issues'}
                 </a>
               </li>
               <li>
                 <a href="https://github.com/users/bengo501/projects/2" target="_blank" rel="noopener noreferrer">
-                  <span className="link-icon">📊</span> {language === 'pt' ? 'kanban' : 'kanban'}
+                  <ThemeIcon light="kanbanLight.png" dark="kanbanDark.png" alt="kanban" className="link-icon" />
+                  {language === 'pt' ? 'kanban' : 'kanban'}
                 </a>
               </li>
             </ul>
@@ -289,21 +292,22 @@ function App() {
                 <span className="tech-version">11</span>
               </li>
               <li>
-                <img src="/image/blender-svgrepo-com.svg" alt="blender" className="tech-icon" />
+                <ThemeIcon light="blenderLight.png" dark="blender-svgrepo-com.svg" alt="blender" className="tech-icon" />
                 <span className="tech-badge">blender</span>
                 <span className="tech-version">4.x</span>
               </li>
               <li>
-                <img src="/image/free-react-logo-icon-svg-download-png-3032257.png" alt="react" className="tech-icon" />
+                <ThemeIcon light="reactLight.png" dark="free-react-logo-icon-svg-download-png-3032257.png" alt="react" className="tech-icon" />
                 <span className="tech-badge">react</span>
                 <span className="tech-version">18</span>
               </li>
               <li>
+                <ThemeIcon light="fastApiLight.png" dark="fastApiLight.png" alt="fastapi" className="tech-icon" />
                 <span className="tech-badge">fastapi</span>
                 <span className="tech-version">0.x</span>
               </li>
               <li>
-                <img src="/image/railway.png" alt="railway" className="tech-icon" />
+                <ThemeIcon light="railwayLight.png" dark="railway.png" alt="railway" className="tech-icon" />
                 <span className="tech-badge">railway</span>
                 <span className="tech-version">cloud</span>
               </li>
@@ -314,17 +318,17 @@ function App() {
             <h4>{language === 'pt' ? 'banco de dados' : 'database'}</h4>
             <ul>
               <li>
-                <img src="/image/2106624.png" alt="postgresql" className="db-icon" />
+                <ThemeIcon light="2106624.png" dark="postgresqlDark.png" alt="postgresql" className="db-icon" />
                 <span className="db-badge">postgresql</span>
                 <span className="db-version">15</span>
               </li>
               <li>
-                <img src="/image/redis.png" alt="redis" className="db-icon" />
+                <ThemeIcon light="redis.png" dark="redisDark.png" alt="redis" className="db-icon" />
                 <span className="db-badge">redis</span>
                 <span className="db-version">7</span>
               </li>
               <li>
-                <img src="/image/minio.png" alt="minio" className="db-icon" />
+                <ThemeIcon light="minio.png" dark="minioDark.png" alt="minio" className="db-icon" />
                 <span className="db-badge">minio</span>
                 <span className="db-version">s3</span>
               </li>
