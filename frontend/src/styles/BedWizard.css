@@ -74,6 +74,12 @@
   margin-bottom: 15px;
 }
 
+.mode-icon img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .mode-card h3 {
   color: #333;
   margin-bottom: 10px;

@@ -75,7 +75,10 @@ function JobStatus({ currentJob }) {
 
   return (
     <div className="job-status-container">
-      <h2>📊 monitoramento de jobs</h2>
+      <h2>
+        <ThemeIcon light="job_monitor_clock_white.png" dark="job_monitor_clock_white.png" alt="monitoramento" className="section-icon" />
+        monitoramento de jobs
+      </h2>
 
       <div className="jobs-layout">
         {/* lista de jobs */}
