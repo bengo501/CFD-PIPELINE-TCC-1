@@ -129,7 +129,7 @@ function App() {
         <aside className="sidebar">
           <nav className="sidebar-nav">
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'criar' : 'create'}</h3>
+              <h3 className="nav-section-title">{t('create')}</h3>
               <button
                 className={`nav-item ${activeTab === 'create' ? 'active' : ''}`}
                 onClick={() => setActiveTab('create')}
@@ -147,13 +147,13 @@ function App() {
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'simulação' : 'simulation'}</h3>
+              <h3 className="nav-section-title">{t('simulation')}</h3>
               <button
                 className={`nav-item ${activeTab === 'pipeline' ? 'active' : ''}`}
                 onClick={() => setActiveTab('pipeline')}
               >
                 <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="nav-icon" />
-                <span className="nav-label">pipeline completo</span>
+                <span className="nav-label">{t('pipeline')}</span>
               </button>
               <button
                 className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
@@ -167,12 +167,12 @@ function App() {
                 onClick={() => setActiveTab('casos')}
               >
                 <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="casos cfd" className="nav-icon" />
-                <span className="nav-label">casos cfd</span>
+                <span className="nav-label">{t('casosCfd')}</span>
               </button>
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'resultados' : 'results'}</h3>
+              <h3 className="nav-section-title">{t('results')}</h3>
               <button
                 className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`}
                 onClick={() => setActiveTab('jobs')}
@@ -196,7 +196,7 @@ function App() {
                 onClick={() => setActiveTab('settings')}
               >
                 <ThemeIcon light="settingsLight.png" dark="settingsDark.png" alt="settings" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'configurações' : 'settings'}</span>
+                <span className="nav-label">{t('configuracoes')}</span>
               </button>
             </div>
           </nav>
@@ -249,23 +249,23 @@ function App() {
           {activeTab === 'settings' && (
             <div className="tab-content">
               <div className="settings-container">
-                <h2>{language === 'pt' ? 'configurações do sistema' : 'system settings'}</h2>
+                <h2>{t('systemSettings')}</h2>
                 <div className="settings-grid">
                   <div className="setting-card">
-                    <h3>{language === 'pt' ? 'tema' : 'theme'}</h3>
-                    <p>{language === 'pt' ? 'escolha entre tema claro ou escuro' : 'choose between light or dark theme'}</p>
+                    <h3>{t('theme')}</h3>
+                    <p>{t('themeDesc')}</p>
                   </div>
                   <div className="setting-card">
-                    <h3>{language === 'pt' ? 'idioma' : 'language'}</h3>
-                    <p>{language === 'pt' ? 'português brasileiro ou inglês' : 'brazilian portuguese or english'}</p>
+                    <h3>{t('language')}</h3>
+                    <p>{t('languageDesc')}</p>
                   </div>
                   <div className="setting-card">
-                    <h3>{language === 'pt' ? 'banco de dados' : 'database'}</h3>
-                    <p>{language === 'pt' ? 'configurações de conexão' : 'connection settings'}</p>
+                    <h3>{t('database')}</h3>
+                    <p>{t('databaseDesc')}</p>
                   </div>
                   <div className="setting-card">
-                    <h3>{language === 'pt' ? 'simulações' : 'simulations'}</h3>
-                    <p>{language === 'pt' ? 'parâmetros padrão do openfoam' : 'default openfoam parameters'}</p>
+                    <h3>{t('simulations')}</h3>
+                    <p>{t('simulationsDesc')}</p>
                   </div>
                 </div>
               </div>

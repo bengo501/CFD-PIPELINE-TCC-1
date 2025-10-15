@@ -449,6 +449,17 @@ input, textarea, select {
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
+  transition: filter 0.3s ease;
+}
+
+/* nav-icon light mode (pretos) */
+.nav-icon {
+  filter: brightness(0) invert(0);
+}
+
+/* nav-icon dark mode (brancos) */
+[data-theme="dark"] .nav-icon {
+  filter: brightness(0) invert(1);
 }
 
 .nav-label {
@@ -1093,6 +1104,19 @@ legend {
   width: 20px;
   height: 20px;
   object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+/* ícones light mode (pretos) */
+.link-icon, .tech-icon, .db-icon {
+  filter: brightness(0) invert(0);
+}
+
+/* ícones dark mode (brancos) */
+[data-theme="dark"] .link-icon,
+[data-theme="dark"] .tech-icon,
+[data-theme="dark"] .db-icon {
+  filter: brightness(0) invert(1);
 }
 
 /* seção tecnologias */
@@ -1170,6 +1194,7 @@ legend {
   object-fit: contain;
   margin-right: 0.5rem;
   vertical-align: middle;
+  transition: filter 0.3s ease;
 }
 
 /* ícones de legend */
@@ -1179,6 +1204,18 @@ legend {
   object-fit: contain;
   margin-right: 0.5rem;
   vertical-align: middle;
+  transition: filter 0.3s ease;
+}
+
+/* ícones de seção e legend - light mode (pretos) */
+.section-icon, .legend-icon {
+  filter: brightness(0) invert(0);
+}
+
+/* ícones de seção e legend - dark mode (brancos) */
+[data-theme="dark"] .section-icon,
+[data-theme="dark"] .legend-icon {
+  filter: brightness(0) invert(1);
 }
 
 /* settings container */

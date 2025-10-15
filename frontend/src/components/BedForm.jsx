@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { compileBed, generateModel } from '../services/api'
 import { useTheme } from '../context/ThemeContext'
+import { useLanguage } from '../context/LanguageContext'
+import { useTranslation } from '../i18n/translations'
 import ThemeIcon from './ThemeIcon'
 
 function BedForm({ onJobCreated }) {
   const { theme } = useTheme()
+  const { language } = useLanguage()
+  const { t } = useTranslation(language)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
@@ -66,7 +70,7 @@ function BedForm({ onJobCreated }) {
     <div className="bed-form-container">
       <h2>
         <ThemeIcon light="parametros_leito_white_v2.png" dark="image-removebg-preview(9).png" alt="parâmetros" className="section-icon" />
-        parâmetros do leito
+        {t('parametrosLeito')}
       </h2>
       
       {error && (
@@ -86,7 +90,7 @@ function BedForm({ onJobCreated }) {
         <fieldset>
           <legend>
             <ThemeIcon light="bed_geometry_white.png" dark="bed_geometry_black.png" alt="geometria" className="legend-icon" />
-            geometria do leito
+            {t('geometriaLeito')}
           </legend>
           
           <div className="form-group">

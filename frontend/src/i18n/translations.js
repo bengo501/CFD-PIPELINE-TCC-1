@@ -78,7 +78,63 @@ export const translations = {
     
     // footer
     version: 'versão',
-    project: 'tcc - eng. mecânica'
+    project: 'tcc - eng. mecânica',
+    
+    // sidebar
+    create: 'criar',
+    simulation: 'simulação',
+    pipeline: 'pipeline completo',
+    casosCfd: 'casos cfd',
+    monitoramentoJobs: 'monitoramento de jobs',
+    configuracoes: 'configurações',
+    
+    // settings
+    systemSettings: 'configurações do sistema',
+    theme: 'tema',
+    themeDesc: 'escolha entre tema claro ou escuro',
+    language: 'idioma',
+    languageDesc: 'português brasileiro ou inglês',
+    database: 'banco de dados',
+    databaseDesc: 'configurações de conexão',
+    simulations: 'simulações',
+    simulationsDesc: 'parâmetros padrão do openfoam',
+    
+    // bed form
+    parametrosLeito: 'parâmetros do leito',
+    geometriaLeito: 'geometria do leito',
+    diametro: 'diâmetro (m)',
+    altura: 'altura (m)',
+    espessuraParede: 'espessura parede (m)',
+    quantidade: 'quantidade',
+    diametroParticula: 'diâmetro partícula (m)',
+    densidade: 'densidade (kg/m³)',
+    metodo: 'método',
+    gravidade: 'gravidade (m/s²)',
+    tempo: 'tempo (s)',
+    gerarLeito: 'gerar leito',
+    
+    // jobs
+    todosJobs: 'todos os jobs',
+    jobDetails: 'detalhes do job',
+    status: 'status',
+    tipo: 'tipo',
+    criado: 'criado',
+    duracao: 'duração',
+    compilacao: 'compilação',
+    modelo3d: 'modelo 3d',
+    
+    // results
+    modelos3d: 'modelos 3d',
+    simulacoesCfd: 'simulações cfd',
+    baixar: 'baixar',
+    visualizar: 'visualizar',
+    
+    // casos cfd
+    casosCfdDisponiveis: 'casos cfd disponíveis',
+    nome: 'nome',
+    parametros: 'parâmetros',
+    executar: 'executar',
+    remover: 'remover'
   },
   
   en: {
@@ -158,7 +214,63 @@ export const translations = {
     
     // footer
     version: 'version',
-    project: 'senior project - mechanical eng.'
+    project: 'senior project - mechanical eng.',
+    
+    // sidebar
+    create: 'create',
+    simulation: 'simulation',
+    pipeline: 'complete pipeline',
+    casosCfd: 'cfd cases',
+    monitoramentoJobs: 'job monitoring',
+    configuracoes: 'settings',
+    
+    // settings
+    systemSettings: 'system settings',
+    theme: 'theme',
+    themeDesc: 'choose between light or dark theme',
+    language: 'language',
+    languageDesc: 'brazilian portuguese or english',
+    database: 'database',
+    databaseDesc: 'connection settings',
+    simulations: 'simulations',
+    simulationsDesc: 'default openfoam parameters',
+    
+    // bed form
+    parametrosLeito: 'bed parameters',
+    geometriaLeito: 'bed geometry',
+    diametro: 'diameter (m)',
+    altura: 'height (m)',
+    espessuraParede: 'wall thickness (m)',
+    quantidade: 'quantity',
+    diametroParticula: 'particle diameter (m)',
+    densidade: 'density (kg/m³)',
+    metodo: 'method',
+    gravidade: 'gravity (m/s²)',
+    tempo: 'time (s)',
+    gerarLeito: 'generate bed',
+    
+    // jobs
+    todosJobs: 'all jobs',
+    jobDetails: 'job details',
+    status: 'status',
+    tipo: 'type',
+    criado: 'created',
+    duracao: 'duration',
+    compilacao: 'compilation',
+    modelo3d: '3d model',
+    
+    // results
+    modelos3d: '3d models',
+    simulacoesCfd: 'cfd simulations',
+    baixar: 'download',
+    visualizar: 'view',
+    
+    // casos cfd
+    casosCfdDisponiveis: 'available cfd cases',
+    nome: 'name',
+    parametros: 'parameters',
+    executar: 'run',
+    remover: 'remove'
   }
 };
 
