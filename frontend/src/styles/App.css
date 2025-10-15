@@ -155,6 +155,23 @@ input, textarea, select {
   font-size: 0.85rem;
 }
 
+.header.header-scrolled .theme-toggle,
+.header.header-scrolled .language-toggle {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem;
+}
+
+.header.header-scrolled .theme-icon,
+.header.header-scrolled .flag {
+  width: 16px;
+  height: 16px;
+}
+
+.header.header-scrolled .theme-text,
+.header.header-scrolled .lang-text {
+  font-size: 0.7rem;
+}
+
 .header-content {
   max-width: 1400px;
   margin: 0 auto;
@@ -279,16 +296,16 @@ input, textarea, select {
 .language-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0.6rem 1.2rem;
+  gap: 6px;
+  padding: 0.4rem 0.8rem;
   background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: white;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 500;
+  font-size: 0.8rem;
   backdrop-filter: blur(10px);
 }
 
@@ -302,14 +319,17 @@ input, textarea, select {
 
 .theme-icon,
 .flag {
-  font-size: 1.5rem;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  font-size: 1.2rem;
   line-height: 1;
 }
 
 .theme-text,
 .lang-text {
-  font-size: 0.9rem;
-  letter-spacing: 1px;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
