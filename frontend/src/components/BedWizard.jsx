@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import BedPreview3D from './BedPreview3D';
 import { HelpModal, DocsModal, TemplateEditor } from './WizardHelpers';
+import ThemeIcon from './ThemeIcon';
 import '../styles/BedWizard.css';
 
 const BedWizard = () => {
@@ -214,7 +215,7 @@ const BedWizard = () => {
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('template')}>
-          <div className="mode-icon">📝</div>
+          <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editor" className="mode-icon" />
           <h3>editor de template</h3>
           <p>edite um arquivo .bed de exemplo diretamente</p>
         </div>

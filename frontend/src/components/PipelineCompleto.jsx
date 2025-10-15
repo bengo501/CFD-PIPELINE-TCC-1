@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import ThemeIcon from './ThemeIcon';
 import '../styles/PipelineCompleto.css';
 
 /**
@@ -247,7 +248,7 @@ const PipelineCompleto = () => {
       
       <div className="etapas-status">
         <div className={`etapa-item ${etapaAtual === 'compilando' ? 'ativa' : progresso > 25 ? 'concluida' : ''}`}>
-          <span className="etapa-icone">📝</span>
+          <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editor" className="etapa-icone" />
           <span className="etapa-nome">compilando dsl</span>
         </div>
         <div className={`etapa-item ${etapaAtual === 'gerando3d' ? 'ativa' : progresso > 50 ? 'concluida' : ''}`}>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getJobStatus, listJobs } from '../services/api'
+import ThemeIcon from './ThemeIcon'
 
 function JobStatus({ currentJob }) {
   const [jobs, setJobs] = useState([])
@@ -60,7 +61,12 @@ function JobStatus({ currentJob }) {
 
   const getJobTypeLabel = (jobType) => {
     switch (jobType) {
-      case 'compile': return '📝 compilação'
+      case 'compile': return (
+        <>
+          <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="compilação" className="status-icon" />
+          compilação
+        </>
+      )
       case 'generate_model': return '🎨 modelo 3d'
       case 'simulation': return '🌊 simulação'
       default: return jobType

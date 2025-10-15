@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { listFiles, downloadFile } from '../services/api'
 import ModelViewer from './ModelViewer'
+import ThemeIcon from './ThemeIcon'
 
 function ResultsList() {
   const [models, setModels] = useState([])
@@ -42,7 +43,10 @@ function ResultsList() {
 
   return (
     <div className="results-container">
-      <h2>📁 resultados</h2>
+      <h2>
+        <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="resultados" className="section-icon" />
+        resultados
+      </h2>
 
       <div className="results-layout">
         {/* modelos 3d */}

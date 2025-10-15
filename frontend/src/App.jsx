@@ -97,17 +97,13 @@ function App() {
               title={theme === 'light' ? (language === 'pt' ? 'modo escuro' : 'dark mode') : (language === 'pt' ? 'modo claro' : 'light mode')}
               aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
             >
-              {theme === 'light' ? (
-                <>
-                  <span className="theme-icon">🌙</span>
-                  <span className="theme-text">{language === 'pt' ? 'escuro' : 'dark'}</span>
-                </>
-              ) : (
-                <>
-                  <span className="theme-icon">☀️</span>
-                  <span className="theme-text">{language === 'pt' ? 'claro' : 'light'}</span>
-                </>
-              )}
+              <ThemeIcon 
+                light="darkmode_moon_sun_white.png" 
+                dark="image-removebg-preview(15).png" 
+                alt={theme === 'light' ? 'dark mode' : 'light mode'} 
+                className="theme-icon" 
+              />
+              <span className="theme-text">{theme === 'light' ? (language === 'pt' ? 'escuro' : 'dark') : (language === 'pt' ? 'claro' : 'light')}</span>
             </button>
             
             <button 
@@ -116,8 +112,13 @@ function App() {
               title={language === 'pt' ? 'switch to english' : 'mudar para português'}
               aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
             >
-              <span className="flag">{language === 'pt' ? '🇧🇷' : '🇺🇸'}</span>
-              <span className="lang-text">{language === 'pt' ? 'pt' : 'en'}</span>
+              <ThemeIcon 
+                light={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
+                dark={language === 'pt' ? "brazil_flag_icon_black.png" : "usa_flag_icon_black_50stars.png"} 
+                alt={language === 'pt' ? 'brasil' : 'usa'} 
+                className="flag" 
+              />
+              <span className="lang-text">{language === 'pt' ? 'br' : 'us'}</span>
             </button>
           </div>
         </div>
@@ -151,21 +152,21 @@ function App() {
                 className={`nav-item ${activeTab === 'pipeline' ? 'active' : ''}`}
                 onClick={() => setActiveTab('pipeline')}
               >
-                <span className="nav-icon">🚀</span>
+                <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="nav-icon" />
                 <span className="nav-label">pipeline completo</span>
               </button>
               <button
                 className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
                 onClick={() => setActiveTab('cfd')}
               >
-                <span className="nav-icon">🌊</span>
+                <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="simulações CFD" className="nav-icon" />
                 <span className="nav-label">{t('cfdSimulation')}</span>
               </button>
               <button
                 className={`nav-item ${activeTab === 'casos' ? 'active' : ''}`}
                 onClick={() => setActiveTab('casos')}
               >
-                <span className="nav-icon">📂</span>
+                <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="casos cfd" className="nav-icon" />
                 <span className="nav-label">casos cfd</span>
               </button>
             </div>
@@ -176,15 +177,26 @@ function App() {
                 className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`}
                 onClick={() => setActiveTab('jobs')}
               >
-                <span className="nav-icon">📊</span>
+                <ThemeIcon light="jobLight.png" dark="jobDark.png" alt="jobs" className="nav-icon" />
                 <span className="nav-label">{t('jobs')} ({systemStatus?.jobs?.total || 0})</span>
               </button>
               <button
                 className={`nav-item ${activeTab === 'results' ? 'active' : ''}`}
                 onClick={() => setActiveTab('results')}
               >
-                <img src="/image/results-svgrepo-com.svg" alt="results" className="nav-icon" />
+                <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="results" className="nav-icon" />
                 <span className="nav-label">{t('results')}</span>
+              </button>
+            </div>
+
+            <div className="nav-section">
+              <h3 className="nav-section-title">settings</h3>
+              <button
+                className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                <ThemeIcon light="settingsLight.png" dark="settingsDark.png" alt="settings" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'configurações' : 'settings'}</span>
               </button>
             </div>
           </nav>
@@ -231,6 +243,32 @@ function App() {
           {activeTab === 'results' && (
             <div className="tab-content">
               <ResultsList />
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="tab-content">
+              <div className="settings-container">
+                <h2>{language === 'pt' ? 'configurações do sistema' : 'system settings'}</h2>
+                <div className="settings-grid">
+                  <div className="setting-card">
+                    <h3>{language === 'pt' ? 'tema' : 'theme'}</h3>
+                    <p>{language === 'pt' ? 'escolha entre tema claro ou escuro' : 'choose between light or dark theme'}</p>
+                  </div>
+                  <div className="setting-card">
+                    <h3>{language === 'pt' ? 'idioma' : 'language'}</h3>
+                    <p>{language === 'pt' ? 'português brasileiro ou inglês' : 'brazilian portuguese or english'}</p>
+                  </div>
+                  <div className="setting-card">
+                    <h3>{language === 'pt' ? 'banco de dados' : 'database'}</h3>
+                    <p>{language === 'pt' ? 'configurações de conexão' : 'connection settings'}</p>
+                  </div>
+                  <div className="setting-card">
+                    <h3>{language === 'pt' ? 'simulações' : 'simulations'}</h3>
+                    <p>{language === 'pt' ? 'parâmetros padrão do openfoam' : 'default openfoam parameters'}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </main>
