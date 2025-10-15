@@ -366,7 +366,7 @@ input, textarea, select {
   position: fixed;
   left: 0;
   top: 0;
-  height: 100vh;
+  bottom: 200px; /* para antes do footer */
   overflow-y: auto;
   z-index: 90;
   padding-top: 140px; /* espaço para o header */
