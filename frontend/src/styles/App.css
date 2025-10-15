@@ -366,7 +366,7 @@ input, textarea, select {
   position: fixed;
   left: 0;
   top: 0;
-  bottom: 200px; /* para antes do footer */
+  height: calc(100vh - 200px); /* altura total menos altura do footer */
   overflow-y: auto;
   z-index: 90;
   padding-top: 140px; /* espaço para o header */
@@ -376,6 +376,7 @@ input, textarea, select {
 /* ajustar padding da sidebar quando header encolhe */
 .header.header-scrolled ~ .app-body .sidebar {
   padding-top: 90px;
+  height: calc(100vh - 200px + 50px); /* compensar header menor */
 }
 
 .sidebar-nav {
