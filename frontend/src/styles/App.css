@@ -366,7 +366,7 @@ input, textarea, select {
   position: fixed;
   left: 0;
   top: 0;
-  height: calc(100vh - 60px); /* altura total menos altura do footer reduzido */
+  height: 100vh; /* altura total da tela */
   overflow-y: auto;
   z-index: 90;
   padding-top: 140px; /* espaço para o header */
@@ -376,7 +376,6 @@ input, textarea, select {
 /* ajustar padding da sidebar quando header encolhe */
 .header.header-scrolled ~ .app-body .sidebar {
   padding-top: 90px;
-  height: calc(100vh - 60px + 50px); /* compensar header menor */
 }
 
 .sidebar-nav {
@@ -492,7 +491,6 @@ input, textarea, select {
 .main-content {
   flex: 1;
   margin-left: 280px; /* espaço para sidebar fixa */
-  margin-bottom: 60px; /* espaço para footer fixo reduzido */
   padding: 2rem;
   background: var(--bg);
   overflow-y: auto;
@@ -993,21 +991,9 @@ legend {
 .footer {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
   color: white;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  margin-left: 280px; /* espaço para sidebar fixa */
   border-top: 3px solid var(--accent);
   box-shadow: 0 -4px 12px rgba(95, 25, 35, 0.2);
-  overflow: hidden;
-  transform: translateY(calc(100% - 60px)); /* começa com apenas 60px visíveis */
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* footer totalmente visível */
-.footer.footer-fully-visible {
-  transform: translateY(0); /* totalmente visível */
 }
 
 .footer-content {
@@ -1019,29 +1005,6 @@ legend {
   gap: 2.5rem;
 }
 
-/* indicador do footer reduzido */
-.footer-collapsed-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-  z-index: 101;
-}
-
-.footer.footer-fully-visible .footer-collapsed-indicator {
-  opacity: 0;
-  pointer-events: none;
-}
 
 .footer-section h4 {
   font-size: 1.1rem;

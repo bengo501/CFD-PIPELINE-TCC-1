@@ -20,28 +20,18 @@ function App() {
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isFooterFullyVisible, setIsFooterFullyVisible] = useState(false)
 
   useEffect(() => {
     // verificar status do sistema ao carregar
     checkSystemStatus()
     
-    // detectar scroll para encolher header e expandir footer
+    // detectar scroll para encolher header
     const handleScroll = () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-      
-      // encolher header
-      if (scrollTop > 50) {
+      if (window.scrollY > 50) {
         setIsScrolled(true)
       } else {
         setIsScrolled(false)
       }
-      
-      // revelar footer completamente quando próximo do final
-      const isNearBottom = scrollTop + windowHeight >= documentHeight - 50
-      setIsFooterFullyVisible(isNearBottom)
     }
     
     window.addEventListener('scroll', handleScroll)
@@ -285,12 +275,7 @@ function App() {
       </div>
 
       {/* footer */}
-      <footer className={`footer ${isFooterFullyVisible ? 'footer-fully-visible' : ''}`}>
-        {/* indicador do footer reduzido */}
-        <div className="footer-collapsed-indicator">
-          <span>cfd pipeline</span>
-          <span>↓</span>
-        </div>
+      <footer className="footer">
         <div className="footer-content">
           <div className="footer-section footer-info">
             <div className="footer-logo">
