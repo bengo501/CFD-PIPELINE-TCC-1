@@ -20,7 +20,7 @@ function App() {
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isFooterExpanded, setIsFooterExpanded] = useState(false)
+  const [isFooterFullyVisible, setIsFooterFullyVisible] = useState(false)
 
   useEffect(() => {
     // verificar status do sistema ao carregar
@@ -39,9 +39,9 @@ function App() {
         setIsScrolled(false)
       }
       
-      // expandir footer quando próximo do final
+      // revelar footer completamente quando próximo do final
       const isNearBottom = scrollTop + windowHeight >= documentHeight - 50
-      setIsFooterExpanded(isNearBottom)
+      setIsFooterFullyVisible(isNearBottom)
     }
     
     window.addEventListener('scroll', handleScroll)
@@ -285,7 +285,7 @@ function App() {
       </div>
 
       {/* footer */}
-      <footer className={`footer ${isFooterExpanded ? 'footer-expanded' : 'footer-collapsed'}`}>
+      <footer className={`footer ${isFooterFullyVisible ? 'footer-fully-visible' : ''}`}>
         {/* indicador do footer reduzido */}
         <div className="footer-collapsed-indicator">
           <span>cfd pipeline</span>

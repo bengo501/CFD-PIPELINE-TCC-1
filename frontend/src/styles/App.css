@@ -497,7 +497,7 @@ input, textarea, select {
   background: var(--bg);
   overflow-y: auto;
   min-height: calc(100vh - 140px);
-  transition: margin-left 0.3s ease, margin-bottom 0.3s ease;
+  transition: margin-left 0.3s ease;
 }
 
 .tab-content {
@@ -1000,20 +1000,14 @@ legend {
   z-index: 100;
   border-top: 3px solid var(--accent);
   box-shadow: 0 -4px 12px rgba(95, 25, 35, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  transform: translateY(calc(100% - 60px)); /* começa com apenas 60px visíveis */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* footer reduzido (estado padrão) */
-.footer.footer-collapsed {
-  height: 60px;
-}
-
-/* footer expandido */
-.footer.footer-expanded {
-  height: auto;
-  max-height: 80vh;
-  overflow-y: auto;
+/* footer totalmente visível */
+.footer.footer-fully-visible {
+  transform: translateY(0); /* totalmente visível */
 }
 
 .footer-content {
@@ -1023,20 +1017,6 @@ legend {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 2.5rem;
-  transition: opacity 0.3s ease;
-}
-
-/* conteúdo do footer reduzido */
-.footer.footer-collapsed .footer-content {
-  padding: 0.5rem 2rem;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* conteúdo do footer expandido */
-.footer.footer-expanded .footer-content {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 /* indicador do footer reduzido */
@@ -1055,9 +1035,10 @@ legend {
   letter-spacing: 1px;
   opacity: 1;
   transition: opacity 0.3s ease;
+  z-index: 101;
 }
 
-.footer.footer-expanded .footer-collapsed-indicator {
+.footer.footer-fully-visible .footer-collapsed-indicator {
   opacity: 0;
   pointer-events: none;
 }
