@@ -366,7 +366,7 @@ input, textarea, select {
   position: fixed;
   left: 0;
   top: 0;
-  height: calc(100vh - 200px); /* altura total menos altura do footer */
+  height: calc(100vh - 60px); /* altura total menos altura do footer reduzido */
   overflow-y: auto;
   z-index: 90;
   padding-top: 140px; /* espaço para o header */
@@ -376,7 +376,7 @@ input, textarea, select {
 /* ajustar padding da sidebar quando header encolhe */
 .header.header-scrolled ~ .app-body .sidebar {
   padding-top: 90px;
-  height: calc(100vh - 200px + 50px); /* compensar header menor */
+  height: calc(100vh - 60px + 50px); /* compensar header menor */
 }
 
 .sidebar-nav {
@@ -492,11 +492,12 @@ input, textarea, select {
 .main-content {
   flex: 1;
   margin-left: 280px; /* espaço para sidebar fixa */
+  margin-bottom: 60px; /* espaço para footer fixo reduzido */
   padding: 2rem;
   background: var(--bg);
   overflow-y: auto;
   min-height: calc(100vh - 140px);
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, margin-bottom 0.3s ease;
 }
 
 .tab-content {
@@ -992,9 +993,27 @@ legend {
 .footer {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
   color: white;
-  margin-top: auto;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   border-top: 3px solid var(--accent);
   box-shadow: 0 -4px 12px rgba(95, 25, 35, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* footer reduzido (estado padrão) */
+.footer.footer-collapsed {
+  height: 60px;
+}
+
+/* footer expandido */
+.footer.footer-expanded {
+  height: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .footer-content {
@@ -1004,6 +1023,43 @@ legend {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 2.5rem;
+  transition: opacity 0.3s ease;
+}
+
+/* conteúdo do footer reduzido */
+.footer.footer-collapsed .footer-content {
+  padding: 0.5rem 2rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* conteúdo do footer expandido */
+.footer.footer-expanded .footer-content {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* indicador do footer reduzido */
+.footer-collapsed-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.footer.footer-expanded .footer-collapsed-indicator {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .footer-section h4 {
