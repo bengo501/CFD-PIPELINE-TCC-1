@@ -337,18 +337,18 @@ input, textarea, select {
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 0.6rem;
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: white;
   font-weight: 500;
   font-size: 0.8rem;
   backdrop-filter: blur(10px);
-  min-width: 48px;
-  min-height: 48px;
+  width: 56px;
+  height: 56px;
 }
 
 .theme-toggle:hover,
@@ -361,10 +361,10 @@ input, textarea, select {
 
 .theme-icon,
 .flag {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   line-height: 1;
 }
 

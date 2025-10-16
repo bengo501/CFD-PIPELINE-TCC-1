@@ -98,8 +98,8 @@ function App() {
               aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
             >
               <ThemeIcon 
-                light="darkmode_moon_sun_white.png" 
-                dark="image-removebg-preview(15).png" 
+                light="image-removebg-preview(15).png" 
+                dark="darkmode_moon_sun_white.png" 
                 alt={theme === 'light' ? 'dark mode' : 'light mode'} 
                 className="theme-icon" 
               />
@@ -113,8 +113,8 @@ function App() {
               aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
             >
               <ThemeIcon 
-                light={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
-                dark={language === 'pt' ? "brazil_flag_icon_black.png" : "usa_flag_icon_black_50stars.png"} 
+                light={language === 'pt' ? "brazil_flag_icon_black.png" : "usa_flag_icon_black_50stars.png"} 
+                dark={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
                 alt={language === 'pt' ? 'brasil' : 'usa'} 
                 className="flag" 
               />
