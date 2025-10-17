@@ -126,11 +126,150 @@ body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: crosshair; /* cursor padrão estilo CAD */
 }
 
 /* fonte monospace para códigos */
 code, pre, .monospace {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* ==================== cursors personalizados ==================== */
+/* cursor para elementos clicáveis */
+button, .btn, .nav-item, .tab, .theme-toggle, .language-toggle {
+  cursor: pointer !important;
+}
+
+/* cursor para elementos de texto */
+input, textarea, .editable, [contenteditable="true"] {
+  cursor: text !important;
+}
+
+/* cursor para links */
+a, .link {
+  cursor: pointer !important;
+}
+
+/* cursor para elementos arrastáveis */
+.draggable, [draggable="true"] {
+  cursor: grab !important;
+}
+
+.draggable:active, [draggable="true"]:active {
+  cursor: grabbing !important;
+}
+
+/* cursor para elementos de redimensionamento */
+.resize, .resizable {
+  cursor: nw-resize !important;
+}
+
+/* cursor para elementos de ajuda */
+.help, .tooltip, [title] {
+  cursor: help !important;
+}
+
+/* cursor para elementos desabilitados */
+.disabled, [disabled], .inactive {
+  cursor: not-allowed !important;
+}
+
+/* cursor para elementos de loading */
+.loading, .spinner {
+  cursor: wait !important;
+}
+
+/* cursor para elementos de cópia */
+.copy, .clipboard {
+  cursor: copy !important;
+}
+
+/* cursor para elementos de movimento */
+.move, .pan {
+  cursor: move !important;
+}
+
+/* cursor para zoom */
+.zoom-in {
+  cursor: zoom-in !important;
+}
+
+.zoom-out {
+  cursor: zoom-out !important;
+}
+
+/* cursors específicos para interface CFD */
+/* cursor para visualização 3D */
+.viewer-3d, .model-viewer {
+  cursor: grab !important;
+}
+
+.viewer-3d:active, .model-viewer:active {
+  cursor: grabbing !important;
+}
+
+/* cursor para simulação */
+.simulation-controls, .cfd-controls {
+  cursor: crosshair !important;
+}
+
+/* cursor para parâmetros */
+.parameter-input, .slider {
+  cursor: ew-resize !important;
+}
+
+/* cursor para resultados */
+.results-view, .chart-container {
+  cursor: default !important;
+}
+
+/* cursor para pipeline */
+.pipeline-step, .process-step {
+  cursor: pointer !important;
+}
+
+/* cursor para arquivos */
+.file-item, .download-item {
+  cursor: pointer !important;
+}
+
+/* cursor para jobs */
+.job-item, .job-control {
+  cursor: pointer !important;
+}
+
+/* cursor para configurações */
+.settings-item, .config-item {
+  cursor: pointer !important;
+}
+
+/* cursor para wizard */
+.wizard-step, .wizard-control {
+  cursor: pointer !important;
+}
+
+/* cursor para formulários */
+.form-group, .form-control {
+  cursor: text !important;
+}
+
+/* cursor para botões de ação */
+.action-btn, .submit-btn {
+  cursor: pointer !important;
+}
+
+/* cursor para navegação */
+.nav-link, .breadcrumb {
+  cursor: pointer !important;
+}
+
+/* cursor para cards */
+.card, .panel {
+  cursor: default !important;
+}
+
+.card:hover, .panel:hover {
+  cursor: pointer !important;
 }
 
 /* tamanhos de fonte aumentados */
