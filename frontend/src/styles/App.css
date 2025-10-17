@@ -1,5 +1,5 @@
-/* importar fontes profissionais */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Orbitron:wght@700;800;900&display=swap');
+/* importar fontes profissionais estilo CAD */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&family=Source+Code+Pro:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 /* reset e variáveis */
 * {
@@ -54,6 +54,20 @@
   /* cores de card light mode */
   --card-bg: var(--white);
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  /* cores específicas para header, footer e sidebar light mode */
+  --header-bg: var(--lope-red);
+  --header-bg-dark: var(--lope-red-dark);
+  --header-text: var(--white);
+  --header-shadow: 0 4px 12px rgba(95, 25, 35, 0.3);
+  
+  --footer-bg: var(--lope-red);
+  --footer-bg-dark: var(--lope-red-dark);
+  --footer-text: var(--white);
+  
+  --sidebar-bg: var(--lope-red);
+  --sidebar-bg-dark: var(--lope-red-dark);
+  --sidebar-text: var(--white);
 }
 
 /* tema dark baseado no logo LOPE */
@@ -88,10 +102,24 @@
   /* cores de card dark mode */
   --card-bg: #2C2C2C;                   /* fundo de cards */
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* sombras mais pronunciadas */
+  
+  /* cores específicas para header, footer e sidebar dark mode */
+  --header-bg: #2C2C2C;                 /* cinza escuro para dark mode */
+  --header-bg-dark: #1A1A1A;            /* mais escuro para gradiente */
+  --header-text: var(--lope-orange);     /* laranja para contraste */
+  --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  
+  --footer-bg: #2C2C2C;                 /* cinza escuro para dark mode */
+  --footer-bg-dark: #1A1A1A;            /* mais escuro para gradiente */
+  --footer-text: var(--lope-orange);     /* laranja para contraste */
+  
+  --sidebar-bg: #2C2C2C;                /* cinza escuro para dark mode */
+  --sidebar-bg-dark: #1A1A1A;           /* mais escuro para gradiente */
+  --sidebar-text: var(--lope-orange);    /* laranja para contraste */
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Roboto Mono', 'Source Code Pro', 'Fira Code', 'JetBrains Mono', monospace;
   background: var(--bg);
   color: var(--text);
   line-height: 1.7;
@@ -159,10 +187,10 @@ input, textarea, select {
 
 /* ==================== header ==================== */
 .header {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--header-bg) 0%, var(--header-bg-dark) 100%);
+  color: var(--header-text);
   padding: 1.5rem 2rem;
-  box-shadow: 0 4px 12px rgba(95, 25, 35, 0.3);
+  box-shadow: var(--header-shadow);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -253,9 +281,9 @@ input, textarea, select {
 }
 
 .logo-text h1 {
-  font-family: 'Orbitron', 'Bebas Neue', sans-serif;
+  font-family: 'Orbitron', 'Roboto Mono', monospace;
   font-size: 2.5rem;
-  font-weight: 900;
+  font-weight: 700;
   margin: 0;
   line-height: 1.1;
   letter-spacing: 2px;
@@ -398,8 +426,8 @@ input, textarea, select {
 /* ==================== sidebar ==================== */
 .sidebar {
   width: 280px;
-  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-dark) 100%);
+  color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(95, 25, 35, 0.2);
@@ -1029,8 +1057,8 @@ legend {
 
 /* ==================== footer ==================== */
 .footer {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--footer-bg-dark) 0%, var(--footer-bg) 100%);
+  color: var(--footer-text);
   margin-left: 280px; /* espaço para sidebar fixa */
   border-top: 3px solid var(--accent);
   box-shadow: 0 -4px 12px rgba(95, 25, 35, 0.2);
