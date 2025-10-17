@@ -108,7 +108,9 @@ docs/documentacao/*.md
 !CHANGELOG.md
 
 # excluir pastas específicas do gitignore de md
-!bibliografia/**/*.md
 !relatorio_tcc/**/*.md
 !sprints/**/*.md
+
+# pasta bibliografia (não versionar)
+bibliografia/
 
