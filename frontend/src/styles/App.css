@@ -126,7 +126,7 @@ body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: crosshair; /* cursor padrão estilo CAD */
+  cursor: default; /* cursor padrão profissional */
 }
 
 /* fonte monospace para códigos */
@@ -597,10 +597,11 @@ input, textarea, select {
 }
 
 .nav-section-title {
+  font-family: 'Orbitron', 'Roboto Mono', monospace;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: var(--accent);
   margin-bottom: 0.75rem;
   padding: 0 1rem;
@@ -620,8 +621,10 @@ input, textarea, select {
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
+  font-family: 'Source Code Pro', 'Fira Code', 'JetBrains Mono', monospace;
   font-size: 0.95rem;
   font-weight: 500;
+  letter-spacing: 0.5px;
   position: relative;
 }
 
@@ -674,6 +677,9 @@ input, textarea, select {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Source Code Pro', 'Fira Code', 'JetBrains Mono', monospace;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 /* scrollbar da sidebar */
