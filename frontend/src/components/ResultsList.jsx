@@ -51,7 +51,10 @@ function ResultsList() {
       <div className="results-layout">
         {/* modelos 3d */}
         <section className="results-section">
-          <h3>🎨 modelos 3d ({models.length})</h3>
+          <h3>
+            <ThemeIcon light="modelLight.png" dark="modelDark.png" alt="modelos" className="section-icon" />
+            modelos 3d ({models.length})
+          </h3>
           
           {loading ? (
             <p>carregando...</p>
@@ -61,7 +64,9 @@ function ResultsList() {
             <div className="files-grid">
               {models.map((file, idx) => (
                 <div key={idx} className="file-card">
-                  <div className="file-icon">📦</div>
+                  <div className="file-icon">
+                    <ThemeIcon light="modelLight.png" dark="modelDark.png" alt="modelo" className="file-icon-img" />
+                  </div>
                   
                   <div className="file-info">
                     <h4 className="file-name">{file.filename}</h4>
@@ -76,13 +81,15 @@ function ResultsList() {
                       className="btn-small"
                       onClick={() => setSelectedModel(file)}
                     >
-                      👁️ visualizar
+                      <ThemeIcon light="viewLight.png" dark="viewDark.png" alt="visualizar" className="btn-icon" />
+                      visualizar
                     </button>
                     <button
                       className="btn-small"
                       onClick={() => handleDownload('blend', file.filename)}
                     >
-                      ⬇️ baixar
+                      <ThemeIcon light="downloadLight.png" dark="donwloadDark.png" alt="baixar" className="btn-icon" />
+                      baixar
                     </button>
                   </div>
                 </div>

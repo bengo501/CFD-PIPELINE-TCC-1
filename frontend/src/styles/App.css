@@ -1155,6 +1155,27 @@ legend {
   height: 500px;
 }
 
+/* novos ícones */
+.file-icon-img, .btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 8px;
+  transition: filter 0.3s ease;
+}
+
+.file-icon-img {
+  width: 32px;
+  height: 32px;
+  margin-right: 0;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
 .model-placeholder {
   width: 100%;
   height: 100%;

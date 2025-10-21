@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../styles/CFDSimulation.css';
+import ThemeIcon from './ThemeIcon';
 
 const CFDSimulation = ({ bedFileName }) => {
   const [simulations, setSimulations] = useState([]);
@@ -112,6 +113,7 @@ const CFDSimulation = ({ bedFileName }) => {
             onClick={loadSimulations}
             disabled={loading}
           >
+            <ThemeIcon light="updateLight.png" dark="updateDark.png" alt="atualizar" className="btn-icon" />
             atualizar
           </button>
         </div>

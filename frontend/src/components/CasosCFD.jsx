@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../styles/CasosCFD.css';
+import ThemeIcon from './ThemeIcon';
 
 const CasosCFD = () => {
   const [casos, setCasos] = useState([]);
@@ -111,7 +112,8 @@ const CasosCFD = () => {
           </p>
         </div>
         <button className="btn btn-refresh" onClick={carregarCasos}>
-          🔄 atualizar
+          <ThemeIcon light="updateLight.png" dark="updateDark.png" alt="atualizar" className="btn-icon" />
+          atualizar
         </button>
       </div>
 
