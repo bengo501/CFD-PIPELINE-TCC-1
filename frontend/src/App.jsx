@@ -3,6 +3,7 @@ import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
 import PipelineCompleto from './components/PipelineCompleto'
+import PipelineCompletoFull from './components/PipelineCompletoFull'
 import CasosCFD from './components/CasosCFD'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
@@ -218,7 +219,7 @@ function App() {
 
           {activeTab === 'pipeline' && (
             <div className="tab-content">
-              <PipelineCompleto />
+              <PipelineCompletoFull />
             </div>
           )}
 

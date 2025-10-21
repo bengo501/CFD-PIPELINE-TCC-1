@@ -17,6 +17,7 @@ class JobType(str, Enum):
     COMPILE = "compile"
     GENERATE_MODEL = "generate_model"
     SIMULATION = "simulation"
+    FULL_PIPELINE = "full_pipeline"
 
 # modelos de parâmetros do leito
 class BedParameters(BaseModel):
