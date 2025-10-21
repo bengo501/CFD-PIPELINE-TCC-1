@@ -244,14 +244,14 @@ const BedWizard = () => {
       
       <div className="mode-cards">
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender')}>
-          <ThemeIcon light="blender_icon_white.png" dark="blender_icon_black.png" alt="blender" className="mode-icon" />
+          <ThemeIcon light="blenderLight.png" dark="blender-svgrepo-com.svg" alt="blender" className="mode-icon" />
           <h3>modo blender</h3>
           <p>geração de modelo 3D (sem parâmetros CFD)</p>
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_blender_cfd')}>
           <div className="mode-icon-combo">
-            <ThemeIcon light="blender_icon_white.png" dark="blender_icon_black.png" alt="blender" className="mode-icon-small" />
+            <ThemeIcon light="blenderLight.png" dark="blender-svgrepo-com.svg" alt="blender" className="mode-icon-small" />
             <span className="plus-symbol">+</span>
             <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="cfd" className="mode-icon-small" />
           </div>
@@ -265,7 +265,8 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              📁 carregar .bed
+              <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="carregar" className="btn-icon" />
+              carregar .bed
             </button>
             <button 
               className="btn-mode-option" 
@@ -275,7 +276,8 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              ✏️ editar padrão
+              <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editar" className="btn-icon" />
+              editar padrão
             </button>
           </div>
         </div>
@@ -292,7 +294,8 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              📁 carregar .bed
+              <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="carregar" className="btn-icon" />
+              carregar .bed
             </button>
             <button 
               className="btn-mode-option" 
@@ -302,14 +305,15 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              ✏️ editar padrão
+              <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editar" className="btn-icon" />
+              editar padrão
             </button>
           </div>
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender_interactive')}>
           <div className="mode-icon-combo">
-            <ThemeIcon light="blender_icon_white.png" dark="blender_icon_black.png" alt="blender" className="mode-icon-small" />
+            <ThemeIcon light="blenderLight.png" dark="blender-svgrepo-com.svg" alt="blender" className="mode-icon-small" />
             <span className="plus-symbol">+</span>
             <ThemeIcon light="modelLight-removebg-preview.png" dark="modelDark-removebg-preview.png" alt="modelo 3d" className="mode-icon-small" />
           </div>
@@ -323,7 +327,8 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              📁 carregar .bed
+              <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="carregar" className="btn-icon" />
+              carregar .bed
             </button>
             <button 
               className="btn-mode-option" 
@@ -333,13 +338,14 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              ✏️ editar padrão
+              <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editar" className="btn-icon" />
+              editar padrão
             </button>
           </div>
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_completo')}>
-          <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon-small" />
+          <ThemeIcon light="pipelineLight.png" dark="pipeline.png" alt="pipeline" className="mode-icon-small" />
           <h3>pipeline completo</h3>
           <p>execução end-to-end: modelo 3d + simulação cfd automática</p>
           <div className="mode-options">
@@ -350,7 +356,8 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              📁 carregar .bed
+              <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="carregar" className="btn-icon" />
+              carregar .bed
             </button>
             <button 
               className="btn-mode-option" 
@@ -360,7 +367,8 @@ const BedWizard = () => {
                 setShowBedFileOptions(true);
               }}
             >
-              ✏️ editar padrão
+              <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editar" className="btn-icon" />
+              editar padrão
             </button>
           </div>
         </div>

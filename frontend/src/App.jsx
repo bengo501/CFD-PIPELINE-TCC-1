@@ -238,7 +238,10 @@ function App() {
                 <h2>templates</h2>
                 <div className="templates-grid">
                   <div className="template-card">
-                    <h3>📝 editor de template</h3>
+                    <h3>
+                      <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editor" className="section-icon" />
+                      editor de template
+                    </h3>
                     <p>edite um arquivo .bed diretamente</p>
                     <button 
                       className="btn-primary"
@@ -251,7 +254,10 @@ function App() {
                     </button>
                   </div>
                   <div className="template-card">
-                    <h3>📁 gerenciar templates</h3>
+                    <h3>
+                      <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="gerenciar" className="section-icon" />
+                      gerenciar templates
+                    </h3>
                     <p>visualize, edite e delete templates salvos</p>
                     <button 
                       className="btn-secondary"
@@ -301,8 +307,9 @@ function App() {
         <div className="footer-content">
           <div className="footer-section footer-info">
             <div className="footer-logo">
-              <img 
-                src="/image/logoCFDpipeline.png" 
+              <ThemeIcon 
+                light="logoCFDpipeline.png" 
+                dark="cfdPipelineLight.png" 
                 alt="cfd pipeline logo" 
                 className="footer-icon"
               />

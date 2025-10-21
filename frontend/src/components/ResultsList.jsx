@@ -100,7 +100,10 @@ function ResultsList() {
 
         {/* simulações */}
         <section className="results-section">
-          <h3>🌊 simulações ({simulations.length})</h3>
+          <h3>
+            <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="simulações" className="section-icon" />
+            simulações ({simulations.length})
+          </h3>
           
           {loading ? (
             <p>carregando...</p>
