@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import BedPreview3D from './BedPreview3D';
 import { HelpModal, DocsModal, TemplateEditor } from './WizardHelpers';
+import PipelineCompletoFull from './PipelineCompletoFull';
 import ThemeIcon from './ThemeIcon';
 import '../styles/BedWizard.css';
 
@@ -230,6 +231,12 @@ const BedWizard = () => {
           <div className="mode-icon">🚀</div>
           <h3>blender interativo</h3>
           <p>gera modelo e abre automaticamente no blender</p>
+        </div>
+        
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_completo')}>
+          <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon" />
+          <h3>pipeline completo</h3>
+          <p>execução end-to-end: modelo 3d + simulação cfd automática</p>
         </div>
       </div>
     </div>
@@ -708,12 +715,18 @@ const BedWizard = () => {
 
       {/* conteúdo do wizard */}
       <div className="wizard-content">
-        {step === 0 && renderModeSelection()}
-        {step === 1 && renderBedSection()}
-        {step === 2 && renderLidsSection()}
-        {step === 3 && renderParticlesSection()}
-        {step === 4 && renderPackingSection()}
-        {step === 5 && renderExportSection()}
+        {mode === 'pipeline_completo' ? (
+          <PipelineCompletoFull />
+        ) : (
+          <>
+            {step === 0 && renderModeSelection()}
+            {step === 1 && renderBedSection()}
+            {step === 2 && renderLidsSection()}
+            {step === 3 && renderParticlesSection()}
+            {step === 4 && renderPackingSection()}
+            {step === 5 && renderExportSection()}
+          </>
+        )}
         {step === 6 && (
           <div className="form-section">
             <h2>parâmetros CFD (opcional)</h2>
