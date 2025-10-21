@@ -131,29 +131,22 @@ function App() {
             <div className="nav-section">
               <h3 className="nav-section-title">{t('create')}</h3>
               <button
-                className={`nav-item ${activeTab === 'create' ? 'active' : ''}`}
-                onClick={() => setActiveTab('create')}
+                className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('wizard')}
               >
                 <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="criar leito" className="nav-icon" />
                 <span className="nav-label">{t('createBed')}</span>
               </button>
-              <button
-                className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('wizard')}
-              >
-                <span className="nav-icon">🧙</span>
-                <span className="nav-label">{t('interactiveWizard')}</span>
-              </button>
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">templates salvos</h3>
+              <h3 className="nav-section-title">templates</h3>
               <button
                 className={`nav-item ${activeTab === 'templates' ? 'active' : ''}`}
                 onClick={() => setActiveTab('templates')}
               >
                 <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="templates" className="nav-icon" />
-                <span className="nav-label">templates salvos</span>
+                <span className="nav-label">templates</span>
               </button>
             </div>
 
@@ -208,12 +201,6 @@ function App() {
 
         {/* conteúdo principal */}
         <main className="main-content">
-          {activeTab === 'create' && (
-            <div className="tab-content">
-              <BedForm onJobCreated={handleJobCreated} />
-            </div>
-          )}
-
           {activeTab === 'wizard' && (
             <div className="tab-content">
               <BedWizard />
@@ -248,14 +235,17 @@ function App() {
           {activeTab === 'templates' && (
             <div className="tab-content">
               <div className="templates-container">
-                <h2>templates salvos</h2>
+                <h2>templates</h2>
                 <div className="templates-grid">
                   <div className="template-card">
-                    <h3>📝 criar novo template</h3>
+                    <h3>📝 editor de template</h3>
                     <p>edite um arquivo .bed diretamente</p>
                     <button 
                       className="btn-primary"
-                      onClick={() => setActiveTab('wizard')}
+                      onClick={() => {
+                        // implementar editor de template
+                        alert('editor de template será implementado aqui');
+                      }}
                     >
                       abrir editor
                     </button>

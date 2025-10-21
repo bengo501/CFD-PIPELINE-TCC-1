@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import BedPreview3D from './BedPreview3D';
-import { HelpModal, DocsModal, TemplateEditor } from './WizardHelpers';
+import { HelpModal, DocsModal } from './WizardHelpers';
 import ThemeIcon from './ThemeIcon';
 import '../styles/BedWizard.css';
 
@@ -93,11 +93,6 @@ const BedWizard = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [helpSection, setHelpSection] = useState(null);
   const [showDocs, setShowDocs] = useState(false);
-  const [templateText, setTemplateText] = useState('');
-  const [editingTemplate, setEditingTemplate] = useState(false);
-  const [savedTemplates, setSavedTemplates] = useState([]);
-  const [templateName, setTemplateName] = useState('');
-  const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [showBedFileOptions, setShowBedFileOptions] = useState(false);
   const [bedFileContent, setBedFileContent] = useState('');
   const [bedFileName, setBedFileName] = useState('');
@@ -254,32 +249,6 @@ const BedWizard = () => {
           <p>responda perguntas passo a passo para criar seu leito</p>
         </div>
         
-        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('template')}>
-          <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editor" className="mode-icon" />
-          <h3>editor de template</h3>
-          <p>edite um arquivo .bed de exemplo diretamente</p>
-          <div className="template-actions">
-            <button 
-              className="btn-template-save" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingTemplate(true);
-              }}
-            >
-              ✏️ editar
-            </button>
-            <button 
-              className="btn-template-manage" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowTemplateManager(true);
-                loadSavedTemplates();
-              }}
-            >
-              📁 gerenciar
-            </button>
-          </div>
-        </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender')}>
           <div className="mode-icon">🎨</div>
@@ -745,112 +714,7 @@ const BedWizard = () => {
     </div>
   );
 
-  // handler para template
-  const handleTemplateSubmit = async (templateText) => {
-    setEditingTemplate(false);
-    
-    try {
-      const response = await fetch('http://localhost:3000/api/bed/template', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ template: templateText }),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        alert(`arquivo compilado com sucesso! ${data.message}`);
-      } else {
-        alert('erro ao compilar template');
-      }
-    } catch (error) {
-      console.error('erro:', error);
-      alert('erro de conexão com o backend');
-    }
-  };
 
-  // salvar template
-  const saveTemplate = async () => {
-    if (!templateName.trim()) {
-      alert('digite um nome para o template');
-      return;
-    }
-
-    if (!templateText.trim()) {
-      alert('template está vazio');
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:3000/api/templates/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: templateName,
-          content: templateText
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setSavedTemplates(prev => [...prev, result]);
-        setTemplateName('');
-        alert('template salvo com sucesso!');
-      } else {
-        alert('erro ao salvar template');
-      }
-    } catch (error) {
-      console.error('erro:', error);
-      alert('erro de conexão com o backend');
-    }
-  };
-
-  // carregar templates salvos
-  const loadSavedTemplates = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/templates/list');
-      if (response.ok) {
-        const templates = await response.json();
-        setSavedTemplates(templates);
-      }
-    } catch (error) {
-      console.error('erro ao carregar templates:', error);
-    }
-  };
-
-  // carregar template
-  const loadTemplate = (template) => {
-    setTemplateText(template.content);
-    setTemplateName(template.name);
-    setEditingTemplate(true);
-    setShowTemplateManager(false);
-  };
-
-  // deletar template
-  const deleteTemplate = async (templateId) => {
-    if (!confirm('tem certeza que deseja deletar este template?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:3000/api/templates/${templateId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        setSavedTemplates(prev => prev.filter(t => t.id !== templateId));
-        alert('template deletado com sucesso!');
-      } else {
-        alert('erro ao deletar template');
-      }
-    } catch (error) {
-      console.error('erro:', error);
-      alert('erro de conexão com o backend');
-    }
-  };
 
   // carregar arquivo .bed
   const handleBedFileUpload = (event) => {
@@ -963,13 +827,9 @@ const BedWizard = () => {
     }
   };
 
-  // handler quando seleciona modo template
+  // handler quando seleciona modo
   const handleModeSelectWithTemplate = (selectedMode) => {
-    if (selectedMode === 'template') {
-      setEditingTemplate(true);
-    } else {
-      handleModeSelect(selectedMode);
-    }
+    handleModeSelect(selectedMode);
   };
 
   return (
@@ -987,62 +847,6 @@ const BedWizard = () => {
         onClose={() => setShowDocs(false)} 
       />
       
-      <TemplateEditor
-        show={editingTemplate}
-        onClose={() => setEditingTemplate(false)}
-        onSubmit={handleTemplateSubmit}
-        templateText={templateText}
-        setTemplateText={setTemplateText}
-        templateName={templateName}
-        setTemplateName={setTemplateName}
-        onSave={saveTemplate}
-      />
-      
-      {/* modal de gerenciamento de templates */}
-      {showTemplateManager && (
-        <div className="modal-overlay">
-          <div className="modal-content template-manager">
-            <div className="modal-header">
-              <h2>templates salvos</h2>
-              <button 
-                className="btn-close" 
-                onClick={() => setShowTemplateManager(false)}
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="template-list">
-              {savedTemplates.length === 0 ? (
-                <p className="no-templates">nenhum template salvo</p>
-              ) : (
-                savedTemplates.map((template) => (
-                  <div key={template.id} className="template-item">
-                    <div className="template-info">
-                      <h3>{template.name}</h3>
-                      <p>criado em: {new Date(template.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <div className="template-actions">
-                      <button 
-                        className="btn-load"
-                        onClick={() => loadTemplate(template)}
-                      >
-                        📂 carregar
-                      </button>
-                      <button 
-                        className="btn-delete"
-                        onClick={() => deleteTemplate(template.id)}
-                      >
-                        🗑️ deletar
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* modal de opções de arquivo .bed */}
       {showBedFileOptions && (

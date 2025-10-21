@@ -1,7 +1,7 @@
 """
 rotas para gerenciamento de templates salvos
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
