@@ -1,0 +1,23 @@
+{
+  "bed": {
+    "diameter": "0.05",
+    "height": "0.1",
+    "wall_thickness": "0.002"
+  },
+  "lids": {
+    "top_type": "flat",
+    "bottom_type": "flat"
+  },
+  "particles": {
+    "kind": "sphere",
+    "diameter": "0.005",
+    "count": "100"
+  },
+  "packing": {
+    "method": "rigid_body",
+    "gravity": "-9.81"
+  },
+  "export": {
+    "formats": ["stl_binary", "blend"]
+  }
+}

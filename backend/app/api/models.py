@@ -92,6 +92,7 @@ class Job(BaseModel):
     created_at: datetime
     updated_at: datetime
     output_files: List[str] = []
+    logs: List[str] = []
     error_message: Optional[str] = None
     metadata: Dict[str, Any] = {}
 
