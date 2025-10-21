@@ -75,9 +75,29 @@
 }
 
 .mode-icon img {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
+}
+
+.mode-icon-small {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.mode-icon-combo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.plus-symbol {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--text);
 }
 
 .mode-card h3 {

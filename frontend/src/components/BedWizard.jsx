@@ -244,13 +244,17 @@ const BedWizard = () => {
       
       <div className="mode-cards">
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender')}>
-          <div className="mode-icon">🎨</div>
+          <ThemeIcon light="blender_icon_white.png" dark="blender_icon_black.png" alt="blender" className="mode-icon" />
           <h3>modo blender</h3>
           <p>geração de modelo 3D (sem parâmetros CFD)</p>
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_blender_cfd')}>
-          <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon" />
+          <div className="mode-icon-combo">
+            <ThemeIcon light="blender_icon_white.png" dark="blender_icon_black.png" alt="blender" className="mode-icon-small" />
+            <span className="plus-symbol">+</span>
+            <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="cfd" className="mode-icon-small" />
+          </div>
           <h3>pipeline blender + cfd</h3>
           <p>gera modelo 3D + cria caso CFD (sem executar simulação)</p>
           <div className="mode-options">
@@ -277,7 +281,7 @@ const BedWizard = () => {
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('cfd_only')}>
-          <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="cfd" className="mode-icon" />
+          <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="cfd" className="mode-icon-small" />
           <h3>apenas caso CFD</h3>
           <p>cria caso CFD sem gerar novo leito</p>
           <div className="mode-options">
@@ -304,7 +308,11 @@ const BedWizard = () => {
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender_interactive')}>
-          <div className="mode-icon">🚀</div>
+          <div className="mode-icon-combo">
+            <ThemeIcon light="blender_icon_white.png" dark="blender_icon_black.png" alt="blender" className="mode-icon-small" />
+            <span className="plus-symbol">+</span>
+            <ThemeIcon light="modelLight-removebg-preview.png" dark="modelDark-removebg-preview.png" alt="modelo 3d" className="mode-icon-small" />
+          </div>
           <h3>blender interativo</h3>
           <p>gera modelo e abre automaticamente no blender</p>
           <div className="mode-options">
@@ -331,7 +339,7 @@ const BedWizard = () => {
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_completo')}>
-          <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon" />
+          <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon-small" />
           <h3>pipeline completo</h3>
           <p>execução end-to-end: modelo 3d + simulação cfd automática</p>
           <div className="mode-options">
