@@ -244,7 +244,7 @@ const BedWizard = () => {
       
       <div className="mode-cards">
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender')}>
-          <ThemeIcon light="blenderLight.png" dark="blender-svgrepo-com.svg" alt="blender" className="mode-icon" />
+          <ThemeIcon light="blenderLight.png" dark="blender-svgrepo-com.svg" alt="blender" className="mode-icon-small" />
           <h3>modo blender</h3>
           <p>geração de modelo 3D (sem parâmetros CFD)</p>
         </div>
