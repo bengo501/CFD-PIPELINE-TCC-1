@@ -107,6 +107,7 @@ docs/documentacao/*.md
 !CONTRIBUTING.md
 !LICENSE.md
 !CHANGELOG.md
+!GUIA_EXECUCAO_RAPIDO.md
 
 # excluir pastas específicas do gitignore de md
 !relatorio_tcc/**/*.md
