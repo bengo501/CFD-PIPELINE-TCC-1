@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import BedPreview3D from './BedPreview3D';
 import { HelpModal, DocsModal, TemplateEditor } from './WizardHelpers';
-import PipelineCompletoFull from './PipelineCompletoFull';
 import ThemeIcon from './ThemeIcon';
 import '../styles/BedWizard.css';
 
@@ -177,6 +176,39 @@ const BedWizard = () => {
             
             if (genResponse.ok) {
               alert('modelo 3D gerado com sucesso!');
+            }
+          }
+        }
+        
+        // se modo pipeline completo, executar pipeline end-to-end
+        if (mode === 'pipeline_completo') {
+          if (confirm('deseja executar o pipeline completo agora? (modelo 3d + simulação cfd)')) {
+            // chamar endpoint do pipeline completo
+            const pipelineResponse = await fetch('http://localhost:3000/api/pipeline/full-simulation', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                bed: params.bed,
+                lids: params.lids,
+                particles: params.particles,
+                packing: params.packing,
+                export: params.export,
+                cfd: includeCFD ? {
+                  solver: 'simpleFoam',
+                  turbulence: 'kEpsilon',
+                  convergence: 1e-6,
+                  max_iterations: 1000
+                } : null
+              })
+            });
+            
+            if (pipelineResponse.ok) {
+              const pipelineResult = await pipelineResponse.json();
+              alert(`pipeline completo iniciado!\njob_id: ${pipelineResult.job_id}\nmonitore o progresso na seção 'jobs'`);
+            } else {
+              alert('erro ao iniciar pipeline completo');
             }
           }
         }
@@ -715,18 +747,12 @@ const BedWizard = () => {
 
       {/* conteúdo do wizard */}
       <div className="wizard-content">
-        {mode === 'pipeline_completo' ? (
-          <PipelineCompletoFull />
-        ) : (
-          <>
-            {step === 0 && renderModeSelection()}
-            {step === 1 && renderBedSection()}
-            {step === 2 && renderLidsSection()}
-            {step === 3 && renderParticlesSection()}
-            {step === 4 && renderPackingSection()}
-            {step === 5 && renderExportSection()}
-          </>
-        )}
+        {step === 0 && renderModeSelection()}
+        {step === 1 && renderBedSection()}
+        {step === 2 && renderLidsSection()}
+        {step === 3 && renderParticlesSection()}
+        {step === 4 && renderPackingSection()}
+        {step === 5 && renderExportSection()}
         {step === 6 && (
           <div className="form-section">
             <h2>parâmetros CFD (opcional)</h2>

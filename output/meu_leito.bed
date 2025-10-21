@@ -1,5 +1,5 @@
 // arquivo .bed gerado pelo wizard web
-// modo: blender_interactive
+// modo: pipeline_completo
 
 bed {
     diameter = 0.05 m;
