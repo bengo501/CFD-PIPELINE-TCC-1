@@ -1,7 +1,7 @@
 {
   "bed": {
-    "diameter": 0.1,
-    "height": 0.2,
+    "diameter": 0.05,
+    "height": 0.1,
     "wall_thickness": 0.002,
     "clearance": 0.01,
     "material": "steel",
@@ -60,7 +60,7 @@
     "write_fields": false
   },
   "_metadata": {
-    "hash": "fc8d5fcf",
+    "hash": "38481669",
     "compiler": "bed_compiler_antlr_standalone",
     "input_file": "C:\\Users\\joxto\\Downloads\\CFD-PIPELINE-TCC-1\\output\\meu_leito.bed"
   }

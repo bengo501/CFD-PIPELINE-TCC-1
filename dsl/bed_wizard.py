@@ -1284,6 +1284,333 @@ cfd {
             input("pressione enter para continuar...")
             self.show_help_menu()
     
+    def pipeline_completo_mode(self):
+        """modo pipeline completo - gera modelo 3d, cria caso cfd e executa simulacao"""
+        self.clear_screen()
+        self.print_header("pipeline completo - modelagem 3d + simulacao cfd")
+        
+        print("este modo executa o pipeline completo:")
+        print("1. gera arquivo .bed e compila para .json")
+        print("2. cria modelo 3d no blender com fisica")
+        print("3. exporta geometria para stl")
+        print("4. cria caso openfoam completo")
+        print("5. executa simulacao cfd no wsl/ubuntu")
+        print()
+        print("⚠️  importante:")
+        print("- tempo estimado: 10-30 minutos")
+        print("- requer blender instalado")
+        print("- requer wsl2 com openfoam instalado")
+        print("- requer ~2gb de espaco em disco")
+        print()
+        
+        continuar = input("deseja continuar? (s/n): ").strip().lower()
+        if continuar != 's':
+            print("operacao cancelada")
+            return
+        
+        # usar questionario interativo para coletar parametros
+        print("\n" + "="*60)
+        print("etapa 1/5: parametrizacao do leito")
+        print("="*60)
+        self.interactive_questionnaire()
+        
+        if not self.params:
+            print("erro: parametros nao definidos")
+            return
+        
+        # gerar arquivo .bed
+        print("\n" + "="*60)
+        print("etapa 2/5: geracao e compilacao do arquivo .bed")
+        print("="*60)
+        
+        output_name = input("\nnome do arquivo .bed (sem extensao): ").strip()
+        if not output_name:
+            output_name = "leito_pipeline"
+        
+        self.output_file = f"{output_name}.bed"
+        
+        if not self.generate_bed_file():
+            print("erro: falha ao gerar arquivo .bed")
+            return
+        
+        # compilar arquivo .bed
+        success, json_path = self.compile_bed_file()
+        if not success:
+            print("erro: falha na compilacao do arquivo .bed")
+            return
+        
+        print(f"\n✓ arquivo compilado: {json_path}")
+        
+        # gerar modelo 3d no blender
+        print("\n" + "="*60)
+        print("etapa 3/5: geracao de modelo 3d no blender")
+        print("="*60)
+        
+        blender_exe = self.find_blender_executable()
+        if not blender_exe:
+            print("erro: blender nao encontrado no sistema")
+            print("instale o blender e tente novamente")
+            return
+        
+        # determinar formatos de exportacao
+        export_formats = ['blend', 'stl']  # stl e essencial para cfd
+        
+        success, blend_file = self.generate_blender_model(
+            blender_exe, 
+            json_path, 
+            export_formats
+        )
+        
+        if not success:
+            print("erro: falha na geracao do modelo 3d")
+            return
+        
+        print(f"\n✓ modelo 3d gerado: {blend_file}")
+        
+        # criar caso openfoam
+        print("\n" + "="*60)
+        print("etapa 4/5: criacao do caso openfoam")
+        print("="*60)
+        
+        success, case_dir = self.create_openfoam_case(json_path, blend_file)
+        if not success:
+            print("erro: falha na criacao do caso openfoam")
+            return
+        
+        print(f"\n✓ caso cfd criado: {case_dir}")
+        
+        # executar simulacao cfd
+        print("\n" + "="*60)
+        print("etapa 5/5: execucao da simulacao cfd")
+        print("="*60)
+        
+        success = self.run_openfoam_simulation(case_dir)
+        if not success:
+            print("erro: falha na execucao da simulacao cfd")
+            return
+        
+        # resumo final
+        print("\n" + "="*60)
+        print("pipeline completo finalizado com sucesso!")
+        print("="*60)
+        print(f"\narquivos gerados:")
+        print(f"  - arquivo .bed: {self.output_file}")
+        print(f"  - parametros json: {json_path}")
+        print(f"  - modelo 3d: {blend_file}")
+        print(f"  - caso cfd: {case_dir}")
+        print()
+        print("proximo passo:")
+        print(f"  - visualizar resultados no paraview")
+        print(f"  - abra o arquivo: {case_dir}/caso.foam")
+        print()
+        
+        input("\npressione enter para voltar ao menu principal...")
+    
+    def create_openfoam_case(self, json_path, blend_file):
+        """
+        criar caso openfoam a partir do modelo blender
+        
+        returns:
+            (success, case_dir) - tupla com sucesso e diretorio do caso
+        """
+        try:
+            print("\ncriando caso openfoam...")
+            print("  [1/3] validando arquivos de entrada")
+            
+            # validar arquivos
+            json_path = Path(json_path)
+            blend_file = Path(blend_file)
+            
+            if not json_path.exists():
+                print(f"  erro: arquivo json nao encontrado: {json_path}")
+                return False, None
+            
+            if not blend_file.exists():
+                print(f"  erro: arquivo blend nao encontrado: {blend_file}")
+                return False, None
+            
+            print("  ✓ arquivos validados")
+            
+            # determinar diretorio de saida
+            output_root = Path(__file__).parent.parent / "output" / "cfd"
+            output_root.mkdir(parents=True, exist_ok=True)
+            
+            # encontrar script de setup
+            script_path = Path(__file__).parent.parent / "scripts" / "openfoam_scripts" / "setup_openfoam_case.py"
+            
+            if not script_path.exists():
+                print(f"  erro: script setup_openfoam_case.py nao encontrado")
+                print(f"  procurado em: {script_path}")
+                return False, None
+            
+            print(f"  [2/3] executando script de setup do openfoam")
+            print(f"  script: {script_path}")
+            print(f"  json: {json_path}")
+            print(f"  blend: {blend_file}")
+            print()
+            
+            # executar script de setup (sem --run ainda)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(script_path),
+                    str(json_path),
+                    str(blend_file),
+                    "--output-dir", str(output_root)
+                ],
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minutos
+            )
+            
+            # mostrar saida do comando
+            if result.stdout:
+                print(result.stdout)
+            
+            if result.returncode == 0:
+                print("  ✓ caso openfoam criado com sucesso")
+                
+                # determinar diretorio do caso
+                case_name = json_path.stem.replace('.bed', '')
+                case_dir = output_root / case_name
+                
+                print(f"  [3/3] caso criado em: {case_dir}")
+                
+                return True, case_dir
+            else:
+                print(f"  erro: falha na criacao do caso openfoam")
+                print(f"  codigo de erro: {result.returncode}")
+                if result.stderr:
+                    print(f"  detalhes do erro:")
+                    print(result.stderr)
+                return False, None
+                
+        except subprocess.TimeoutExpired:
+            print("  erro: timeout na criacao do caso (limite: 5 minutos)")
+            return False, None
+        except Exception as e:
+            print(f"  erro: erro inesperado: {e}")
+            return False, None
+    
+    def run_openfoam_simulation(self, case_dir):
+        """
+        executar simulacao openfoam no wsl
+        
+        args:
+            case_dir: diretorio do caso openfoam
+            
+        returns:
+            success - boolean indicando sucesso
+        """
+        try:
+            case_dir = Path(case_dir)
+            
+            if not case_dir.exists():
+                print(f"  erro: diretorio do caso nao encontrado: {case_dir}")
+                return False
+            
+            print("\nexecutando simulacao cfd no wsl/ubuntu...")
+            print("  ⚠️  este processo pode levar varios minutos")
+            print()
+            
+            # converter caminho windows para wsl
+            # C:\Users\... -> /mnt/c/Users/...
+            wsl_path = str(case_dir).replace('\\', '/')
+            if wsl_path[1] == ':':
+                drive = wsl_path[0].lower()
+                wsl_path = f"/mnt/{drive}{wsl_path[2:]}"
+            
+            print(f"  caminho wsl: {wsl_path}")
+            print()
+            
+            # verificar se wsl esta instalado
+            print("  [1/4] verificando wsl...")
+            result = subprocess.run(
+                ["wsl", "--list", "--quiet"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode != 0:
+                print("  erro: wsl nao esta instalado ou configurado")
+                print("  instale o wsl2 com ubuntu e openfoam")
+                return False
+            
+            print("  ✓ wsl detectado")
+            
+            # executar script Allrun no wsl
+            print(f"  [2/4] executando ./Allrun no wsl...")
+            print(f"  diretorio: {wsl_path}")
+            print()
+            
+            # comando para executar no wsl
+            wsl_command = f"cd '{wsl_path}' && chmod +x Allrun && ./Allrun"
+            
+            print(f"  comando: {wsl_command}")
+            print()
+            print("  aguarde... (isto pode levar 10-30 minutos)")
+            print("  " + "="*50)
+            print()
+            
+            # executar com output em tempo real
+            process = subprocess.Popen(
+                ["wsl", "bash", "-c", wsl_command],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
+            )
+            
+            # mostrar output em tempo real
+            for line in process.stdout:
+                print(f"  {line.rstrip()}")
+            
+            # aguardar conclusao
+            return_code = process.wait()
+            
+            print()
+            print("  " + "="*50)
+            print()
+            
+            if return_code == 0:
+                print("  [3/4] ✓ simulacao concluida com sucesso")
+                
+                # verificar se arquivo de resultados existe
+                print("  [4/4] verificando resultados...")
+                
+                # criar arquivo .foam para paraview
+                foam_file = case_dir / "caso.foam"
+                foam_file.touch()
+                
+                print(f"  ✓ arquivo paraview criado: {foam_file}")
+                print()
+                print("  resultados disponiveis em:")
+                print(f"  {case_dir}")
+                
+                return True
+            else:
+                print(f"  [3/4] erro: simulacao falhou com codigo {return_code}")
+                print()
+                print("  verifique os logs em:")
+                print(f"  {case_dir}/log.*")
+                
+                return False
+                
+        except subprocess.TimeoutExpired:
+            print("  erro: timeout na verificacao do wsl")
+            return False
+        except FileNotFoundError:
+            print("  erro: comando 'wsl' nao encontrado")
+            print("  instale o wsl2 no windows")
+            return False
+        except Exception as e:
+            print(f"  erro: erro inesperado: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
     def show_documentation(self):
         """abrir documentacao html completa do projeto"""
         import webbrowser
@@ -1327,12 +1654,13 @@ cfd {
         print("2. editor de template - edite um arquivo padrao")
         print("3. modo blender - geracao de modelo 3d (sem cfd)")
         print("4. modo blender interativo - gera e abre automaticamente")
-        print("5. menu de ajuda - informacoes sobre parametros")
-        print("6. documentacao completa - guia html interativo")
-        print("7. sair")
+        print("5. 🚀 pipeline completo - modelo 3d + simulacao cfd automatica")
+        print("6. menu de ajuda - informacoes sobre parametros")
+        print("7. documentacao completa - guia html interativo")
+        print("8. sair")
         
         while True:
-            choice = input("\nescolha (1-7): ").strip()
+            choice = input("\nescolha (1-8): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -1347,6 +1675,9 @@ cfd {
                 self.blender_interactive_mode()
                 break
             elif choice == "5":
+                self.pipeline_completo_mode()
+                break
+            elif choice == "6":
                 self.show_help_menu()
                 # apos ver ajuda, mostrar menu novamente
                 self.clear_screen()
@@ -1356,10 +1687,11 @@ cfd {
                 print("2. editor de template - edite um arquivo padrao")
                 print("3. modo blender - geracao de modelo 3d (sem cfd)")
                 print("4. modo blender interativo - gera e abre automaticamente")
-                print("5. menu de ajuda - informacoes sobre parametros")
-                print("6. documentacao completa - guia html interativo")
-                print("7. sair")
-            elif choice == "6":
+                print("5. 🚀 pipeline completo - modelo 3d + simulacao cfd automatica")
+                print("6. menu de ajuda - informacoes sobre parametros")
+                print("7. documentacao completa - guia html interativo")
+                print("8. sair")
+            elif choice == "7":
                 self.show_documentation()
                 # apos ver documentacao, mostrar menu novamente
                 self.clear_screen()
@@ -1369,14 +1701,15 @@ cfd {
                 print("2. editor de template - edite um arquivo padrao")
                 print("3. modo blender - geracao de modelo 3d (sem cfd)")
                 print("4. modo blender interativo - gera e abre automaticamente")
-                print("5. menu de ajuda - informacoes sobre parametros")
-                print("6. documentacao completa - guia html interativo")
-                print("7. sair")
-            elif choice == "7":
+                print("5. 🚀 pipeline completo - modelo 3d + simulacao cfd automatica")
+                print("6. menu de ajuda - informacoes sobre parametros")
+                print("7. documentacao completa - guia html interativo")
+                print("8. sair")
+            elif choice == "8":
                 print("ate logo!")
                 sys.exit(0)
             else:
-                print("  aviso: escolha entre 1, 2, 3, 4, 5, 6 ou 7!")
+                print("  aviso: escolha entre 1, 2, 3, 4, 5, 6, 7 ou 8!")
 
 def main():
     """funcao principal"""

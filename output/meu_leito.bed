@@ -2,8 +2,8 @@
 // modo: blender_interactive
 
 bed {
-    diameter = 0.1 m;
-    height = 0.2 m;
+    diameter = 0.05 m;
+    height = 0.1 m;
     wall_thickness = 0.002 m;
     clearance = 0.01 m;
     material = "steel";

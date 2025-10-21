@@ -99,6 +99,7 @@ docs/documentacao/*.md
 # manter documentação de organização versionada
 !docs/ORGANIZACAO_DOCUMENTACAO.md
 !docs/RESUMO_ORGANIZACAO.md
+!docs/GUIA_PIPELINE_COMPLETO_CLI.md
 
 # arquivos markdown na raiz
 *.md
