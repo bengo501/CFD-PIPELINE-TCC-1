@@ -114,7 +114,7 @@ export const DocsModal = ({ show, onClose }) => {
             <section>
               <h3>links úteis</h3>
               <ul>
-                <li><a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
+                <li><a href="http://localhost:3000/docs" target="_blank" rel="noopener noreferrer">
                   documentação da api
                 </a></li>
                 <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">

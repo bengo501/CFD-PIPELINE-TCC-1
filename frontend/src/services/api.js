@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: 'http://localhost:3000',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ export const listFiles = async (fileType) => {
 
 // download de arquivo
 export const downloadFile = (fileType, filename) => {
-  return `http://localhost:8000/api/files/download/${fileType}/${filename}`;
+  return `http://localhost:3000/api/files/download/${fileType}/${filename}`;
 };
 
 // status do sistema

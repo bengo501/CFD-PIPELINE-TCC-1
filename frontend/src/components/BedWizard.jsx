@@ -147,7 +147,7 @@ const BedWizard = () => {
       };
 
       // enviar para API backend
-      const response = await fetch('http://localhost:8000/api/bed/wizard', {
+      const response = await fetch('http://localhost:3000/api/bed/wizard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ const BedWizard = () => {
         if (mode === 'blender' || mode === 'blender_interactive') {
           if (confirm('deseja gerar o modelo 3D agora?')) {
             // chamar endpoint de geração
-            const genResponse = await fetch('http://localhost:8000/api/model/generate', {
+            const genResponse = await fetch('http://localhost:3000/api/model/generate', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -641,7 +641,7 @@ const BedWizard = () => {
     setEditingTemplate(false);
     
     try {
-      const response = await fetch('http://localhost:8000/api/bed/template', {
+      const response = await fetch('http://localhost:3000/api/bed/template', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
