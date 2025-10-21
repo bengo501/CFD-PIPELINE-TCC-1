@@ -243,17 +243,64 @@ const BedWizard = () => {
       </div>
       
       <div className="mode-cards">
-        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('interactive')}>
-          <div className="mode-icon">📋</div>
-          <h3>questionário interativo</h3>
-          <p>responda perguntas passo a passo para criar seu leito</p>
-        </div>
-        
-        
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender')}>
           <div className="mode-icon">🎨</div>
           <h3>modo blender</h3>
           <p>geração de modelo 3D (sem parâmetros CFD)</p>
+        </div>
+        
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_blender_cfd')}>
+          <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon" />
+          <h3>pipeline blender + cfd</h3>
+          <p>gera modelo 3D + cria caso CFD (sem executar simulação)</p>
+          <div className="mode-options">
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBedFileOptions(true);
+              }}
+            >
+              📁 carregar .bed
+            </button>
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                loadDefaultBedTemplate();
+                setShowBedFileOptions(true);
+              }}
+            >
+              ✏️ editar padrão
+            </button>
+          </div>
+        </div>
+        
+        <div className="mode-card" onClick={() => handleModeSelectWithTemplate('cfd_only')}>
+          <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="cfd" className="mode-icon" />
+          <h3>apenas caso CFD</h3>
+          <p>cria caso CFD sem gerar novo leito</p>
+          <div className="mode-options">
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBedFileOptions(true);
+              }}
+            >
+              📁 carregar .bed
+            </button>
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                loadDefaultBedTemplate();
+                setShowBedFileOptions(true);
+              }}
+            >
+              ✏️ editar padrão
+            </button>
+          </div>
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('blender_interactive')}>
@@ -791,6 +838,67 @@ const BedWizard = () => {
           }
         }
         
+        // se modo pipeline blender + cfd, gerar modelo e criar caso CFD
+        if (mode === 'pipeline_blender_cfd') {
+          const genResponse = await fetch('http://localhost:3000/api/model/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              json_file: result.json_file,
+              open_blender: false
+            })
+          });
+          
+          if (genResponse.ok) {
+            const genResult = await genResponse.json();
+            
+            // criar caso CFD
+            const cfdResponse = await fetch('http://localhost:3000/api/cfd/create-case', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                blend_file: genResult.blend_file,
+                json_file: result.json_file,
+                case_name: `leito_${Date.now()}`
+              })
+            });
+            
+            if (cfdResponse.ok) {
+              const cfdResult = await cfdResponse.json();
+              alert(`pipeline blender + CFD concluído!\nmodelo: ${genResult.blend_file}\ncaso CFD: ${cfdResult.case_dir}`);
+            } else {
+              alert('erro ao criar caso CFD');
+            }
+          } else {
+            alert('erro ao gerar modelo 3D');
+          }
+        }
+        
+        // se modo apenas caso CFD, criar caso CFD sem gerar modelo
+        if (mode === 'cfd_only') {
+          const cfdResponse = await fetch('http://localhost:3000/api/cfd/create-case-only', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              json_file: result.json_file,
+              case_name: `leito_${Date.now()}`
+            })
+          });
+          
+          if (cfdResponse.ok) {
+            const cfdResult = await cfdResponse.json();
+            alert(`caso CFD criado com sucesso!\ncaso: ${cfdResult.case_dir}`);
+          } else {
+            alert('erro ao criar caso CFD');
+          }
+        }
+        
         // se modo pipeline completo, executar pipeline
         if (mode === 'pipeline_completo') {
           const pipelineResponse = await fetch('http://localhost:3000/api/pipeline/full-simulation', {
@@ -906,7 +1014,10 @@ const BedWizard = () => {
                   onClick={processBedFile}
                   disabled={!bedFileContent.trim()}
                 >
-                  {mode === 'blender_interactive' ? '🚀 gerar modelo 3d' : '🔄 executar pipeline completo'}
+                  {mode === 'blender_interactive' ? '🚀 gerar modelo 3d' : 
+                   mode === 'pipeline_blender_cfd' ? '🔄 pipeline blender + cfd' :
+                   mode === 'cfd_only' ? '⚙️ criar caso cfd' :
+                   '🔄 executar pipeline completo'}
                 </button>
                 <button 
                   className="btn-cancel"

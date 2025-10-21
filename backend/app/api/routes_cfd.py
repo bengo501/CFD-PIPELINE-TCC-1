@@ -287,3 +287,331 @@ async def run_cfd_from_wizard(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
 
+# novos endpoints para modos específicos
+@router.post("/cfd/create-case", tags=["cfd"])
+async def create_case_only(
+    blend_file: str,
+    json_file: str,
+    case_name: str,
+    background_tasks: BackgroundTasks
+):
+    """
+    criar caso CFD a partir de arquivo blend existente
+    """
+    try:
+        # validar arquivos
+        blend_path = Path(blend_file)
+        json_path = Path(json_file)
+        
+        if not blend_path.exists():
+            raise HTTPException(status_code=404, detail="arquivo blend não encontrado")
+        
+        if not json_path.exists():
+            raise HTTPException(status_code=404, detail="arquivo json não encontrado")
+        
+        # criar caso CFD
+        case_dir = Path("output/cfd") / case_name
+        case_dir.mkdir(parents=True, exist_ok=True)
+        
+        # configurar caso CFD
+        await _setup_cfd_case(blend_path, json_path, case_dir)
+        
+        return {
+            "success": True,
+            "message": "caso CFD criado com sucesso",
+            "case_dir": str(case_dir),
+            "case_name": case_name
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
+
+@router.post("/cfd/create-case-only", tags=["cfd"])
+async def create_case_from_json_only(
+    json_file: str,
+    case_name: str,
+    background_tasks: BackgroundTasks
+):
+    """
+    criar caso CFD apenas a partir de arquivo json (sem modelo 3D)
+    """
+    try:
+        # validar arquivo json
+        json_path = Path(json_file)
+        
+        if not json_path.exists():
+            raise HTTPException(status_code=404, detail="arquivo json não encontrado")
+        
+        # criar caso CFD
+        case_dir = Path("output/cfd") / case_name
+        case_dir.mkdir(parents=True, exist_ok=True)
+        
+        # configurar caso CFD sem modelo 3D
+        await _setup_cfd_case_from_json(json_path, case_dir)
+        
+        return {
+            "success": True,
+            "message": "caso CFD criado com sucesso",
+            "case_dir": str(case_dir),
+            "case_name": case_name
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
+
+async def _setup_cfd_case(blend_path: Path, json_path: Path, case_dir: Path):
+    """
+    configurar caso CFD a partir de arquivo blend
+    """
+    try:
+        # copiar arquivo blend para o caso
+        import shutil
+        shutil.copy2(blend_path, case_dir / "geometry.blend")
+        
+        # configurar arquivos do OpenFOAM
+        await _create_openfoam_files(case_dir, json_path)
+        
+        return True
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro ao configurar caso CFD: {str(e)}")
+
+async def _setup_cfd_case_from_json(json_path: Path, case_dir: Path):
+    """
+    configurar caso CFD apenas a partir de arquivo json
+    """
+    try:
+        # configurar arquivos do OpenFOAM
+        await _create_openfoam_files(case_dir, json_path)
+        
+        return True
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro ao configurar caso CFD: {str(e)}")
+
+async def _create_openfoam_files(case_dir: Path, json_path: Path):
+    """
+    criar arquivos de configuração do OpenFOAM
+    """
+    try:
+        # ler parâmetros do JSON
+        with open(json_path, 'r') as f:
+            params = json.load(f)
+        
+        # criar estrutura de diretórios do OpenFOAM
+        system_dir = case_dir / "system"
+        constant_dir = case_dir / "constant"
+        zero_dir = case_dir / "0"
+        
+        system_dir.mkdir(exist_ok=True)
+        constant_dir.mkdir(exist_ok=True)
+        zero_dir.mkdir(exist_ok=True)
+        
+        # criar arquivos de configuração básicos
+        await _create_controlDict(system_dir)
+        await _create_meshDict(system_dir)
+        await _create_transportProperties(constant_dir)
+        await _create_turbulenceProperties(constant_dir)
+        await _create_initial_conditions(zero_dir, params)
+        
+        return True
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro ao criar arquivos OpenFOAM: {str(e)}")
+
+async def _create_controlDict(system_dir: Path):
+    """criar controlDict"""
+    control_dict = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+
+application     simpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   100;
+
+purgeWrite      2;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+"""
+    with open(system_dir / "controlDict", 'w') as f:
+        f.write(control_dict)
+
+async def _create_meshDict(system_dir: Path):
+    """criar meshDict"""
+    mesh_dict = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      meshDict;
+}
+
+snapControls
+{
+    nSmoothPatch    3;
+    tolerance       2.0;
+    nSolveIter      30;
+    nRelaxIter      5;
+}
+
+castellatedMeshControls
+{
+    maxLocalCells   1000000;
+    maxGlobalCells  2000000;
+    minRefinementCells 10;
+    nCellsBetweenLevels 1;
+    
+    resolveFeatureAngle 30;
+    
+    refinementRegions
+    {
+    }
+    
+    locationInMesh (0 0 0);
+}
+
+mergeTolerance 1e-6;
+"""
+    with open(system_dir / "meshDict", 'w') as f:
+        f.write(mesh_dict)
+
+async def _create_transportProperties(constant_dir: Path):
+    """criar transportProperties"""
+    transport_props = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+
+transportModel  Newtonian;
+
+nu              [0 2 -1 0 0 0 0] 1e-05;
+"""
+    with open(constant_dir / "transportProperties", 'w') as f:
+        f.write(transport_props)
+
+async def _create_turbulenceProperties(constant_dir: Path):
+    """criar turbulenceProperties"""
+    turbulence_props = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      turbulenceProperties;
+}
+
+simulationType  RAS;
+
+RAS
+{
+    RASModel        kEpsilon;
+    turbulence      on;
+    printCoeffs     on;
+}
+"""
+    with open(constant_dir / "turbulenceProperties", 'w') as f:
+        f.write(turbulence_props)
+
+async def _create_initial_conditions(zero_dir: Path, params: dict):
+    """criar condições iniciais"""
+    # arquivo p
+    p_content = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      p;
+}
+
+dimensions      [0 2 -2 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 100;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    walls
+    {
+        type            zeroGradient;
+    }
+}
+"""
+    with open(zero_dir / "p", 'w') as f:
+        f.write(p_content)
+    
+    # arquivo U
+    u_content = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform (1 0 0);
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    walls
+    {
+        type            noSlip;
+    }
+}
+"""
+    with open(zero_dir / "U", 'w') as f:
+        f.write(u_content)
+
