@@ -98,6 +98,10 @@ const BedWizard = () => {
   const [savedTemplates, setSavedTemplates] = useState([]);
   const [templateName, setTemplateName] = useState('');
   const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [showBedFileOptions, setShowBedFileOptions] = useState(false);
+  const [bedFileContent, setBedFileContent] = useState('');
+  const [bedFileName, setBedFileName] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   const steps = [
     { title: 'escolha o modo', section: 'mode' },
@@ -287,12 +291,54 @@ const BedWizard = () => {
           <div className="mode-icon">🚀</div>
           <h3>blender interativo</h3>
           <p>gera modelo e abre automaticamente no blender</p>
+          <div className="mode-options">
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBedFileOptions(true);
+              }}
+            >
+              📁 carregar .bed
+            </button>
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                loadDefaultBedTemplate();
+                setShowBedFileOptions(true);
+              }}
+            >
+              ✏️ editar padrão
+            </button>
+          </div>
         </div>
         
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_completo')}>
           <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="mode-icon" />
           <h3>pipeline completo</h3>
           <p>execução end-to-end: modelo 3d + simulação cfd automática</p>
+          <div className="mode-options">
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBedFileOptions(true);
+              }}
+            >
+              📁 carregar .bed
+            </button>
+            <button 
+              className="btn-mode-option" 
+              onClick={(e) => {
+                e.stopPropagation();
+                loadDefaultBedTemplate();
+                setShowBedFileOptions(true);
+              }}
+            >
+              ✏️ editar padrão
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -806,6 +852,117 @@ const BedWizard = () => {
     }
   };
 
+  // carregar arquivo .bed
+  const handleBedFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && file.name.endsWith('.bed')) {
+      setUploadedFile(file);
+      setBedFileName(file.name);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBedFileContent(e.target.result);
+      };
+      reader.readAsText(file);
+    } else {
+      alert('por favor, selecione um arquivo .bed válido');
+    }
+  };
+
+  // carregar template padrão
+  const loadDefaultBedTemplate = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/bed/template/default');
+      if (response.ok) {
+        const data = await response.json();
+        setBedFileContent(data.content);
+        setBedFileName('template_padrao.bed');
+        setUploadedFile(null);
+      } else {
+        alert('erro ao carregar template padrão');
+      }
+    } catch (error) {
+      console.error('erro:', error);
+      alert('erro de conexão com o backend');
+    }
+  };
+
+  // processar arquivo .bed carregado
+  const processBedFile = async () => {
+    if (!bedFileContent.trim()) {
+      alert('arquivo .bed está vazio');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/bed/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: bedFileContent,
+          filename: bedFileName || 'leito_custom.bed'
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // se modo blender interativo, gerar modelo
+        if (mode === 'blender_interactive') {
+          const genResponse = await fetch('http://localhost:3000/api/model/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              json_file: result.json_file,
+              open_blender: true
+            })
+          });
+          
+          if (genResponse.ok) {
+            alert('modelo 3D gerado com sucesso!');
+          }
+        }
+        
+        // se modo pipeline completo, executar pipeline
+        if (mode === 'pipeline_completo') {
+          const pipelineResponse = await fetch('http://localhost:3000/api/pipeline/full-simulation', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bed_file: result.bed_file,
+              json_file: result.json_file
+            })
+          });
+          
+          if (pipelineResponse.ok) {
+            const pipelineResult = await pipelineResponse.json();
+            alert(`pipeline completo iniciado!\njob_id: ${pipelineResult.job_id}`);
+          }
+        }
+        
+        // resetar wizard
+        setStep(0);
+        setMode(null);
+        setShowBedFileOptions(false);
+        setBedFileContent('');
+        setBedFileName('');
+        setUploadedFile(null);
+        
+      } else {
+        alert('erro ao processar arquivo .bed');
+      }
+    } catch (error) {
+      console.error('erro:', error);
+      alert('erro de conexão com o backend');
+    }
+  };
+
   // handler quando seleciona modo template
   const handleModeSelectWithTemplate = (selectedMode) => {
     if (selectedMode === 'template') {
@@ -882,6 +1039,83 @@ const BedWizard = () => {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* modal de opções de arquivo .bed */}
+      {showBedFileOptions && (
+        <div className="modal-overlay">
+          <div className="modal-content bed-file-options">
+            <div className="modal-header">
+              <h2>opções de arquivo .bed</h2>
+              <button 
+                className="btn-close" 
+                onClick={() => {
+                  setShowBedFileOptions(false);
+                  setBedFileContent('');
+                  setBedFileName('');
+                  setUploadedFile(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="bed-file-content">
+              <div className="file-upload-section">
+                <h3>carregar arquivo .bed</h3>
+                <input
+                  type="file"
+                  accept=".bed"
+                  onChange={handleBedFileUpload}
+                  className="file-input"
+                />
+                {uploadedFile && (
+                  <p className="file-info">arquivo carregado: {uploadedFile.name}</p>
+                )}
+              </div>
+              
+              <div className="file-editor-section">
+                <h3>editor de arquivo .bed</h3>
+                <div className="editor-controls">
+                  <button 
+                    className="btn-load-template"
+                    onClick={loadDefaultBedTemplate}
+                  >
+                    📄 carregar template padrão
+                  </button>
+                </div>
+                <textarea
+                  value={bedFileContent}
+                  onChange={(e) => setBedFileContent(e.target.value)}
+                  placeholder="cole aqui o conteúdo do arquivo .bed ou carregue um arquivo..."
+                  className="bed-editor"
+                  rows={15}
+                />
+              </div>
+              
+              <div className="file-actions">
+                <button 
+                  className="btn-process"
+                  onClick={processBedFile}
+                  disabled={!bedFileContent.trim()}
+                >
+                  {mode === 'blender_interactive' ? '🚀 gerar modelo 3d' : '🔄 executar pipeline completo'}
+                </button>
+                <button 
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowBedFileOptions(false);
+                    setBedFileContent('');
+                    setBedFileName('');
+                    setUploadedFile(null);
+                  }}
+                >
+                  cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>

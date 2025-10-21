@@ -357,3 +357,116 @@ async def compile_template(request: TemplateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
 
+# novos endpoints para arquivos .bed
+@router.get("/bed/template/default", tags=["bed"])
+async def get_default_bed_template():
+    """
+    retorna um template padrão de arquivo .bed
+    """
+    default_template = """bed {
+    diameter = 0.05 m;
+    height = 0.1 m;
+    wall_thickness = 0.002 m;
+    clearance = 0.01 m;
+    material = "steel";
+    roughness = 0.0 m;
+}
+
+lids {
+    top_type = "flat";
+    bottom_type = "flat";
+    top_thickness = 0.003 m;
+    bottom_thickness = 0.003 m;
+    seal_clearance = 0.001 m;
+}
+
+particles {
+    kind = "sphere";
+    diameter = 0.005 m;
+    count = 100;
+    target_porosity = 0.4;
+    density = 2500.0 kg/m3;
+    mass = 0.0 g;
+    restitution = 0.3;
+    friction = 0.5;
+    rolling_friction = 0.1;
+    linear_damping = 0.1;
+    angular_damping = 0.1;
+    seed = 42;
+}
+
+packing {
+    method = "rigid_body";
+    gravity = -9.81 m/s2;
+    substeps = 10;
+    iterations = 10;
+    damping = 0.1;
+    rest_velocity = 0.01 m/s;
+    max_time = 5.0 s;
+    collision_margin = 0.001 m;
+}
+
+export {
+    formats = ["stl_binary", "blend"];
+    units = "m";
+    scale = 1.0;
+    wall_mode = "surface";
+    fluid_mode = "none";
+    manifold_check = true;
+    merge_distance = 0.001 m;
+}"""
+    
+    return {
+        "content": default_template,
+        "filename": "template_padrao.bed"
+    }
+
+@router.post("/bed/process", tags=["bed"])
+async def process_bed_file(request: Dict[str, Any]):
+    """
+    processa um arquivo .bed carregado
+    """
+    try:
+        content = request.get("content", "")
+        filename = request.get("filename", "leito_custom.bed")
+        
+        if not content.strip():
+            raise HTTPException(status_code=400, detail="conteúdo do arquivo .bed está vazio")
+        
+        # criar arquivo temporário
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.bed', delete=False) as temp_file:
+            temp_file.write(content)
+            temp_bed_path = temp_file.name
+        
+        # compilar arquivo .bed
+        compiler_script = Path(__file__).parent.parent.parent / "dsl" / "compiler" / "bed_compiler_antlr_standalone.py"
+        
+        if not compiler_script.exists():
+            raise HTTPException(status_code=500, detail="compilador não encontrado")
+        
+        result = subprocess.run([
+            sys.executable, str(compiler_script), temp_bed_path
+        ], capture_output=True, text=True, timeout=30)
+        
+        if result.returncode == 0:
+            # arquivo compilado com sucesso
+            json_path = temp_bed_path.replace('.bed', '.json')
+            
+            return {
+                "success": True,
+                "message": "arquivo .bed processado com sucesso",
+                "bed_file": temp_bed_path,
+                "json_file": json_path,
+                "filename": filename
+            }
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"erro na compilação: {result.stderr}"
+            )
+            
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=408, detail="timeout na compilação")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
+
