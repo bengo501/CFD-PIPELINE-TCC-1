@@ -7,7 +7,7 @@ from typing import Optional
 
 from backend.app.database.connection import get_db
 from backend.app.api.models import (
-    BedParameters,
+    BedParameters, BedParametersNested,
     JobResponse, JobStatus, JobType,
     Job
 )
@@ -216,7 +216,7 @@ async def get_pipeline_job(job_id: str):
 
 @router.post("/pipeline/full-simulation", response_model=JobResponse, tags=["pipeline"])
 async def execute_full_pipeline_with_simulation(
-    parameters: BedParameters,
+    parameters: BedParametersNested,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):

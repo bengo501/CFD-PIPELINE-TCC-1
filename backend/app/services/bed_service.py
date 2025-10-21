@@ -13,7 +13,7 @@ class BedService:
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.dsl_dir = self.project_root / "dsl"
-        self.compiler_script = self.dsl_dir / "bed_compiler_antlr_standalone.py"
+        self.compiler_script = self.dsl_dir / "compiler" / "bed_compiler_antlr_standalone.py"
         self.output_dir = self.project_root / "output"
         
     def check_availability(self) -> bool:

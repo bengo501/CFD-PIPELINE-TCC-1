@@ -49,6 +49,16 @@ class BedParameters(BaseModel):
     fluid_density: Optional[float] = Field(1000.0, description="densidade fluido (kg/m³)")
     fluid_viscosity: Optional[float] = Field(0.001, description="viscosidade (Pa.s)")
 
+# modelo para estrutura aninhada do frontend
+class BedParametersNested(BaseModel):
+    """parâmetros do leito empacotado em estrutura aninhada (frontend)"""
+    bed: Dict[str, Any] = Field(..., description="parâmetros do leito")
+    lids: Dict[str, Any] = Field(..., description="parâmetros das tampas")
+    particles: Dict[str, Any] = Field(..., description="parâmetros das partículas")
+    packing: Dict[str, Any] = Field(..., description="parâmetros do empacotamento")
+    export: Dict[str, Any] = Field(..., description="parâmetros de exportação")
+    cfd: Optional[Dict[str, Any]] = Field(None, description="parâmetros CFD (opcional)")
+
 class CompileRequest(BaseModel):
     """requisição para compilar arquivo .bed"""
     parameters: BedParameters
