@@ -89,29 +89,35 @@ class BedService:
     
     def _generate_bed_content(self, params: Dict[str, Any]) -> str:
         """gera conteúdo do arquivo .bed"""
+        # extrair parâmetros da estrutura aninhada
+        bed_params = params.get('bed', {})
+        lids_params = params.get('lids', {})
+        particles_params = params.get('particles', {})
+        packing_params = params.get('packing', {})
+        
         content = f"""bed {{
-  diameter: {params['diameter']}m
-  height: {params['height']}m
-  wall_thickness: {params.get('wall_thickness', 0.002)}m
+  diameter: {bed_params.get('diameter', 0.05)}m
+  height: {bed_params.get('height', 0.1)}m
+  wall_thickness: {bed_params.get('wall_thickness', 0.002)}m
 }}
 
 lids {{
-  top: {params.get('lid_top', 'flat')}
-  bottom: {params.get('lid_bottom', 'flat')}
-  thickness: {params.get('lid_thickness', 0.003)}m
+  top: {lids_params.get('top_type', 'flat')}
+  bottom: {lids_params.get('bottom_type', 'flat')}
+  thickness: {lids_params.get('top_thickness', 0.003)}m
 }}
 
 particles {{
-  count: {params['particle_count']}
-  kind: {params.get('particle_type', 'sphere')}
-  diameter: {params['particle_diameter']}m
+  count: {particles_params.get('count', 100)}
+  kind: {particles_params.get('kind', 'sphere')}
+  diameter: {particles_params.get('diameter', 0.005)}m
 }}
 
 packing {{
-  method: {params.get('packing_method', 'rigid_body')}
-  gravity: {params.get('gravity', -9.81)}m/s²
-  friction: {params.get('friction', 0.5)}
-  substeps: {params.get('substeps', 10)}
+  method: {packing_params.get('method', 'rigid_body')}
+  gravity: {packing_params.get('gravity', -9.81)}m/s²
+  friction: {packing_params.get('friction', 0.5)}
+  substeps: {packing_params.get('substeps', 10)}
 }}
 
 export {{
