@@ -91,8 +91,8 @@
   --bg-tertiary: #3A3A3A;               /* fundo terciário */
   
   /* cores de texto dark mode */
-  --text: #E0E0E0;                      /* texto principal claro */
-  --text-muted: #A0A0A0;                /* texto secundário */
+  --text: #FFFFFF;                      /* texto principal branco */
+  --text-muted: #FFFFFF;                /* texto secundário branco */
   --text-light: var(--white);           /* texto claro */
   
   /* cores de borda dark mode */
@@ -106,16 +106,16 @@
   /* cores específicas para header, footer e sidebar dark mode */
   --header-bg: #2C2C2C;                 /* cinza escuro para dark mode */
   --header-bg-dark: #1A1A1A;            /* mais escuro para gradiente */
-  --header-text: var(--lope-orange);     /* laranja para contraste */
+  --header-text: #FFFFFF;                /* branco para contraste */
   --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   
   --footer-bg: #2C2C2C;                 /* cinza escuro para dark mode */
   --footer-bg-dark: #1A1A1A;            /* mais escuro para gradiente */
-  --footer-text: var(--lope-orange);     /* laranja para contraste */
+  --footer-text: #FFFFFF;                /* branco para contraste */
   
   --sidebar-bg: #2C2C2C;                /* cinza escuro para dark mode */
   --sidebar-bg-dark: #1A1A1A;           /* mais escuro para gradiente */
-  --sidebar-text: var(--lope-orange);    /* laranja para contraste */
+  --sidebar-text: #FFFFFF;                /* branco para contraste */
 }
 
 body {
