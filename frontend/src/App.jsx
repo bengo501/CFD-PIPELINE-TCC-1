@@ -243,6 +243,9 @@ function App() {
             <div className="tab-content">
               <div className="settings-container">
                 <h2>{t('systemSettings')}</h2>
+                <div className="development-notice">
+                  <p>esta página está em desenvolvimento</p>
+                </div>
                 <div className="settings-grid">
                   <div className="setting-card">
                     <h3>{t('theme')}</h3>

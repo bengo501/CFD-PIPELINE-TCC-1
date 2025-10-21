@@ -16,12 +16,12 @@
 }
 
 .casos-header h2 {
-  color: var(--wine, #5F1923);
+  color: var(--text);
   margin-bottom: 5px;
 }
 
 .casos-desc {
-  color: var(--text-muted, #666);
+  color: var(--text-muted);
   font-size: 1.05rem;
 }
 
@@ -53,7 +53,7 @@
 .error-message {
   background: #FFEBEE;
   border: 2px solid #FFCDD2;
-  color: #C62828;
+  color: var(--error);
   padding: 20px;
   border-radius: 10px;
   margin-bottom: 20px;
@@ -129,17 +129,17 @@
 
 .status-configured {
   background: #E3F2FD;
-  color: #1976D2;
+  color: var(--info);
 }
 
 .status-meshed {
   background: #FFF3E0;
-  color: #F57C00;
+  color: var(--warning);
 }
 
 .status-running {
   background: #FFF9C4;
-  color: #F57F17;
+  color: var(--warning);
   animation: pulse-badge 2s infinite;
 }
 
@@ -150,7 +150,7 @@
 
 .status-unknown {
   background: #F5F5F5;
-  color: #757575;
+  color: var(--text-muted);
 }
 
 @keyframes pulse-badge {
@@ -334,7 +334,7 @@
   background: none;
   border: none;
   font-size: 32px;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -386,7 +386,7 @@
 
 .comando-wsl {
   background: #1e1e1e;
-  color: #ddd;
+  color: var(--text);
   padding: 15px;
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;

@@ -1543,7 +1543,23 @@ legend {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
-  color: var(--primary);
+  color: var(--text);
+}
+
+.development-notice {
+  background: var(--warning);
+  color: var(--text);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 600;
+  border: 2px solid var(--warning);
+}
+
+.development-notice p {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .settings-grid {
