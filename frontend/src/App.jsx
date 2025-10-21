@@ -3,7 +3,6 @@ import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
 import PipelineCompleto from './components/PipelineCompleto'
-import PipelineCompletoFull from './components/PipelineCompletoFull'
 import CasosCFD from './components/CasosCFD'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
@@ -150,13 +149,6 @@ function App() {
             <div className="nav-section">
               <h3 className="nav-section-title">{t('simulation')}</h3>
               <button
-                className={`nav-item ${activeTab === 'pipeline' ? 'active' : ''}`}
-                onClick={() => setActiveTab('pipeline')}
-              >
-                <ThemeIcon light="pipelineLight.png" dark="pipelineLight.png" alt="pipeline" className="nav-icon" />
-                <span className="nav-label">{t('pipeline')}</span>
-              </button>
-              <button
                 className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
                 onClick={() => setActiveTab('cfd')}
               >
@@ -217,11 +209,6 @@ function App() {
             </div>
           )}
 
-          {activeTab === 'pipeline' && (
-            <div className="tab-content">
-              <PipelineCompletoFull />
-            </div>
-          )}
 
           {activeTab === 'cfd' && (
             <div className="tab-content">
