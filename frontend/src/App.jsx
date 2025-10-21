@@ -147,6 +147,17 @@ function App() {
             </div>
 
             <div className="nav-section">
+              <h3 className="nav-section-title">templates salvos</h3>
+              <button
+                className={`nav-item ${activeTab === 'templates' ? 'active' : ''}`}
+                onClick={() => setActiveTab('templates')}
+              >
+                <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="templates" className="nav-icon" />
+                <span className="nav-label">templates salvos</span>
+              </button>
+            </div>
+
+            <div className="nav-section">
               <h3 className="nav-section-title">{t('simulation')}</h3>
               <button
                 className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
@@ -231,6 +242,39 @@ function App() {
           {activeTab === 'results' && (
             <div className="tab-content">
               <ResultsList />
+            </div>
+          )}
+
+          {activeTab === 'templates' && (
+            <div className="tab-content">
+              <div className="templates-container">
+                <h2>templates salvos</h2>
+                <div className="templates-grid">
+                  <div className="template-card">
+                    <h3>📝 criar novo template</h3>
+                    <p>edite um arquivo .bed diretamente</p>
+                    <button 
+                      className="btn-primary"
+                      onClick={() => setActiveTab('wizard')}
+                    >
+                      abrir editor
+                    </button>
+                  </div>
+                  <div className="template-card">
+                    <h3>📁 gerenciar templates</h3>
+                    <p>visualize, edite e delete templates salvos</p>
+                    <button 
+                      className="btn-secondary"
+                      onClick={() => {
+                        // implementar gerenciamento de templates
+                        alert('funcionalidade em desenvolvimento');
+                      }}
+                    >
+                      gerenciar
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

@@ -109,7 +109,28 @@ class FileInfo(BaseModel):
     path: str
     size: int
     created_at: datetime
-    file_type: str
+
+# modelos para templates
+class TemplateCreate(BaseModel):
+    """criar template"""
+    name: str = Field(..., description="nome do template")
+    content: str = Field(..., description="conteúdo do template")
+
+class TemplateResponse(BaseModel):
+    """resposta de template"""
+    id: str
+    name: str
+    content: str
+    created_at: str
+    updated_at: str
+
+class Template(BaseModel):
+    """template completo"""
+    id: str
+    name: str
+    content: str
+    created_at: str
+    updated_at: str
 
 class FileListResponse(BaseModel):
     """lista de arquivos"""

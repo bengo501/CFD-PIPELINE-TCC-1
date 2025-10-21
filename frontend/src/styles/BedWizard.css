@@ -654,3 +654,114 @@
   animation: fadeIn 0.3s ease;
 }
 
+/* estilos para template actions */
+.template-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-template-save,
+.btn-template-manage {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-template-save {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-template-save:hover {
+  background: #45a049;
+}
+
+.btn-template-manage {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-template-manage:hover {
+  background: #1976D2;
+}
+
+/* modal de gerenciamento de templates */
+.template-manager {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.template-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.template-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.template-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.template-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-load,
+.btn-delete {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-load {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-load:hover {
+  background: #45a049;
+}
+
+.btn-delete {
+  background: #f44336;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #d32f2f;
+}
+
+.no-templates {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+}
+

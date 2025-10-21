@@ -49,10 +49,11 @@ from backend.app.api import routes_integrated
 app.include_router(routes_integrated.router, prefix="/api")
 
 # incluir rotas do wizard web
-from backend.app.api import routes_wizard, routes_cfd, routes_casos
+from backend.app.api import routes_wizard, routes_cfd, routes_casos, routes_templates
 app.include_router(routes_wizard.router, prefix="/api")
 app.include_router(routes_cfd.router, prefix="/api")
 app.include_router(routes_casos.router, prefix="/api")
+app.include_router(routes_templates.router, prefix="/api")
 
 # rota raiz
 @app.get("/")
