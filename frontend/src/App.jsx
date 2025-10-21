@@ -7,6 +7,7 @@ import CasosCFD from './components/CasosCFD'
 import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
+import TemplateEditor from './components/TemplateEditor'
 import ThemeIcon from './components/ThemeIcon'
 import { getSystemStatus } from './services/api'
 import { useLanguage } from './context/LanguageContext'
@@ -234,43 +235,7 @@ function App() {
 
           {activeTab === 'templates' && (
             <div className="tab-content">
-              <div className="templates-container">
-                <h2>templates</h2>
-                <div className="templates-grid">
-                  <div className="template-card">
-                    <h3>
-                      <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="editor" className="section-icon" />
-                      editor de template
-                    </h3>
-                    <p>edite um arquivo .bed diretamente</p>
-                    <button 
-                      className="btn-primary"
-                      onClick={() => {
-                        // implementar editor de template
-                        alert('editor de template será implementado aqui');
-                      }}
-                    >
-                      abrir editor
-                    </button>
-                  </div>
-                  <div className="template-card">
-                    <h3>
-                      <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="gerenciar" className="section-icon" />
-                      gerenciar templates
-                    </h3>
-                    <p>visualize, edite e delete templates salvos</p>
-                    <button 
-                      className="btn-secondary"
-                      onClick={() => {
-                        // implementar gerenciamento de templates
-                        alert('funcionalidade em desenvolvimento');
-                      }}
-                    >
-                      gerenciar
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <TemplateEditor />
             </div>
           )}
 
