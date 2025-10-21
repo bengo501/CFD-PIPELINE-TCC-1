@@ -113,7 +113,7 @@ const CFDSimulation = ({ bedFileName }) => {
             onClick={loadSimulations}
             disabled={loading}
           >
-            <ThemeIcon light="updateLight.png" dark="updateDark.png" alt="atualizar" className="btn-icon" />
+            <ThemeIcon light="updateLight-removebg-preview.png" dark="updateDark-removebg-preview.png" alt="atualizar" className="btn-icon" />
             atualizar
           </button>
         </div>

@@ -112,7 +112,7 @@ const CasosCFD = () => {
           </p>
         </div>
         <button className="btn btn-refresh" onClick={carregarCasos}>
-          <ThemeIcon light="updateLight.png" dark="updateDark.png" alt="atualizar" className="btn-icon" />
+          <ThemeIcon light="updateLight-removebg-preview.png" dark="updateDark-removebg-preview.png" alt="atualizar" className="btn-icon" />
           atualizar
         </button>
       </div>

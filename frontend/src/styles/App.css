@@ -1157,22 +1157,22 @@ legend {
 
 /* novos ícones */
 .file-icon-img, .btn-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   margin-right: 8px;
   transition: filter 0.3s ease;
 }
 
 .file-icon-img {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   margin-right: 0;
 }
 
 .btn-icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   margin-right: 6px;
 }
 
