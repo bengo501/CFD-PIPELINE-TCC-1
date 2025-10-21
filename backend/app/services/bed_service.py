@@ -96,32 +96,56 @@ class BedService:
         packing_params = params.get('packing', {})
         
         content = f"""bed {{
-  diameter: {bed_params.get('diameter', 0.05)}m
-  height: {bed_params.get('height', 0.1)}m
-  wall_thickness: {bed_params.get('wall_thickness', 0.002)}m
+    diameter = {bed_params.get('diameter', 0.05)} m;
+    height = {bed_params.get('height', 0.1)} m;
+    wall_thickness = {bed_params.get('wall_thickness', 0.002)} m;
+    clearance = {bed_params.get('clearance', 0.01)} m;
+    material = "{bed_params.get('material', 'steel')}";
+    roughness = {bed_params.get('roughness', 0.0)} m;
 }}
 
 lids {{
-  top: {lids_params.get('top_type', 'flat')}
-  bottom: {lids_params.get('bottom_type', 'flat')}
-  thickness: {lids_params.get('top_thickness', 0.003)}m
+    top_type = "{lids_params.get('top_type', 'flat')}";
+    bottom_type = "{lids_params.get('bottom_type', 'flat')}";
+    top_thickness = {lids_params.get('top_thickness', 0.003)} m;
+    bottom_thickness = {lids_params.get('bottom_thickness', 0.003)} m;
+    seal_clearance = {lids_params.get('seal_clearance', 0.001)} m;
 }}
 
 particles {{
-  count: {particles_params.get('count', 100)}
-  kind: {particles_params.get('kind', 'sphere')}
-  diameter: {particles_params.get('diameter', 0.005)}m
+    kind = "{particles_params.get('kind', 'sphere')}";
+    diameter = {particles_params.get('diameter', 0.005)} m;
+    count = {particles_params.get('count', 100)};
+    target_porosity = {particles_params.get('target_porosity', 0.4)};
+    density = {particles_params.get('density', 2500.0)} kg/m3;
+    mass = {particles_params.get('mass', 0.0)} g;
+    restitution = {particles_params.get('restitution', 0.3)};
+    friction = {particles_params.get('friction', 0.5)};
+    rolling_friction = {particles_params.get('rolling_friction', 0.1)};
+    linear_damping = {particles_params.get('linear_damping', 0.1)};
+    angular_damping = {particles_params.get('angular_damping', 0.1)};
+    seed = {particles_params.get('seed', 42)};
 }}
 
 packing {{
-  method: {packing_params.get('method', 'rigid_body')}
-  gravity: {packing_params.get('gravity', -9.81)}m/s²
-  friction: {packing_params.get('friction', 0.5)}
-  substeps: {packing_params.get('substeps', 10)}
+    method = "{packing_params.get('method', 'rigid_body')}";
+    gravity = {packing_params.get('gravity', -9.81)} m/s2;
+    substeps = {packing_params.get('substeps', 10)};
+    iterations = {packing_params.get('iterations', 10)};
+    damping = {packing_params.get('damping', 0.1)};
+    rest_velocity = {packing_params.get('rest_velocity', 0.01)} m/s;
+    max_time = {packing_params.get('max_time', 5.0)} s;
+    collision_margin = {packing_params.get('collision_margin', 0.001)} m;
 }}
 
 export {{
-  formats: blend, stl
+    formats = ["stl_binary", "blend"];
+    units = "m";
+    scale = 1.0;
+    wall_mode = "surface";
+    fluid_mode = "none";
+    manifold_check = true;
+    merge_distance = 0.001 m;
 }}
 """
         
