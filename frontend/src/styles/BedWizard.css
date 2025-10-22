@@ -45,6 +45,16 @@
   color: var(--text);
   margin: 0 0 2rem 0;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.title-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .mode-cards {
@@ -85,8 +95,8 @@
 }
 
 .mode-icon-small {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 
@@ -824,8 +834,8 @@
 }
 
 .btn-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 

@@ -231,15 +231,10 @@ const BedWizard = () => {
   const renderModeSelection = () => (
     <div className="mode-selection">
       <div className="mode-header">
-        <h2>escolha o modo de criação</h2>
-        <div className="mode-actions">
-          <button className="btn-help" onClick={() => setShowHelp(true)}>
-            ajuda
-          </button>
-          <button className="btn-docs" onClick={() => setShowDocs(true)}>
-            documentação
-          </button>
-        </div>
+        <h2>
+          <ThemeIcon light="bedLight.png" dark="bedDark.png" alt="criar leito" className="title-icon" />
+          escolha o modo de criação
+        </h2>
       </div>
       
       <div className="mode-cards">

@@ -83,7 +83,7 @@ function App() {
                     </span>
                   </div>
                   <div className="status-item">
-                    <span className="status-icon">⚙️</span>
+                    <ThemeIcon light="jobLight.png" dark="jobDark.png" alt="jobs" className="status-icon" />
                     <span className="status-label">
                       {systemStatus.jobs?.running || 0} {t('running')}
                     </span>
@@ -315,6 +315,18 @@ function App() {
                   {language === 'pt' ? 'kanban' : 'kanban'}
                 </a>
               </li>
+              <li>
+                <button className="footer-help-btn" onClick={() => alert('ajuda em desenvolvimento')}>
+                  <ThemeIcon light="helpLight.png" dark="helpDark.png" alt="ajuda" className="link-icon" />
+                  {language === 'pt' ? 'ajuda' : 'help'}
+                </button>
+              </li>
+              <li>
+                <button className="footer-docs-btn" onClick={() => alert('documentação em desenvolvimento')}>
+                  <ThemeIcon light="docsLight.png" dark="docsDark.png" alt="documentação" className="link-icon" />
+                  {language === 'pt' ? 'documentação' : 'documentation'}
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -335,6 +347,11 @@ function App() {
                 <ThemeIcon light="reactLight.png" dark="free-react-logo-icon-svg-download-png-3032257.png" alt="react" className="tech-icon" />
                 <span className="tech-badge">react</span>
                 <span className="tech-version">18</span>
+              </li>
+              <li>
+                <ThemeIcon light="viteLight.png" dark="viteDark.png" alt="vite" className="tech-icon" />
+                <span className="tech-badge">vite</span>
+                <span className="tech-version">5.x</span>
               </li>
               <li>
                 <ThemeIcon light="fastApiLight.png" dark="fastApiLight.png" alt="fastapi" className="tech-icon" />

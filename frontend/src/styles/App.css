@@ -1562,6 +1562,26 @@ legend {
   font-size: 1.1rem;
 }
 
+/* estilos para botões do footer */
+.footer-help-btn, .footer-docs-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--footer-text);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  padding: 0.25rem 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.footer-help-btn:hover, .footer-docs-btn:hover {
+  color: var(--primary);
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
