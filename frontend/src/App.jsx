@@ -241,6 +241,28 @@ function App() {
             </div>
 
             <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'dashboard' : 'dashboard'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                <ThemeIcon light="dashboardLight.png" dark="dashboardDark.png" alt="dashboard" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
+              </button>
+            </div>
+
+            <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'perfil' : 'profile'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => setActiveTab('profile')}
+              >
+                <ThemeIcon light="profileLight.png" dark="profileDark.png" alt="perfil" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'perfil' : 'profile'}</span>
+              </button>
+            </div>
+
+            <div className="nav-section">
               <h3 className="nav-section-title">settings</h3>
               <button
                 className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
@@ -357,6 +379,30 @@ function App() {
               <div className="page-container">
                 <h2>{language === 'pt' ? 'histórico' : 'history'}</h2>
                 <p>{language === 'pt' ? 'visualize o histórico das simulações' : 'view simulation history'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'dashboard' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'dashboard' : 'dashboard'}</h2>
+                <p>{language === 'pt' ? 'visão geral do sistema e estatísticas' : 'system overview and statistics'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'profile' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'perfil' : 'profile'}</h2>
+                <p>{language === 'pt' ? 'gerencie seu perfil e configurações pessoais' : 'manage your profile and personal settings'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
                 </div>
