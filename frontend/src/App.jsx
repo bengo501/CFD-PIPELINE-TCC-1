@@ -9,6 +9,7 @@ import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import TemplateEditor from './components/TemplateEditor'
 import ThemeIcon from './components/ThemeIcon'
+import { HelpModal, DocsModal } from './components/WizardHelpers'
 import { getSystemStatus } from './services/api'
 import { useLanguage } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
@@ -21,6 +22,8 @@ function App() {
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  const [showDocs, setShowDocs] = useState(false)
 
   useEffect(() => {
     // verificar status do sistema ao carregar
@@ -316,13 +319,13 @@ function App() {
                 </a>
               </li>
               <li>
-                <button className="footer-help-btn" onClick={() => alert('ajuda em desenvolvimento')}>
+                <button className="footer-help-btn" onClick={() => setShowHelp(true)}>
                   <ThemeIcon light="helpLight.png" dark="helpDark.png" alt="ajuda" className="link-icon" />
                   {language === 'pt' ? 'ajuda' : 'help'}
                 </button>
               </li>
               <li>
-                <button className="footer-docs-btn" onClick={() => alert('documentação em desenvolvimento')}>
+                <button className="footer-docs-btn" onClick={() => setShowDocs(true)}>
                   <ThemeIcon light="docsLight.png" dark="docsDark.png" alt="documentação" className="link-icon" />
                   {language === 'pt' ? 'documentação' : 'documentation'}
                 </button>
@@ -429,6 +432,48 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* modais de ajuda e documentação */}
+      <HelpModal 
+        show={showHelp} 
+        onClose={() => setShowHelp(false)} 
+        section="general"
+        paramHelp={{
+          'bed.diameter': {
+            desc: 'diâmetro interno do leito cilíndrico',
+            min: 0.01,
+            max: 1.0,
+            unit: 'm',
+            exemplo: '0.05m para leito de 5cm'
+          },
+          'bed.height': {
+            desc: 'altura do leito empacotado',
+            min: 0.01,
+            max: 2.0,
+            unit: 'm',
+            exemplo: '0.1m para leito de 10cm'
+          },
+          'particles.diameter': {
+            desc: 'diâmetro das partículas esféricas',
+            min: 0.001,
+            max: 0.01,
+            unit: 'm',
+            exemplo: '0.005m para partículas de 5mm'
+          },
+          'particles.count': {
+            desc: 'número de partículas no leito',
+            min: 10,
+            max: 10000,
+            unit: '',
+            exemplo: '100 partículas'
+          }
+        }}
+      />
+      
+      <DocsModal 
+        show={showDocs} 
+        onClose={() => setShowDocs(false)} 
+      />
     </div>
   )
 }
