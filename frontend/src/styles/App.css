@@ -1585,6 +1585,39 @@ legend {
   color: var(--primary);
 }
 
+/* estilos para páginas de desenvolvimento */
+.page-container {
+  padding: 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  margin: 1rem;
+}
+
+.page-container h2 {
+  color: var(--text);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.page-container p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.info-message {
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 1rem;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

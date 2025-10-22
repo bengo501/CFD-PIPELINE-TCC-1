@@ -152,6 +152,13 @@ function App() {
                 <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="templates" className="nav-icon" />
                 <span className="nav-label">templates</span>
               </button>
+              <button
+                className={`nav-item ${activeTab === 'templates-saved' ? 'active' : ''}`}
+                onClick={() => setActiveTab('templates-saved')}
+              >
+                <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="templates salvos" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'templates salvos' : 'saved templates'}</span>
+              </button>
             </div>
 
             <div className="nav-section">
@@ -173,6 +180,42 @@ function App() {
             </div>
 
             <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'banco de dados' : 'database'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'database' ? 'active' : ''}`}
+                onClick={() => setActiveTab('database')}
+              >
+                <ThemeIcon light="databaseLight.png" dark="databaseDark.png" alt="banco de dados" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'banco de dados' : 'database'}</span>
+              </button>
+            </div>
+
+            <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'análises' : 'analysis'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
+                onClick={() => setActiveTab('analysis')}
+              >
+                <ThemeIcon light="analysisLight.png" dark="analysisDark.png" alt="análises" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'análises' : 'analysis'}</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'comparisons' ? 'active' : ''}`}
+                onClick={() => setActiveTab('comparisons')}
+              >
+                <ThemeIcon light="compareLight.png" dark="compareDark.png" alt="comparações" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'comparações' : 'comparisons'}</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
+                onClick={() => setActiveTab('reports')}
+              >
+                <ThemeIcon light="reportLight.png" dark="reportDark.png" alt="relatórios" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'relatórios' : 'reports'}</span>
+              </button>
+            </div>
+
+            <div className="nav-section">
               <h3 className="nav-section-title">{t('results')}</h3>
               <button
                 className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`}
@@ -187,6 +230,13 @@ function App() {
               >
                 <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="results" className="nav-icon" />
                 <span className="nav-label">{t('results')}</span>
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
+                onClick={() => setActiveTab('history')}
+              >
+                <ThemeIcon light="historyLight.png" dark="historyDark.png" alt="histórico" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'histórico' : 'history'}</span>
               </button>
             </div>
 
@@ -239,6 +289,78 @@ function App() {
           {activeTab === 'templates' && (
             <div className="tab-content">
               <TemplateEditor />
+            </div>
+          )}
+
+          {activeTab === 'templates-saved' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'templates salvos' : 'saved templates'}</h2>
+                <p>{language === 'pt' ? 'gerencie seus templates salvos' : 'manage your saved templates'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'database' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'banco de dados' : 'database'}</h2>
+                <p>{language === 'pt' ? 'gerencie o banco de dados do sistema' : 'manage system database'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'analysis' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'análises' : 'analysis'}</h2>
+                <p>{language === 'pt' ? 'realize análises dos resultados' : 'perform result analysis'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'comparisons' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'comparações' : 'comparisons'}</h2>
+                <p>{language === 'pt' ? 'compare diferentes simulações' : 'compare different simulations'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'reports' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'relatórios' : 'reports'}</h2>
+                <p>{language === 'pt' ? 'gere relatórios das simulações' : 'generate simulation reports'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <div className="tab-content">
+              <div className="page-container">
+                <h2>{language === 'pt' ? 'histórico' : 'history'}</h2>
+                <p>{language === 'pt' ? 'visualize o histórico das simulações' : 'view simulation history'}</p>
+                <div className="info-message">
+                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
+                </div>
+              </div>
             </div>
           )}
 
