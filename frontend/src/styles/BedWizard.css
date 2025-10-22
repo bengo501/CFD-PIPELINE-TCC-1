@@ -1,14 +1,15 @@
 /* usar paleta de cores da identidade visual */
 .bed-wizard {
+  padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  background: var(--bg);
   min-height: 100vh;
 }
 
 /* header do wizard */
 .wizard-header {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
 .progress-bar {
@@ -35,43 +36,46 @@
 
 /* seleção de modo */
 .mode-selection {
-  padding: 40px 20px;
+  padding: 0;
 }
 
 .mode-selection h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 2rem 0;
   text-align: center;
-  margin-bottom: 40px;
-  color: #333;
-  font-size: 28px;
 }
 
 .mode-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  max-width: 900px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .mode-card {
-  background: white;
-  border: 2px solid #e0e0e0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 30px;
+  padding: 2rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
 }
 
 .mode-card:hover {
-  border-color: #2196F3;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(33, 150, 243, 0.2);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .mode-icon {
   font-size: 64px;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .mode-icon img {
@@ -91,7 +95,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .plus-symbol {
@@ -101,32 +105,36 @@
 }
 
 .mode-card h3 {
-  color: #333;
-  margin-bottom: 10px;
-  font-size: 20px;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .mode-card p {
-  color: #666;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
   line-height: 1.6;
+  margin-bottom: 1rem;
 }
 
 /* conteúdo do wizard */
 .wizard-content {
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  box-shadow: var(--card-shadow);
   min-height: 500px;
 }
 
 .form-section h2 {
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 24px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #2196F3;
+  color: var(--text);
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--primary);
 }
 
 /* grid de formulário */
@@ -788,26 +796,37 @@
 /* estilos para opções de modo */
 .mode-options {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 0.5rem;
+  margin-top: 1rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .btn-mode-option {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-mode-option:hover {
-  background: #e0e0e0;
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
   transform: translateY(-1px);
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 /* modal de opções de arquivo .bed */
