@@ -489,7 +489,10 @@ input, textarea, select {
 }
 
 .status-icon {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .status-label {
