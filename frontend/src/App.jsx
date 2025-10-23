@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Dashboard from './components/Dashboard'
 import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
@@ -17,7 +18,7 @@ import { useTheme } from './context/ThemeContext'
 function App() {
   const { language, toggleLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState('create') // create, wizard, pipeline, cfd, jobs, results
+  const [activeTab, setActiveTab] = useState('dashboard') // dashboard, create, wizard, pipeline, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
@@ -69,13 +70,19 @@ function App() {
                 className={`logo-icon ${theme === 'dark' ? 'logo-dark' : 'logo-light'}`}
               />
               <div className="logo-text">
-                <h1>CFD Pipeline</h1>
+                <h1>{activeTab === 'dashboard' ? 'Dashboard CFD' : 'CFD Pipeline'}</h1>
                 <span className="subtitle">packed beds - computational fluid dynamics</span>
               </div>
             </div>
           </div>
           
           <div className="header-right">
+            {activeTab === 'dashboard' && (
+              <button className="new-simulation-btn">
+                <ThemeIcon light="runLight.png" dark="runDark.png" alt="nova simulação" className="btn-icon" />
+                {language === 'pt' ? '+ Nova Simulação' : '+ New Simulation'}
+              </button>
+            )}
             <div className="system-status">
               {systemStatus && (
                 <>
@@ -137,6 +144,17 @@ function App() {
         {/* sidebar */}
         <aside className="sidebar">
           <nav className="sidebar-nav">
+            <div className="nav-section">
+              <h3 className="nav-section-title">{language === 'pt' ? 'dashboard' : 'dashboard'}</h3>
+              <button
+                className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                <ThemeIcon light="dashboardLight.png" dark="dashboardDark.png" alt="dashboard" className="nav-icon" />
+                <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
+              </button>
+            </div>
+
             <div className="nav-section">
               <h3 className="nav-section-title">{t('create')}</h3>
               <button
@@ -242,17 +260,6 @@ function App() {
               >
                 <ThemeIcon light="historyLight.png" dark="historyDark.png" alt="histórico" className="nav-icon" />
                 <span className="nav-label">{language === 'pt' ? 'histórico' : 'history'}</span>
-              </button>
-            </div>
-
-            <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'dashboard' : 'dashboard'}</h3>
-              <button
-                className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                <ThemeIcon light="dashboardLight.png" dark="dashboardDark.png" alt="dashboard" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
               </button>
             </div>
 
@@ -411,16 +418,7 @@ function App() {
 
           {activeTab === 'dashboard' && (
             <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'dashboard' : 'dashboard'}</h2>
-                </div>
-                <p>{language === 'pt' ? 'visão geral do sistema e estatísticas' : 'system overview and statistics'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
+              <Dashboard />
             </div>
           )}
 
