@@ -1,0 +1,360 @@
+.comparison-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.comparison-header {
+  margin-bottom: 2rem;
+}
+
+.comparison-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.comparison-title h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.title-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.comparison-description {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.selection-section {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--border-color);
+}
+
+.selection-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.selection-instruction {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.comparison-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.search-bar {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-bar .search-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.75rem;
+  object-fit: contain;
+  filter: var(--icon-filter);
+}
+
+.search-bar input {
+  flex-grow: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: var(--text-secondary);
+}
+
+.filter-dropdown {
+  position: relative;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.filter-btn .filter-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: invert(1);
+}
+
+.filter-btn .dropdown-arrow {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.simulation-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.simulation-card {
+  background: var(--bg-primary);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+}
+
+.simulation-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.simulation-card.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.simulation-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.simulation-card input[type="checkbox"] {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.simulation-card.disabled input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
+.simulation-card .card-content {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.simulation-status {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.status-completed {
+  background-color: #e6ffe6;
+  color: #28a745;
+}
+
+.status-running {
+  background-color: #fff3e0;
+  color: #ff9800;
+}
+
+.status-pending {
+  background-color: #e0f2f7;
+  color: #2196f3;
+}
+
+.status-failed {
+  background-color: #ffe6e6;
+  color: #dc3545;
+}
+
+.simulation-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.simulation-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+
+.simulation-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.simulation-meta .meta-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: var(--icon-filter);
+}
+
+.main-results {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.main-results h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.main-results p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.main-results p strong {
+  color: var(--text-primary);
+}
+
+/* modo escuro */
+.dark-mode .selection-section {
+  background: var(--bg-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+}
+
+.dark-mode .search-bar {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.dark-mode .search-bar input {
+  color: var(--text-primary);
+}
+
+.dark-mode .search-bar input::placeholder {
+  color: var(--text-secondary);
+}
+
+.dark-mode .filter-btn {
+  background: var(--primary);
+  color: var(--text-primary);
+}
+
+.dark-mode .filter-btn:hover {
+  background: var(--primary-dark);
+}
+
+.dark-mode .simulation-card {
+  background: var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+}
+
+.dark-mode .simulation-card.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
+}
+
+.dark-mode .simulation-card h3,
+.dark-mode .main-results h4,
+.dark-mode .main-results p strong {
+  color: var(--text-primary);
+}
+
+.dark-mode .comparison-title h1,
+.dark-mode .selection-section h2 {
+  color: var(--text-primary);
+}
+
+.dark-mode .comparison-description,
+.dark-mode .selection-instruction,
+.dark-mode .simulation-description,
+.dark-mode .simulation-meta,
+.dark-mode .main-results p {
+  color: var(--text-secondary);
+}
+
+/* responsividade */
+@media (max-width: 768px) {
+  .comparison-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+
+  .filter-dropdown {
+    width: 100%;
+  }
+
+  .filter-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .simulation-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
