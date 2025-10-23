@@ -1618,6 +1618,98 @@ legend {
   font-weight: 500;
 }
 
+/* estilos para WIP header */
+.wip-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.wip-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* estilos para botões de ação */
+.btn-run {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.btn-run:hover {
+  background: var(--primary-dark);
+}
+
+.btn-run-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+  background: var(--secondary-dark);
+  border-color: var(--primary);
+}
+
+.btn-refresh-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* estilos para status de ação */
+.action-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.action-status.success {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.action-status.error {
+  background: var(--error-light);
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+.action-status-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

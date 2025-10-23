@@ -80,7 +80,12 @@ function App() {
               {systemStatus && (
                 <>
                   <div className="status-item">
-                    <span className={`status-dot ${systemStatus.api === 'running' ? 'online' : 'offline'}`}></span>
+                    <ThemeIcon 
+                      light={systemStatus.api === 'running' ? "onlineLight.png" : "offlineLight.png"} 
+                      dark={systemStatus.api === 'running' ? "onlineDark.png" : "offlineDark.png"} 
+                      alt={systemStatus.api === 'running' ? 'online' : 'offline'} 
+                      className="status-icon" 
+                    />
                     <span className="status-label">
                       {systemStatus.api === 'running' ? t('online') : t('offline')}
                     </span>
@@ -196,7 +201,7 @@ function App() {
                 className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
                 onClick={() => setActiveTab('analysis')}
               >
-                <ThemeIcon light="analysisLight.png" dark="analysisDark.png" alt="análises" className="nav-icon" />
+                <ThemeIcon light="analiseLight.png" dark="analiseDark.png" alt="análises" className="nav-icon" />
                 <span className="nav-label">{language === 'pt' ? 'análises' : 'analysis'}</span>
               </button>
               <button
@@ -317,7 +322,10 @@ function App() {
           {activeTab === 'templates-saved' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'templates salvos' : 'saved templates'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'templates salvos' : 'saved templates'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'gerencie seus templates salvos' : 'manage your saved templates'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -329,7 +337,10 @@ function App() {
           {activeTab === 'database' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'banco de dados' : 'database'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'banco de dados' : 'database'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'gerencie o banco de dados do sistema' : 'manage system database'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -341,7 +352,10 @@ function App() {
           {activeTab === 'analysis' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'análises' : 'analysis'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'análises' : 'analysis'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'realize análises dos resultados' : 'perform result analysis'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -353,7 +367,10 @@ function App() {
           {activeTab === 'comparisons' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'comparações' : 'comparisons'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'comparações' : 'comparisons'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'compare diferentes simulações' : 'compare different simulations'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -365,7 +382,10 @@ function App() {
           {activeTab === 'reports' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'relatórios' : 'reports'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'relatórios' : 'reports'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'gere relatórios das simulações' : 'generate simulation reports'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -377,7 +397,10 @@ function App() {
           {activeTab === 'history' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'histórico' : 'history'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'histórico' : 'history'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'visualize o histórico das simulações' : 'view simulation history'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -389,7 +412,10 @@ function App() {
           {activeTab === 'dashboard' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'dashboard' : 'dashboard'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'dashboard' : 'dashboard'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'visão geral do sistema e estatísticas' : 'system overview and statistics'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -401,7 +427,10 @@ function App() {
           {activeTab === 'profile' && (
             <div className="tab-content">
               <div className="page-container">
-                <h2>{language === 'pt' ? 'perfil' : 'profile'}</h2>
+                <div className="wip-header">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
+                  <h2>{language === 'pt' ? 'perfil' : 'profile'}</h2>
+                </div>
                 <p>{language === 'pt' ? 'gerencie seu perfil e configurações pessoais' : 'manage your profile and personal settings'}</p>
                 <div className="info-message">
                   {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
@@ -498,6 +527,12 @@ function App() {
                   {language === 'pt' ? 'documentação' : 'documentation'}
                 </button>
               </li>
+              <li>
+                <a href="https://github.com/bengo501" target="_blank" rel="noopener noreferrer">
+                  <ThemeIcon light="githubProfileLight.png" dark="GithubProfileDark.png" alt="github profile" className="link-icon" />
+                  {language === 'pt' ? 'perfil github' : 'github profile'}
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -523,6 +558,36 @@ function App() {
                 <ThemeIcon light="viteLight.png" dark="viteDark.png" alt="vite" className="tech-icon" />
                 <span className="tech-badge">vite</span>
                 <span className="tech-version">5.x</span>
+              </li>
+              <li>
+                <ThemeIcon light="pythonLogoLight.png" dark="pythonLogoDark.png" alt="python" className="tech-icon" />
+                <span className="tech-badge">python</span>
+                <span className="tech-version">3.11</span>
+              </li>
+              <li>
+                <ThemeIcon light="wslLogoLight.png" dark="wslLogoDark.png" alt="wsl" className="tech-icon" />
+                <span className="tech-badge">wsl</span>
+                <span className="tech-version">2</span>
+              </li>
+              <li>
+                <ThemeIcon light="jsLight.png" dark="jsDark.png" alt="javascript" className="tech-icon" />
+                <span className="tech-badge">javascript</span>
+                <span className="tech-version">es6+</span>
+              </li>
+              <li>
+                <ThemeIcon light="javaLight.png" dark="javaDark.png" alt="java" className="tech-icon" />
+                <span className="tech-badge">java</span>
+                <span className="tech-version">17</span>
+              </li>
+              <li>
+                <ThemeIcon light="cssLight.png" dark="cssDark.png" alt="css" className="tech-icon" />
+                <span className="tech-badge">css</span>
+                <span className="tech-version">3</span>
+              </li>
+              <li>
+                <ThemeIcon light="antlrLight.png" dark="antlrDark.png" alt="antlr" className="tech-icon" />
+                <span className="tech-badge">antlr</span>
+                <span className="tech-version">4.x</span>
               </li>
               <li>
                 <ThemeIcon light="fastApiLight.png" dark="fastApiLight.png" alt="fastapi" className="tech-icon" />
