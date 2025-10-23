@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Dashboard from './components/Dashboard'
+import SimulationHistory from './components/SimulationHistory'
 import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
@@ -317,6 +318,12 @@ function App() {
           {activeTab === 'results' && (
             <div className="tab-content">
               <ResultsList />
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <div className="tab-content">
+              <SimulationHistory />
             </div>
           )}
 
