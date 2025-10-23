@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import ThemeIcon from './ThemeIcon';
 import './Dashboard.css';
 
@@ -82,7 +82,7 @@ function Dashboard() {
       <div className="metrics-grid">
         <div className="metric-card">
           <div className="metric-icon">
-            <ThemeIcon light="barChartLight.png" dark="barChartDark.png" alt="total simulations" className="card-icon" />
+            <ThemeIcon light="triangle_white_outline.png" dark="triangle_black_outline.png" alt="total simulations" className="card-icon" />
           </div>
           <div className="metric-content">
             <div className="metric-value">{dashboardData.totalSimulations}</div>
@@ -93,7 +93,7 @@ function Dashboard() {
 
         <div className="metric-card">
           <div className="metric-icon success">
-            <ThemeIcon light="lineChartLight.png" dark="lineChartDark.png" alt="success rate" className="card-icon" />
+            <ThemeIcon light="correctLight.png" dark="correctDark.png" alt="success rate" className="card-icon" />
           </div>
           <div className="metric-content">
             <div className="metric-value">{dashboardData.successRate}%</div>
@@ -129,7 +129,7 @@ function Dashboard() {
       <div className="resources-grid">
         <div className="resource-card">
           <div className="resource-icon">
-            <ThemeIcon light="bedLight.png" dark="bedDark.png" alt="available limit" className="card-icon" />
+            <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="available limit" className="card-icon" />
           </div>
           <div className="resource-content">
             <div className="resource-value">{dashboardData.resourceLimit}%</div>
@@ -140,7 +140,7 @@ function Dashboard() {
 
         <div className="resource-card">
           <div className="resource-icon">
-            <ThemeIcon light="clockLight.png" dark="clockDark.png" alt="average time" className="card-icon" />
+            <ThemeIcon light="job_monitor_clock_white.png" dark="job_monitor_clock_white.png" alt="average time" className="card-icon" />
           </div>
           <div className="resource-content">
             <div className="resource-value">{dashboardData.averageTime}s</div>
@@ -151,7 +151,7 @@ function Dashboard() {
 
         <div className="resource-card">
           <div className="resource-icon success">
-            <ThemeIcon light="cpuLight.png" dark="cpuDark.png" alt="cpu usage" className="card-icon" />
+            <ThemeIcon light="triangle_white_outline.png" dark="triangle_black_outline.png" alt="cpu usage" className="card-icon" />
           </div>
           <div className="resource-content">
             <div className="resource-value">{dashboardData.cpuUsage}%</div>
@@ -162,7 +162,7 @@ function Dashboard() {
 
         <div className="resource-card">
           <div className="resource-icon">
-            <ThemeIcon light="memoryLight.png" dark="memoryDark.png" alt="memory" className="card-icon" />
+            <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="memory" className="card-icon" />
           </div>
           <div className="resource-content">
             <div className="resource-value">{dashboardData.memoryUsage}GB</div>
@@ -249,11 +249,11 @@ function Dashboard() {
               <div className="simulation-date">{simulation.date}</div>
               <div className="simulation-actions">
                 <button className="action-btn view">
-                  <ThemeIcon light="viewLight.png" dark="viewDark.png" alt="view" className="action-icon" />
+                  <ThemeIcon light="viewLight-removebg-preview.png" dark="viewDark-removebg-preview.png" alt="view" className="action-icon" />
                   {language === 'pt' ? 'Ver' : 'View'}
                 </button>
                 <button className="action-btn download">
-                  <ThemeIcon light="downloadLight.png" dark="downloadDark.png" alt="download" className="action-icon" />
+                  <ThemeIcon light="downloadLight-removebg-preview.png" dark="donwloadDark-removebg-preview.png" alt="download" className="action-icon" />
                   {language === 'pt' ? 'Baixar' : 'Download'}
                 </button>
               </div>
