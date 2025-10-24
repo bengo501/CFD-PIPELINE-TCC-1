@@ -27,6 +27,7 @@ function App() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
+  const [expandedSections, setExpandedSections] = useState({})
 
   useEffect(() => {
     // verificar status do sistema ao carregar
@@ -57,6 +58,13 @@ function App() {
   const handleJobCreated = (job) => {
     setCurrentJob(job)
     setActiveTab('jobs')
+  }
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
   }
 
   return (
@@ -169,21 +177,33 @@ function App() {
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">templates</h3>
-              <button
-                className={`nav-item ${activeTab === 'templates' ? 'active' : ''}`}
-                onClick={() => setActiveTab('templates')}
-              >
-                <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="templates" className="nav-icon" />
-                <span className="nav-label">templates</span>
-              </button>
-              <button
-                className={`nav-item ${activeTab === 'templates-saved' ? 'active' : ''}`}
-                onClick={() => setActiveTab('templates-saved')}
-              >
-                <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="templates salvos" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'templates salvos' : 'saved templates'}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('templates')}>
+                <h3 className="nav-section-title">templates</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.templates ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.templates && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'templates' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('templates')}
+                  >
+                    <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="templates" className="nav-icon" />
+                    <span className="nav-label">templates</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'templates-saved' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('templates-saved')}
+                  >
+                    <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="templates salvos" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'templates salvos' : 'saved templates'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
@@ -241,28 +261,54 @@ function App() {
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{t('results')}</h3>
-              <button
-                className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`}
-                onClick={() => setActiveTab('jobs')}
-              >
-                <ThemeIcon light="jobLight.png" dark="jobDark.png" alt="jobs" className="nav-icon" />
-                <span className="nav-label">{t('jobs')} ({systemStatus?.jobs?.total || 0})</span>
-              </button>
-              <button
-                className={`nav-item ${activeTab === 'results' ? 'active' : ''}`}
-                onClick={() => setActiveTab('results')}
-              >
-                <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="results" className="nav-icon" />
-                <span className="nav-label">{t('results')}</span>
-              </button>
-              <button
-                className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
-                onClick={() => setActiveTab('history')}
-              >
-                <ThemeIcon light="historyLight.png" dark="historyDark.png" alt="histórico" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'histórico' : 'history'}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('results')}>
+                <h3 className="nav-section-title">{t('results')}</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.results ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.results && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('jobs')}
+                  >
+                    <ThemeIcon light="jobLight.png" dark="jobDark.png" alt="jobs" className="nav-icon" />
+                    <span className="nav-label">{t('jobs')} ({systemStatus?.jobs?.total || 0})</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'results' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('results')}
+                  >
+                    <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="results" className="nav-icon" />
+                    <span className="nav-label">{t('results')}</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('history')}
+                  >
+                    <ThemeIcon light="historyLight.png" dark="historyDark.png" alt="histórico" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'histórico' : 'history'}</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'comparisons' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('comparisons')}
+                  >
+                    <ThemeIcon light="compareLight.png" dark="compareDark.png" alt="comparações" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'comparações' : 'comparisons'}</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('reports')}
+                  >
+                    <ThemeIcon light="reportsLight.png" dark="reportsDark.png" alt="relatórios" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'relatórios' : 'reports'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
@@ -343,9 +389,9 @@ function App() {
           {activeTab === 'templates-saved' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'templates salvos' : 'saved templates'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'templates salvos' : 'saved templates'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'gerencie seus templates salvos' : 'manage your saved templates'}</p>
                 <div className="info-message">
@@ -358,9 +404,9 @@ function App() {
           {activeTab === 'database' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'banco de dados' : 'database'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'banco de dados' : 'database'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'gerencie o banco de dados do sistema' : 'manage system database'}</p>
                 <div className="info-message">
@@ -373,9 +419,9 @@ function App() {
           {activeTab === 'analysis' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'análises' : 'analysis'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'análises' : 'analysis'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'realize análises dos resultados' : 'perform result analysis'}</p>
                 <div className="info-message">
@@ -388,9 +434,9 @@ function App() {
           {activeTab === 'comparisons' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'comparações' : 'comparisons'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'comparações' : 'comparisons'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'compare diferentes simulações' : 'compare different simulations'}</p>
                 <div className="info-message">
@@ -403,9 +449,9 @@ function App() {
           {activeTab === 'reports' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'relatórios' : 'reports'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'relatórios' : 'reports'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'gere relatórios das simulações' : 'generate simulation reports'}</p>
                 <div className="info-message">
@@ -418,9 +464,9 @@ function App() {
           {activeTab === 'history' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'histórico' : 'history'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'histórico' : 'history'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'visualize o histórico das simulações' : 'view simulation history'}</p>
                 <div className="info-message">
@@ -439,9 +485,9 @@ function App() {
           {activeTab === 'profile' && (
             <div className="tab-content">
               <div className="page-container">
-                <div className="wip-header">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-logo" />
-                  <h2>{language === 'pt' ? 'perfil' : 'profile'}</h2>
+                <div className="wip-content">
+                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
+                  <h1 className="wip-title">{language === 'pt' ? 'perfil' : 'profile'}</h1>
                 </div>
                 <p>{language === 'pt' ? 'gerencie seu perfil e configurações pessoais' : 'manage your profile and personal settings'}</p>
                 <div className="info-message">
