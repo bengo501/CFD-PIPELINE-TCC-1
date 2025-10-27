@@ -445,6 +445,8 @@ input, textarea, select {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  flex-shrink: 0;
+  min-width: fit-content;
 }
 
 .system-status {
@@ -519,6 +521,9 @@ input, textarea, select {
   backdrop-filter: blur(10px);
   width: 56px;
   height: 56px;
+  flex-shrink: 0;
+  min-width: 56px;
+  min-height: 56px;
 }
 
 .theme-toggle:hover,
@@ -1350,7 +1355,7 @@ legend {
   margin: 0 auto;
   padding: 3rem 2rem 2rem;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 2.5rem;
 }
 
@@ -1472,8 +1477,8 @@ legend {
 /* seção tecnologias */
 .footer-tech ul {
   list-style: none;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
 
@@ -1843,11 +1848,11 @@ legend {
 .academic-logo {
   width: 100%;
   height: auto;
-  max-height: 40px;
+  max-height: 60px;
   object-fit: contain;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  padding: 0.5rem;
+  padding: 0.75rem;
   transition: all 0.1s ease;
 }
 

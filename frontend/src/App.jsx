@@ -622,6 +622,33 @@ function App() {
               <span className="version-badge">v0.1.0</span>
               <span className="version-status">beta</span>
             </div>
+            
+            <div className="footer-section footer-academic">
+              <h4>{language === 'pt' ? 'acadêmico' : 'academic'}</h4>
+              <div className="academic-logos">
+                <img 
+                  src="/image/logo-light.png" 
+                  alt="pucrs logo" 
+                  className="academic-logo"
+                />
+                <img 
+                  src="/image/escola-politecnica.png" 
+                  alt="escola politecnica" 
+                  className="academic-logo"
+                />
+                <img 
+                  src="/image/logo_lope.png" 
+                  alt="lope laboratorio" 
+                  className="academic-logo"
+                />
+              </div>
+              <p className="academic-info">
+                <strong>{language === 'pt' ? 'tcc' : 'final project'}</strong><br />
+                {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
+                {language === 'pt' ? 'engenharia química' : 'chemical engineering'}
+              </p>
+              <p className="academic-year">2024/2025</p>
+            </div>
           </div>
 
           <div className="footer-section footer-links">
@@ -753,32 +780,6 @@ function App() {
             </ul>
           </div>
 
-          <div className="footer-section footer-academic">
-            <h4>{language === 'pt' ? 'acadêmico' : 'academic'}</h4>
-            <div className="academic-logos">
-              <img 
-                src="/image/logo-light.png" 
-                alt="pucrs logo" 
-                className="academic-logo"
-              />
-              <img 
-                src="/image/escola-politecnica.png" 
-                alt="escola politecnica" 
-                className="academic-logo"
-              />
-              <img 
-                src="/image/logo_lope.png" 
-                alt="lope laboratorio" 
-                className="academic-logo"
-              />
-            </div>
-            <p className="academic-info">
-              <strong>{language === 'pt' ? 'tcc' : 'final project'}</strong><br />
-              {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
-              {language === 'pt' ? 'engenharia química' : 'chemical engineering'}
-            </p>
-            <p className="academic-year">2024/2025</p>
-          </div>
         </div>
 
         <div className="footer-bottom">
@@ -789,7 +790,8 @@ function App() {
             </p>
             <div className="footer-social">
               <a href="https://github.com/bengo501" target="_blank" rel="noopener noreferrer" title="github profile">
-                <span className="social-icon">🐙</span>
+                <ThemeIcon light="githubProfileLight.png" dark="GithubProfileDark.png" alt="github profile" className="social-icon" />
+                {language === 'pt' ? 'perfil github' : 'github profile'}
               </a>
             </div>
           </div>
