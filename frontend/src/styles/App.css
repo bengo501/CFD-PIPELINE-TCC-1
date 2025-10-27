@@ -616,7 +616,7 @@ input, textarea, select {
   justify-content: space-between;
   padding: 0 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.05s ease;
   border-radius: 6px;
   margin-bottom: 0.5rem;
 }
@@ -630,7 +630,7 @@ input, textarea, select {
   height: 16px;
   object-fit: contain;
   filter: invert(1);
-  transition: transform 0.3s ease;
+  transition: transform 0.1s ease;
 }
 
 .nav-arrow.expanded {
@@ -655,7 +655,7 @@ input, textarea, select {
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
   text-align: left;
   font-family: 'Source Code Pro', 'Fira Code', 'JetBrains Mono', monospace;
   font-size: 0.95rem;
@@ -1710,7 +1710,7 @@ legend {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
 }
 
 .btn-refresh:hover {
@@ -1765,7 +1765,7 @@ legend {
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -1848,7 +1848,7 @@ legend {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
 }
 
 .academic-logo:hover {

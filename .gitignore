@@ -113,6 +113,12 @@ docs/documentacao/*.md
 !relatorio_tcc/**/*.md
 !sprints/**/*.md
 
-# pasta bibliografia (não versionar)
+# pastas específicas do projeto (não versionar)
 bibliografia/
+docs/
+.kanbn/
+.kanbn_boards/
+refs/
+relatorio_tcc/
+sprints/
 

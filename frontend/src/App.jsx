@@ -166,14 +166,26 @@ function App() {
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{t('create')}</h3>
-              <button
-                className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('wizard')}
-              >
-                <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="criar leito" className="nav-icon" />
-                <span className="nav-label">{t('createBed')}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('create')}>
+                <h3 className="nav-section-title">{t('create')}</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.create ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.create && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('wizard')}
+                  >
+                    <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="criar leito" className="nav-icon" />
+                    <span className="nav-label">{t('createBed')}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
@@ -207,57 +219,93 @@ function App() {
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{t('simulation')}</h3>
-              <button
-                className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
-                onClick={() => setActiveTab('cfd')}
-              >
-                <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="simulações CFD" className="nav-icon" />
-                <span className="nav-label">{t('cfdSimulation')}</span>
-              </button>
-              <button
-                className={`nav-item ${activeTab === 'casos' ? 'active' : ''}`}
-                onClick={() => setActiveTab('casos')}
-              >
-                <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="casos cfd" className="nav-icon" />
-                <span className="nav-label">{t('casosCfd')}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('simulation')}>
+                <h3 className="nav-section-title">{t('simulation')}</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.simulation ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.simulation && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'cfd' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('cfd')}
+                  >
+                    <ThemeIcon light="cfd_gear_white.png" dark="image-removebg-preview(12).png" alt="simulações CFD" className="nav-icon" />
+                    <span className="nav-label">{t('cfdSimulation')}</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'casos' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('casos')}
+                  >
+                    <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="casos cfd" className="nav-icon" />
+                    <span className="nav-label">{t('casosCfd')}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'banco de dados' : 'database'}</h3>
-              <button
-                className={`nav-item ${activeTab === 'database' ? 'active' : ''}`}
-                onClick={() => setActiveTab('database')}
-              >
-                <ThemeIcon light="databaseLight.png" dark="databaseDark.png" alt="banco de dados" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'banco de dados' : 'database'}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('database')}>
+                <h3 className="nav-section-title">{language === 'pt' ? 'banco de dados' : 'database'}</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.database ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.database && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'database' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('database')}
+                  >
+                    <ThemeIcon light="databaseLight.png" dark="databaseDark.png" alt="banco de dados" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'banco de dados' : 'database'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'análises' : 'analysis'}</h3>
-              <button
-                className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
-                onClick={() => setActiveTab('analysis')}
-              >
-                <ThemeIcon light="analiseLight.png" dark="analiseDark.png" alt="análises" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'análises' : 'analysis'}</span>
-              </button>
-              <button
-                className={`nav-item ${activeTab === 'comparisons' ? 'active' : ''}`}
-                onClick={() => setActiveTab('comparisons')}
-              >
-                <ThemeIcon light="compareLight.png" dark="compareDark.png" alt="comparações" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'comparações' : 'comparisons'}</span>
-              </button>
-              <button
-                className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
-                onClick={() => setActiveTab('reports')}
-              >
-                <ThemeIcon light="reportLight.png" dark="reportDark.png" alt="relatórios" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'relatórios' : 'reports'}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('analysis')}>
+                <h3 className="nav-section-title">{language === 'pt' ? 'análises' : 'analysis'}</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.analysis ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.analysis && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('analysis')}
+                  >
+                    <ThemeIcon light="analiseLight.png" dark="analiseDark.png" alt="análises" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'análises' : 'analysis'}</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'comparisons' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('comparisons')}
+                  >
+                    <ThemeIcon light="compareLight.png" dark="compareDark.png" alt="comparações" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'comparações' : 'comparisons'}</span>
+                  </button>
+                  <button
+                    className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('reports')}
+                  >
+                    <ThemeIcon light="reportLight.png" dark="reportDark.png" alt="relatórios" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'relatórios' : 'reports'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
@@ -312,25 +360,49 @@ function App() {
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'perfil' : 'profile'}</h3>
-              <button
-                className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => setActiveTab('profile')}
-              >
-                <ThemeIcon light="profileLight.png" dark="profileDark.png" alt="perfil" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'perfil' : 'profile'}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('profile')}>
+                <h3 className="nav-section-title">{language === 'pt' ? 'perfil' : 'profile'}</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.profile ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.profile && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('profile')}
+                  >
+                    <ThemeIcon light="profileLight.png" dark="profileDark.png" alt="perfil" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'perfil' : 'profile'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
-              <h3 className="nav-section-title">settings</h3>
-              <button
-                className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('settings')}
-              >
-                <ThemeIcon light="settingsLight.png" dark="settingsDark.png" alt="settings" className="nav-icon" />
-                <span className="nav-label">{t('configuracoes')}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('settings')}>
+                <h3 className="nav-section-title">settings</h3>
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.settings ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.settings && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('settings')}
+                  >
+                    <ThemeIcon light="settingsLight.png" dark="settingsDark.png" alt="settings" className="nav-icon" />
+                    <span className="nav-label">{t('configuracoes')}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </nav>
         </aside>
