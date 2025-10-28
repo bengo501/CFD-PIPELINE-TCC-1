@@ -97,17 +97,19 @@ function App() {
               {systemStatus && (
                 <>
                   <div className="status-item">
-                    <img 
-                      src={systemStatus.api === 'running' ? "/image/onlineLight.png" : "/image/offlineLight.png"} 
+                    <ThemeIcon 
+                      light={systemStatus.api === 'running' ? "onlineLight.png" : "offlineLight.png"} 
+                      dark={systemStatus.api === 'running' ? "onlineDark.png" : "offlineDark.png"} 
                       alt={systemStatus.api === 'running' ? 'online' : 'offline'} 
                       className="status-icon" 
+                      location="header"
                     />
                     <span className="status-label">
                       {systemStatus.api === 'running' ? t('online') : t('offline')}
                     </span>
                   </div>
                   <div className="status-item">
-                    <img src="/image/jobLight.png" alt="jobs" className="status-icon" />
+                    <ThemeIcon light="jobLight.png" dark="jobDark.png" alt="jobs" className="status-icon" location="header" />
                     <span className="status-label">
                       {systemStatus.jobs?.running || 0} {t('running')}
                     </span>
@@ -122,10 +124,12 @@ function App() {
               title={theme === 'light' ? (language === 'pt' ? 'modo escuro' : 'dark mode') : (language === 'pt' ? 'modo claro' : 'light mode')}
               aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
             >
-              <img 
-                src="/image/image-removebg-preview(15).png" 
+              <ThemeIcon 
+                light="image-removebg-preview(15).png" 
+                dark="darkmode_moon_sun_white.png" 
                 alt={theme === 'light' ? 'dark mode' : 'light mode'} 
                 className="theme-icon" 
+                location="header"
               />
               <span className="theme-text">{theme === 'light' ? (language === 'pt' ? 'escuro' : 'dark') : (language === 'pt' ? 'claro' : 'light')}</span>
             </button>
@@ -136,10 +140,12 @@ function App() {
               title={language === 'pt' ? 'switch to english' : 'mudar para português'}
               aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
             >
-              <img 
-                src={language === 'pt' ? "/image/brazil_flag_icon_black.png" : "/image/usa_flag_icon_black_50stars.png"} 
+              <ThemeIcon 
+                light={language === 'pt' ? "brazil_flag_icon_black.png" : "usa_flag_icon_black_50stars.png"} 
+                dark={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
                 alt={language === 'pt' ? 'brasil' : 'usa'} 
                 className="flag" 
+                location="header"
               />
               <span className="lang-text">{language === 'pt' ? 'br' : 'us'}</span>
             </button>
@@ -154,13 +160,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('dashboard')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/dashboardLight.png" alt="dashboard" className="section-icon" />
+                  <ThemeIcon light="dashboardLight.png" dark="dashboardDark.png" alt="dashboard" className="section-icon" location="sidebar" />
                   {language === 'pt' ? 'dashboard' : 'dashboard'}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.dashboard ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.dashboard && (
@@ -179,13 +187,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('create')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/create_bed_white.png" alt="create" className="section-icon" />
+                  <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="create" className="section-icon" location="sidebar" />
                   {t('create')}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.create ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.create && (
@@ -204,13 +214,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('templates')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/folderLight.png" alt="templates" className="section-icon" />
+                  <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="templates" className="section-icon" location="sidebar" />
                   templates
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.templates ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.templates && (
@@ -236,13 +248,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('simulation')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/cfd_gear_white.png" alt="simulation" className="section-icon" />
+                  <ThemeIcon light="cfd_gear_white.png" dark="cfd_gear_white.png" alt="simulation" className="section-icon" location="sidebar" />
                   {t('simulation')}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.simulation ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.simulation && (
@@ -268,13 +282,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('database')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/databaseLight.png" alt="database" className="section-icon" />
+                  <ThemeIcon light="databaseLight.png" dark="databaseDark.png" alt="database" className="section-icon" location="sidebar" />
                   {language === 'pt' ? 'banco de dados' : 'database'}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.database ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.database && (
@@ -293,13 +309,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('analysis')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/analiseLight.png" alt="analysis" className="section-icon" />
+                  <ThemeIcon light="analiseLight.png" dark="analiseDark.png" alt="analysis" className="section-icon" location="sidebar" />
                   {language === 'pt' ? 'análises' : 'analysis'}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.analysis ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.analysis && (
@@ -332,13 +350,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('results')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/cfd_gear_white.png" alt="results" className="section-icon" />
+                  <ThemeIcon light="cfd_gear_white.png" dark="cfd_gear_white.png" alt="results" className="section-icon" location="sidebar" />
                   {t('results')}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.results ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.results && (
@@ -385,13 +405,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('profile')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/profileLight.png" alt="profile" className="section-icon" />
+                  <ThemeIcon light="profileLight.png" dark="profileDark.png" alt="profile" className="section-icon" location="sidebar" />
                   {language === 'pt' ? 'perfil' : 'profile'}
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.profile ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.profile && (
@@ -410,13 +432,15 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('settings')}>
                 <h3 className="nav-section-title">
-                  <img src="/image/settingsLight.png" alt="settings" className="section-icon" />
+                  <ThemeIcon light="settingsLight.png" dark="settingsDark.png" alt="settings" className="section-icon" location="sidebar" />
                   settings
                 </h3>
-                <img 
-                  src="/image/triangle_white_outline.png" 
+                <ThemeIcon 
+                  light="triangle_white_outline.png" 
+                  dark="triangle_black_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.settings ? 'expanded' : ''}`} 
+                  location="sidebar"
                 />
               </div>
               {expandedSections.settings && (
@@ -637,6 +661,7 @@ function App() {
                 dark="cfdPipelineLight.png" 
                 alt="cfd pipeline logo" 
                 className="footer-icon"
+                location="footer"
               />
               <span className="footer-title">cfd pipeline</span>
             </div>
@@ -683,7 +708,7 @@ function App() {
             <ul>
               <li>
                 <a href="https://github.com/bengo501/CFD-PIPELINE-TCC-1" target="_blank" rel="noopener noreferrer">
-                  <ThemeIcon light="githubLight.png" dark="github.png" alt="github" className="link-icon" />
+                  <ThemeIcon light="githubLight.png" dark="github.png" alt="github" className="link-icon" location="footer" />
                   github
                 </a>
               </li>
@@ -701,13 +726,13 @@ function App() {
               </li>
               <li>
                 <button className="footer-help-btn" onClick={() => setShowHelp(true)}>
-                  <ThemeIcon light="helpLight.png" dark="helpDark.png" alt="ajuda" className="link-icon" />
+                  <ThemeIcon light="helpLight.png" dark="helpDark.png" alt="ajuda" className="link-icon" location="footer" />
                   {language === 'pt' ? 'ajuda' : 'help'}
                 </button>
               </li>
               <li>
                 <button className="footer-docs-btn" onClick={() => setShowDocs(true)}>
-                  <ThemeIcon light="docsLight.png" dark="docsDark.png" alt="documentação" className="link-icon" />
+                  <ThemeIcon light="docsLight.png" dark="docsDark.png" alt="documentação" className="link-icon" location="footer" />
                   {language === 'pt' ? 'documentação' : 'documentation'}
                 </button>
               </li>
