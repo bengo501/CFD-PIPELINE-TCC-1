@@ -97,9 +97,8 @@ function App() {
               {systemStatus && (
                 <>
                   <div className="status-item">
-                    <ThemeIcon 
-                      light={systemStatus.api === 'running' ? "onlineLight.png" : "offlineLight.png"} 
-                      dark={systemStatus.api === 'running' ? "onlineDark.png" : "offlineDark.png"} 
+                    <img 
+                      src={systemStatus.api === 'running' ? "/image/onlineLight.png" : "/image/offlineLight.png"} 
                       alt={systemStatus.api === 'running' ? 'online' : 'offline'} 
                       className="status-icon" 
                     />
@@ -108,7 +107,7 @@ function App() {
                     </span>
                   </div>
                   <div className="status-item">
-                    <ThemeIcon light="jobLight.png" dark="jobDark.png" alt="jobs" className="status-icon" />
+                    <img src="/image/jobLight.png" alt="jobs" className="status-icon" />
                     <span className="status-label">
                       {systemStatus.jobs?.running || 0} {t('running')}
                     </span>
@@ -123,9 +122,8 @@ function App() {
               title={theme === 'light' ? (language === 'pt' ? 'modo escuro' : 'dark mode') : (language === 'pt' ? 'modo claro' : 'light mode')}
               aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
             >
-              <ThemeIcon 
-                light="image-removebg-preview(15).png" 
-                dark="darkmode_moon_sun_white.png" 
+              <img 
+                src="/image/image-removebg-preview(15).png" 
                 alt={theme === 'light' ? 'dark mode' : 'light mode'} 
                 className="theme-icon" 
               />
@@ -138,9 +136,8 @@ function App() {
               title={language === 'pt' ? 'switch to english' : 'mudar para português'}
               aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
             >
-              <ThemeIcon 
-                light={language === 'pt' ? "brazil_flag_icon_black.png" : "usa_flag_icon_black_50stars.png"} 
-                dark={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
+              <img 
+                src={language === 'pt' ? "/image/brazil_flag_icon_black.png" : "/image/usa_flag_icon_black_50stars.png"} 
                 alt={language === 'pt' ? 'brasil' : 'usa'} 
                 className="flag" 
               />
@@ -155,22 +152,38 @@ function App() {
         <aside className="sidebar">
           <nav className="sidebar-nav">
             <div className="nav-section">
-              <h3 className="nav-section-title">{language === 'pt' ? 'dashboard' : 'dashboard'}</h3>
-              <button
-                className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                <ThemeIcon light="dashboardLight.png" dark="dashboardDark.png" alt="dashboard" className="nav-icon" />
-                <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
-              </button>
+              <div className="nav-section-header" onClick={() => toggleSection('dashboard')}>
+                <h3 className="nav-section-title">
+                  <img src="/image/dashboardLight.png" alt="dashboard" className="section-icon" />
+                  {language === 'pt' ? 'dashboard' : 'dashboard'}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
+                  alt="toggle" 
+                  className={`nav-arrow ${expandedSections.dashboard ? 'expanded' : ''}`} 
+                />
+              </div>
+              {expandedSections.dashboard && (
+                <div className="nav-subsection">
+                  <button
+                    className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('dashboard')}
+                  >
+                    <img src="/image/dashboardLight.png" alt="dashboard" className="nav-icon" />
+                    <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('create')}>
-                <h3 className="nav-section-title">{t('create')}</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/create_bed_white.png" alt="create" className="section-icon" />
+                  {t('create')}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.create ? 'expanded' : ''}`} 
                 />
@@ -181,7 +194,7 @@ function App() {
                     className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
                     onClick={() => setActiveTab('wizard')}
                   >
-                    <ThemeIcon light="create_bed_white.png" dark="image-removebg-preview(14).png" alt="criar leito" className="nav-icon" />
+                    <img src="/image/create_bed_white.png" alt="criar leito" className="nav-icon" />
                     <span className="nav-label">{t('createBed')}</span>
                   </button>
                 </div>
@@ -190,10 +203,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('templates')}>
-                <h3 className="nav-section-title">templates</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/folderLight.png" alt="templates" className="section-icon" />
+                  templates
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.templates ? 'expanded' : ''}`} 
                 />
@@ -220,10 +235,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('simulation')}>
-                <h3 className="nav-section-title">{t('simulation')}</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/cfd_gear_white.png" alt="simulation" className="section-icon" />
+                  {t('simulation')}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.simulation ? 'expanded' : ''}`} 
                 />
@@ -250,10 +267,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('database')}>
-                <h3 className="nav-section-title">{language === 'pt' ? 'banco de dados' : 'database'}</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/databaseLight.png" alt="database" className="section-icon" />
+                  {language === 'pt' ? 'banco de dados' : 'database'}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.database ? 'expanded' : ''}`} 
                 />
@@ -273,10 +292,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('analysis')}>
-                <h3 className="nav-section-title">{language === 'pt' ? 'análises' : 'analysis'}</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/analiseLight.png" alt="analysis" className="section-icon" />
+                  {language === 'pt' ? 'análises' : 'analysis'}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.analysis ? 'expanded' : ''}`} 
                 />
@@ -310,10 +331,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('results')}>
-                <h3 className="nav-section-title">{t('results')}</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/cfd_gear_white.png" alt="results" className="section-icon" />
+                  {t('results')}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.results ? 'expanded' : ''}`} 
                 />
@@ -361,10 +384,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('profile')}>
-                <h3 className="nav-section-title">{language === 'pt' ? 'perfil' : 'profile'}</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/profileLight.png" alt="profile" className="section-icon" />
+                  {language === 'pt' ? 'perfil' : 'profile'}
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.profile ? 'expanded' : ''}`} 
                 />
@@ -384,10 +409,12 @@ function App() {
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('settings')}>
-                <h3 className="nav-section-title">settings</h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_black_outline.png" 
+                <h3 className="nav-section-title">
+                  <img src="/image/settingsLight.png" alt="settings" className="section-icon" />
+                  settings
+                </h3>
+                <img 
+                  src="/image/triangle_white_outline.png" 
                   alt="toggle" 
                   className={`nav-arrow ${expandedSections.settings ? 'expanded' : ''}`} 
                 />

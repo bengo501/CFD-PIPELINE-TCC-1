@@ -334,7 +334,7 @@ input, textarea, select {
   top: 0;
   z-index: 100;
   border-bottom: 3px solid var(--accent);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
 }
 
 /* header encolhido ao scrollar */
@@ -495,6 +495,7 @@ input, textarea, select {
   width: 16px;
   height: 16px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .status-label {
@@ -514,7 +515,7 @@ input, textarea, select {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
   color: white;
   font-weight: 500;
   font-size: 0.8rem;
@@ -613,6 +614,15 @@ input, textarea, select {
   color: var(--accent);
   margin-bottom: 0.75rem;
   padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .nav-section-header {
@@ -621,7 +631,7 @@ input, textarea, select {
   justify-content: space-between;
   padding: 0 1rem;
   cursor: pointer;
-  transition: background-color 0.05s ease;
+  transition: none;
   border-radius: 6px;
   margin-bottom: 0.5rem;
 }
@@ -635,7 +645,7 @@ input, textarea, select {
   height: 16px;
   object-fit: contain;
   filter: invert(1);
-  transition: transform 0.1s ease;
+  transition: none;
 }
 
 .nav-arrow.expanded {
@@ -660,7 +670,7 @@ input, textarea, select {
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: none;
   text-align: left;
   font-family: 'Source Code Pro', 'Fira Code', 'JetBrains Mono', monospace;
   font-size: 0.95rem;
@@ -1715,7 +1725,7 @@ legend {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .btn-refresh:hover {
@@ -1770,7 +1780,7 @@ legend {
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -1853,7 +1863,7 @@ legend {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 0.75rem;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .academic-logo:hover {
