@@ -323,7 +323,7 @@ input, textarea, select {
   flex: 1;
   min-height: 0;
   position: relative;
-  z-index: 1;
+  z-index: 999;
 }
 
 /* ==================== header ==================== */
@@ -334,7 +334,7 @@ input, textarea, select {
   box-shadow: var(--header-shadow);
   position: sticky;
   top: 0;
-  z-index: 1001;
+  z-index: 1000;
   border-bottom: 3px solid var(--accent);
   transition: none;
 }
@@ -578,7 +578,7 @@ input, textarea, select {
   left: 0;
   top: 0;
   height: 100vh; /* altura total da tela */
-  z-index: 1000;
+  z-index: 1002;
   overflow-y: auto;
   padding-top: 140px; /* espaço para o header */
   transition: padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
