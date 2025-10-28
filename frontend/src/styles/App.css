@@ -1932,7 +1932,9 @@ legend {
 }
 
 .social-icon {
-  font-size: 1.5rem;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 /* responsividade do footer */

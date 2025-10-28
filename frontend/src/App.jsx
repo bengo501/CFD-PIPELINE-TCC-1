@@ -684,12 +684,6 @@ function App() {
                   {language === 'pt' ? 'documentação' : 'documentation'}
                 </button>
               </li>
-              <li>
-                <a href="https://github.com/bengo501" target="_blank" rel="noopener noreferrer">
-                  <ThemeIcon light="githubProfileLight.png" dark="GithubProfileDark.png" alt="github profile" className="link-icon" />
-                  {language === 'pt' ? 'perfil github' : 'github profile'}
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -790,7 +784,7 @@ function App() {
             </p>
             <div className="footer-social">
               <a href="https://github.com/bengo501" target="_blank" rel="noopener noreferrer" title="github profile">
-                <ThemeIcon light="githubProfileLight.png" dark="GithubProfileDark.png" alt="github profile" className="social-icon" />
+                <img src="/image/githubProfileLight.png" alt="github profile" className="social-icon" />
                 {language === 'pt' ? 'perfil github' : 'github profile'}
               </a>
             </div>
