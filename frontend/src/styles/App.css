@@ -322,6 +322,8 @@ input, textarea, select {
   display: flex;
   flex: 1;
   min-height: 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* ==================== header ==================== */
@@ -332,7 +334,7 @@ input, textarea, select {
   box-shadow: var(--header-shadow);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1001;
   border-bottom: 3px solid var(--accent);
   transition: none;
 }
@@ -368,14 +370,14 @@ input, textarea, select {
 }
 
 .header.header-scrolled .theme-icon,
-.header.header-scrolled .flag {
-  width: 16px;
-  height: 16px;
+.header.header-scrolled .flag { /* tamanho do ícone do botão de idioma */
+  width: 36px;
+  height: 36px;
 }
 
 .header.header-scrolled .theme-text,
-.header.header-scrolled .lang-text {
-  font-size: 0.7rem;
+.header.header-scrolled .lang-text { /* tamanho da fonte do texto do botão de idioma */
+  font-size: 0.5rem;
 }
 
 .header-content {
@@ -398,21 +400,13 @@ input, textarea, select {
 }
 
 .logo-icon {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
-  animation: pulse 2s ease-in-out infinite;
-  transition: filter 0.3s ease, width 0.3s ease, height 0.3s ease;
+  transition: filter 0.1s ease, width 0.1s ease, height 0.1s ease;
 }
 
-/* filtro para logo conforme tema */
-.logo-icon.logo-light {
-  filter: none;
-}
 
-.logo-icon.logo-dark {
-  filter: brightness(0) invert(1); /* branco no dark mode */
-}
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
@@ -461,26 +455,26 @@ input, textarea, select {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15); /* cor de fundo ao passar o mouse */
   border-radius: 8px;
   backdrop-filter: blur(10px);
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: inline-block;
   animation: blink 2s ease-in-out infinite;
 }
 
 .status-dot.online {
-  background: #4caf50;
+  background: #4caf50; /* cor do ponto online */
   box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
 
 .status-dot.offline {
-  background: #f44336;
+  background: #f44336; /* cor do ponto offline */
   box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
   animation: none;
 }
@@ -490,57 +484,58 @@ input, textarea, select {
   50% { opacity: 0.5; }
 }
 
-.status-icon {
-  font-size: 0.9rem;
-  width: 16px;
-  height: 16px;
+.status-icon { /* ícone de status */
+  font-size: 1.5rem; /* tamanho do ícone */
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .status-label {
-  font-weight: 500;
+  font-weight: 500; /* peso da fonte */
   white-space: nowrap;
+  font-size: 1.05rem;
 }
 
 /* botões de tema e idioma */
-.theme-toggle,
-.language-toggle {
+.theme-toggle, /* botão de tema */
+.language-toggle { /* botões de tema e idioma */
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0;
   padding: 0.8rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2); /* cor de fundo ao passar o mouse */
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 10px;
   cursor: pointer;
   transition: none;
-  color: white;
+  color: white; /* cor do texto */
   font-weight: 500;
   font-size: 0.8rem;
-  backdrop-filter: blur(10px);
-  width: 56px;
+  backdrop-filter: blur(10px); /* efeito de blur */
+  width: 56px; /* largura do botão */
   height: 56px;
   flex-shrink: 0;
   min-width: 56px;
-  min-height: 56px;
+  min-height: 56px; /* altura do botão */
 }
 
-.theme-toggle:hover,
-.language-toggle:hover {
-  background: rgba(255, 255, 255, 0.3);
+.theme-toggle:hover, /* botão de tema ao passar o mouse */
+.language-toggle:hover { /* botão de idioma ao passar o mouse */
+  background: rgba(255, 255, 255, 0.3); /* cor de fundo ao passar o mouse */
   border-color: var(--accent);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.theme-icon,
-.flag {
-  width: 36px;
-  height: 36px;
+.theme-icon, /* ícone do botão de tema */
+.flag { /* ícone do botão de idioma */
+  width: 52px;
+  height: 52px;
   object-fit: contain;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   line-height: 1;
 }
 
@@ -552,22 +547,22 @@ input, textarea, select {
 /* responsividade do header */
 @media (max-width: 768px) {
   .header-content {
-    flex-direction: column;
+    flex-direction: column; /* empilhamento dos itens do header */
     gap: 1rem;
   }
   
-  .logo-text .subtitle {
+  .logo-text .subtitle { /* tamanho da fonte do subtítulo */
     font-size: 0.75rem;
   }
   
   .system-status {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: column; 
+    gap: 0.5rem; /* gap entre os itens de status */
   }
   
   .status-item {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem; /* padding do item de status */
+    font-size: 1rem;
   }
 }
 
@@ -583,8 +578,8 @@ input, textarea, select {
   left: 0;
   top: 0;
   height: 100vh; /* altura total da tela */
+  z-index: 1000;
   overflow-y: auto;
-  z-index: 90;
   padding-top: 140px; /* espaço para o header */
   transition: padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -644,7 +639,6 @@ input, textarea, select {
   width: 16px;
   height: 16px;
   object-fit: contain;
-  filter: invert(1);
   transition: none;
 }
 
@@ -703,8 +697,8 @@ input, textarea, select {
 }
 
 .nav-icon {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -713,15 +707,6 @@ input, textarea, select {
   transition: filter 0.3s ease;
 }
 
-/* nav-icon light mode (pretos) */
-.nav-icon {
-  filter: brightness(0) invert(0);
-}
-
-/* nav-icon dark mode (brancos) */
-[data-theme="dark"] .nav-icon {
-  filter: brightness(0) invert(1);
-}
 
 .nav-label {
   flex: 1;
@@ -1292,6 +1277,7 @@ legend {
   gap: 1.5rem;
 }
 
+
 .template-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
@@ -1472,17 +1458,6 @@ legend {
   transition: filter 0.3s ease;
 }
 
-/* ícones light mode (pretos) */
-.link-icon, .tech-icon, .db-icon {
-  filter: brightness(0) invert(0);
-}
-
-/* ícones dark mode (brancos) */
-[data-theme="dark"] .link-icon,
-[data-theme="dark"] .tech-icon,
-[data-theme="dark"] .db-icon {
-  filter: brightness(0) invert(1);
-}
 
 /* seção tecnologias */
 .footer-tech ul {
@@ -1572,16 +1547,6 @@ legend {
   transition: filter 0.3s ease;
 }
 
-/* ícones de seção e legend - light mode (pretos) */
-.section-icon, .legend-icon {
-  filter: brightness(0) invert(0);
-}
-
-/* ícones de seção e legend - dark mode (brancos) */
-[data-theme="dark"] .section-icon,
-[data-theme="dark"] .legend-icon {
-  filter: brightness(0) invert(1);
-}
 
 /* settings container */
 .settings-container {
@@ -1657,13 +1622,14 @@ legend {
 }
 
 .info-message {
-  background: var(--primary-light);
+
   border: 1px solid var(--primary);
   color: var(--primary);
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 6px;
   text-align: center;
   font-weight: 500;
+  font-size: 3.6rem;
 }
 
 /* estilos para WIP content */
@@ -1675,8 +1641,8 @@ legend {
 }
 
 .wip-large-logo {
-  width: 120px; /* Muito maior que os ícones convencionais */
-  height: 120px;
+  width: 360px; /* Muito maior que os ícones convencionais */
+  height: 360px;
   object-fit: contain;
   filter: var(--icon-filter);
 }
@@ -1791,8 +1757,8 @@ legend {
 }
 
 .new-simulation-btn .btn-icon {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 
@@ -1935,11 +1901,6 @@ legend {
   transition: all 0.3s;
 }
 
-.footer-social a:hover {
-  background: var(--accent);
-  transform: translateY(-3px) scale(1.1);
-  box-shadow: 0 4px 12px rgba(240, 185, 30, 0.4);
-}
 
 .social-icon {
   width: 20px;
