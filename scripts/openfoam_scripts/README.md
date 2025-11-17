@@ -11,13 +11,18 @@ scripts python para integrar o blender com o openfoam, criando e executando simu
 ### `setup_openfoam_case.py`
 
 script completo que:
-1. ✅ carrega parâmetros do `arquivo.bed.json`
-2. ✅ exporta geometria do blender para stl
-3. ✅ cria caso openfoam completo
-4. ✅ gera malha com snappyhexmesh
-5. ✅ configura condições de contorno
-6. ✅ executa simulação (opcional)
-7. ✅ prepara visualização no paraview
+
+carrega parâmetros do `arquivo.bed.json`
+
+exporta geometria do blender para stl
+
+cria caso openfoam completo
+
+gera malha com snappyhexmesh
+
+configura condições de contorno
+
+executa simulação (opcional)prepara visualização no paraview
 
 ---
 
@@ -146,6 +151,7 @@ o script lê os seguintes parâmetros do `arquivo.bed.json`:
 ### valores padrão
 
 se a seção `cfd` não existir, usa:
+
 - **inlet_velocity**: 0.1 m/s
 - **fluid_viscosity**: 1.5e-5 m²/s (ar)
 - **max_iterations**: 1000
@@ -287,7 +293,7 @@ proximos passos:
 ### logs gerados
 
 - `log.blockMesh`: geração malha de fundo
-- `log.snappyHexMesh`: geração malha refinada  
+- `log.snappyHexMesh`: geração malha refinada
 - `log.checkMesh`: qualidade da malha
 - `log.simpleFoam`: simulação principal
 
@@ -329,6 +335,7 @@ postProcess -func surfaceFieldValue
 ### problema 1: blender não encontrado
 
 **erro:**
+
 ```
 FileNotFoundError: blender nao encontrado no sistema
 ```
@@ -341,11 +348,13 @@ adicione o caminho do blender no script ou ao path do sistema.
 ### problema 2: openfoam não encontrado
 
 **erro:**
+
 ```
 ./Allrun: line 5: blockMesh: command not found
 ```
 
 **solução:**
+
 ```bash
 # no wsl, carregar openfoam
 source /opt/openfoam11/etc/bashrc
@@ -359,11 +368,13 @@ echo "source /opt/openfoam11/etc/bashrc" >> ~/.bashrc
 ### problema 3: erro na geração de malha
 
 **erro:**
+
 ```
 erro no snappyHexMesh! veja log.snappyHexMesh
 ```
 
 **solução:**
+
 ```bash
 # verificar log
 cat log.snappyHexMesh
@@ -379,12 +390,14 @@ cat log.snappyHexMesh
 ### problema 4: simulação não converge
 
 **sintomas:**
+
 ```
 Time = 500
 Courant Number mean: 0.5 max: 10.5  <- muito alto!
 ```
 
 **solução:**
+
 ```bash
 # editar system/fvSolution
 # aumentar relaxationFactors:
@@ -429,6 +442,7 @@ python setup_openfoam_case.py \
 ### exemplo 2: leito com velocidade alta
 
 editar `leito.bed.json`:
+
 ```json
 {
   "cfd": {
@@ -447,6 +461,7 @@ python setup_openfoam_case.py \
 ### exemplo 3: simulação com água
 
 editar `leito.bed.json`:
+
 ```json
 {
   "cfd": {
@@ -461,15 +476,18 @@ editar `leito.bed.json`:
 ## dependências
 
 ### python
+
 - python 3.8+
 - bibliotecas padrão (json, subprocess, pathlib)
 
 ### software externo
+
 - blender 3.0+ (para exportar stl)
 - openfoam 9+ (para simulação)
 - paraview 5.0+ (para visualização)
 
 ### sistema
+
 - wsl2 + ubuntu (windows)
 - ou linux nativo
 
@@ -483,6 +501,5 @@ editar `leito.bed.json`:
 
 ---
 
-*última atualização: outubro 2024*  
+*última atualização: outubro 2024*
 *versão: 1.0.0*
-
