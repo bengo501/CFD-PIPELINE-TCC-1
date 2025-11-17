@@ -49,15 +49,9 @@ generated/**
 !generated/*/*/*/.gitkeep
 !generated/*/*/*/*/.gitkeep
 
-# pastas antigas (deprecated) - remover após migração
-output/**
-exports/standalone_generated/**
-models/blender_generated/**
+# pastas antigas dsl (deprecated) - manter apenas arquivos locais, ignorar no repo
 dsl/bed_files/**
 dsl/json_files/**
-!output/.gitkeep
-!exports/standalone_generated/.gitkeep
-!models/blender_generated/.gitkeep
 !dsl/bed_files/.gitkeep
 !dsl/json_files/.gitkeep
 
