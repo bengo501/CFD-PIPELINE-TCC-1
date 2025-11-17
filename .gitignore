@@ -35,14 +35,14 @@ ENV/
 *.log
 *.cache
 
-# arquivos de saída (opcional - descomentar se não quiser versionar)
-# output/
-# output/models/*.blend
-# output/models/*.gltf
-# output/models/*.glb
-# output/models/*.obj
-# output/models/*.fbx
-# output/models/*.stl
+# arquivos de saída gerados
+output/*.bed
+output/*.json
+output/models/**
+output/cfd/**
+!output/.gitkeep
+!output/models/.gitkeep
+!output/cfd/.gitkeep
 
 # arquivos de configuração local
 .env
