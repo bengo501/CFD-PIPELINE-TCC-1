@@ -5,7 +5,7 @@ testes automatizados completos do pipeline, desde geracao de leitos ate simulaca
 ## estrutura
 
 ```
-tests/e2e/
+scripts/tests/e2e/
 ├── test_full_pipeline.py       # suite principal de testes
 ├── test_blender_only.py        # testes focados em blender
 ├── test_openfoam_only.py       # testes focados em openfoam
@@ -68,7 +68,7 @@ tests/e2e/
 ### executar todos os testes
 
 ```bash
-cd tests/e2e
+cd scripts/tests/e2e
 python test_full_pipeline.py
 ```
 
@@ -313,7 +313,7 @@ python test_full_pipeline.py --skip-interactive
 python scripts/automation/install_antlr.py
 
 # testar compilador manualmente
-python dsl/compiler/bed_compiler_antlr_standalone.py tests/e2e/outputs/test01.bed
+python dsl/compiler/bed_compiler_antlr_standalone.py scripts/tests/e2e/outputs/test01.bed
 ```
 
 ### testes muito lentos
@@ -365,14 +365,14 @@ jobs:
     
       - name: executar testes e2e
         run: |
-          cd tests/e2e
+          cd scripts/tests/e2e
           python test_full_pipeline.py --skip-interactive
     
       - name: upload resultados
         uses: actions/upload-artifact@v2
         with:
           name: test-results
-          path: tests/e2e/results/
+          path: scripts/tests/e2e/results/
 ```
 
 ## referencias

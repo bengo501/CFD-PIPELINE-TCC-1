@@ -88,7 +88,7 @@ packing {{
 
 export {{
     formats = ["blend", "stl"]
-    output_dir = "tests/e2e/outputs/{test_name}"
+    output_dir = "scripts/tests/e2e/outputs/{test_name}"
 }}
 
 cfd {{
