@@ -339,22 +339,28 @@ apos instalacao completa:
 
 ```
 CFD-PIPELINE-TCC-1/
+├── .config/
+│   └── config.ini                    # configuracao do projeto
+│
 ├── dsl/
-│   ├── antlr-4.13.1-complete.jar    # antlr runtime
+│   ├── antlr-4.13.1-complete.jar     # antlr runtime
 │   ├── generated/                    # parser python gerado
 │   │   ├── BedLexer.py
 │   │   ├── BedParser.py
 │   │   └── BedListener.py
-│   └── antlr.bat / antlr.sh         # alias antlr
+│   └── antlr.bat / antlr.sh          # alias antlr
 │
-├── output/
-│   ├── models/                       # modelos blender gerados
+├── generated/
+│   ├── 3d/
+│   │   ├── blender/                  # arquivos .blend fonte
+│   │   ├── exports/                  # glb/gltf/obj/stl exportados
+│   │   └── output/                   # modelos 3d finais por execucao
 │   ├── cfd/                          # casos openfoam
-│   └── temp/                         # arquivos temporarios
+│   ├── configs/                      # arquivos .bed e .bed.json
+│   └── batch/                        # execucoes em lote
 │
 ├── logs/                             # logs de execucao
-│
-└── config.ini                        # configuracao do projeto
+└── ...
 ```
 
 ## proximos passos apos instalacao
@@ -374,8 +380,8 @@ CFD-PIPELINE-TCC-1/
    ```bash
    python scripts/openfoam_scripts/setup_openfoam_case.py \
      dsl/leito.bed.json \
-     output/models/leito.blend \
-     --output-dir output/cfd
+     generated/3d/output/leito.blend \
+     --output-dir generated/cfd
    ```
 4. **ler documentacao:**
 

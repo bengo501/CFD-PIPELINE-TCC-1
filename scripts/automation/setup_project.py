@@ -156,11 +156,14 @@ cor_leito = azul
 cor_particulas = verde
 '''
         
-        config_file = self.project_root / "config.ini"
-        with open(config_file, 'w') as f:
+        config_dir = self.project_root / ".config"
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        config_file = config_dir / "config.ini"
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write(config_content)
         
-        print("   Arquivo de configuração criado: config.ini")
+        print(f"   Arquivo de configuração criado: {config_file}")
     
     def run_tests(self):
         # executa testes basicos

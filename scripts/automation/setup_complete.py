@@ -272,11 +272,15 @@ output_dir = generated/3d/output
 """
         
         try:
-            config_file = self.project_root / "config.ini"
+            # garantir que a pasta .config exista
+            config_dir = self.project_root / ".config"
+            config_dir.mkdir(parents=True, exist_ok=True)
+
+            config_file = config_dir / "config.ini"
             with open(config_file, 'w', encoding='utf-8') as f:
                 f.write(config_content)
             
-            print(f"[ok] config.ini criado")
+            print(f"[ok] config.ini criado em {config_file}")
             return True
             
         except Exception as e:

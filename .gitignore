@@ -166,7 +166,6 @@ docs/documentacao/*.md
 
 # pastas específicas do projeto (não versionar)
 bibliografia/
-docs/
 .kanbn/
 .kanbn_boards/
 refs/

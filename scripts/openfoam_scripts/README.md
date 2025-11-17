@@ -32,12 +32,12 @@ cd scripts/openfoam_scripts
 # criar caso openfoam (sem executar)
 python setup_openfoam_case.py \
     ../../dsl/leito_blender.bed.json \
-    ../../output/models/leito_blender.blend
+    ../../generated/3d/output/leito_blender.blend
 
 # criar e executar simulação
 python setup_openfoam_case.py \
     ../../dsl/leito_blender.bed.json \
-    ../../output/models/leito_blender.blend \
+    ../../generated/3d/output/leito_blender.blend \
     --run
 ```
 
@@ -46,8 +46,8 @@ python setup_openfoam_case.py \
 ```bash
 python setup_openfoam_case.py \
     ../../dsl/leito_blender.bed.json \
-    ../../output/models/leito_blender.blend \
-    --output-dir ../../output/cfd/meu_caso
+    ../../generated/3d/output/leito_blender.blend \
+    --output-dir ../../generated/cfd/meu_caso
 ```
 
 ## workflow completo
@@ -66,14 +66,14 @@ python bed_wizard.py
 cd ../scripts/openfoam_scripts
 python setup_openfoam_case.py \
     ../../dsl/leito_blender.bed.json \
-    ../../output/models/leito_blender.blend
+    ../../generated/3d/output/leito_blender.blend
 ```
 
 ### 3. executar simulação (no wsl/ubuntu)
 
 ```bash
 # copiar caso para wsl
-cp -r ../../output/cfd/leito_blender ~/openfoam/
+cp -r ../../generated/cfd/leito_blender ~/openfoam/
 
 # executar no wsl
 cd ~/openfoam/leito_blender
@@ -94,7 +94,7 @@ explorer.exe .
 ## estrutura do caso gerado
 
 ```
-output/cfd/leito_blender/
+generated/cfd/leito_blender/
 ├── 0/                          # condições iniciais
 │   ├── U                       # velocidade
 │   └── p                       # pressão
@@ -162,14 +162,14 @@ se a seção `cfd` não existir, usa:
 
 [2/8] exportando stl do blender
   executando blender...
-  ✓ stl exportado: output/cfd/leito_blender.stl
+  ✓ stl exportado: generated/cfd/leito_blender.stl
     tamanho: 1.25 mb
 
 [3/8] criando estrutura do caso openfoam
-  ✓ caso criado em: output/cfd/leito_blender
+  ✓ caso criado em: generated/cfd/leito_blender
 
 [4/8] copiando stl para caso
-  ✓ stl copiado para: output/cfd/leito_blender/constant/triSurface/leito.stl
+  ✓ stl copiado para: generated/cfd/leito_blender/constant/triSurface/leito.stl
 
 [5/8] criando configuracao de malha
   ✓ blockMeshDict criado
@@ -188,10 +188,10 @@ se a seção `cfd` não existir, usa:
   ✓ caso openfoam configurado com sucesso!
 ============================================================
 
-caso criado em: output/cfd/leito_blender
+caso criado em: generated/cfd/leito_blender
 
 para executar a simulacao:
-  cd output/cfd/leito_blender
+  cd generated/cfd/leito_blender
   ./Allrun
 
 ou execute este script com --run
@@ -204,21 +204,21 @@ ou execute este script com --run
 ```bash
 python setup_openfoam_case.py \
     ../../dsl/leito_blender.bed.json \
-    ../../output/models/leito_blender.blend \
+    ../../generated/3d/output/leito_blender.blend \
     --run
 ```
 
 ### opção 2: script allrun
 
 ```bash
-cd ../../output/cfd/leito_blender
+cd ../../generated/cfd/leito_blender
 ./Allrun
 ```
 
 ### opção 3: comandos manuais
 
 ```bash
-cd ../../output/cfd/leito_blender
+cd ../../generated/cfd/leito_blender
 
 # 1. gerar malha de fundo
 blockMesh
@@ -406,7 +406,7 @@ relaxationFactors
 ```bash
 python setup_openfoam_case.py \
     ../../dsl/leito_100.bed.json \
-    ../../output/models/leito_100.blend
+    ../../generated/3d/output/leito_100.blend
 ```
 
 ### exemplo 2: leito com velocidade alta
@@ -424,7 +424,7 @@ editar `leito.bed.json`:
 ```bash
 python setup_openfoam_case.py \
     ../../dsl/leito_rapido.bed.json \
-    ../../output/models/leito_rapido.blend \
+    ../../generated/3d/output/leito_rapido.blend \
     --run
 ```
 

@@ -55,8 +55,8 @@ compila parâmetros em arquivo `.bed` e `.bed.json`
 ```json
 {
   "success": true,
-  "bed_file": "output/leito_20251009_091500.bed",
-  "json_file": "output/leito_20251009_091500.bed.json",
+  "bed_file": "generated/configs/leito_20251009_091500.bed",
+  "json_file": "generated/configs/leito_20251009_091500.bed.json",
   "message": "compilação bem-sucedida"
 }
 ```
@@ -73,7 +73,7 @@ gera modelo 3d no blender (assíncrono)
 
 ```json
 {
-  "json_file": "output/leito_20251009_091500.bed.json",
+  "json_file": "generated/configs/leito_20251009_091500.bed.json",
   "open_blender": false
 }
 ```
@@ -100,8 +100,8 @@ cria caso openfoam (assíncrono)
 
 ```json
 {
-  "json_file": "output/leito_20251009_091500.bed.json",
-  "blend_file": "output/models/leito_20251009_091500.blend",
+  "json_file": "generated/configs/leito_20251009_091500.bed.json",
+  "blend_file": "generated/3d/output/leito_20251009_091500.blend",
   "run_simulation": false
 }
 ```
@@ -122,7 +122,7 @@ GET /api/job/{job_id}
   "progress": 100,
   "created_at": "2025-10-09T09:15:00",
   "updated_at": "2025-10-09T09:18:30",
-  "output_files": ["output/models/leito_20251009_091500.blend"]
+  "output_files": ["generated/3d/output/leito_20251009_091500.blend"]
 }
 ```
 
@@ -198,7 +198,7 @@ curl -X POST http://localhost:8000/api/bed/compile \
 curl -X POST http://localhost:8000/api/model/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "json_file": "output/leito_20251009_091500.bed.json"
+    "json_file": "generated/configs/leito_20251009_091500.bed.json"
   }'
 
 # verificar job
