@@ -16,11 +16,13 @@ python setup_openfoam_case.py ^
 ```
 
 **parametros:**
+
 - primeiro argumento: caminho para arquivo `.bed.json` (gerado pelo compilador)
 - segundo argumento: caminho para arquivo `.blend` (gerado pelo blender)
 - `--output-dir`: diretorio onde o caso openfoam sera criado
 
 **saida esperada:**
+
 ```
 [1/8] carregando parametros...
 [2/8] exportando stl do blender...
@@ -60,6 +62,7 @@ source /opt/openfoam11/etc/bashrc
 ```
 
 **verificar se openfoam esta carregado:**
+
 ```bash
 which simpleFoam
 ```
@@ -77,6 +80,7 @@ existem duas opcoes:
 ```
 
 este script executa automaticamente:
+
 1. `blockMesh` - cria malha de fundo
 2. `snappyHexMesh` - refina malha ao redor da geometria
 3. `checkMesh` - verifica qualidade da malha
@@ -122,6 +126,7 @@ ls -la
 ```
 
 **diretorios de resultado:**
+
 - `0/` - condicoes iniciais
 - `constant/` - propriedades e geometria
 - `system/` - configuracoes de simulacao
@@ -148,8 +153,6 @@ paraview caso.foam &
    C:\Users\joxto\Downloads\CFD-PIPELINE-TCC-1\output\cfd\leito_interativo\caso.foam
    ```
 
----
-
 ## executar simulacao diretamente (sem parar)
 
 se quiser preparar o caso **e** executar a simulacao em um unico comando:
@@ -165,8 +168,6 @@ python setup_openfoam_case.py ^
 ```
 
 **atencao:** a flag `--run` tentara executar o `Allrun` no wsl automaticamente!
-
----
 
 ## estrutura de arquivos do caso
 
@@ -190,27 +191,24 @@ leito_interativo/
 └── caso.foam                    # arquivo para paraview
 ```
 
----
-
 ## parametros cfd configurados automaticamente
 
 o script `setup_openfoam_case.py` le do arquivo `.bed.json`:
 
-| parametro json | uso no openfoam | localizacao |
-|---|---|---|
-| `cfd.inlet_velocity` | velocidade de entrada | `0/U` |
-| `cfd.fluid_density` | densidade do fluido | `constant/transportProperties` |
-| `cfd.fluid_viscosity` | viscosidade dinamica | `constant/transportProperties` |
-| `cfd.max_iterations` | numero de iteracoes | `system/controlDict` |
-| `cfd.convergence_criteria` | criterio de parada | `system/fvSolution` |
-
----
+| parametro json               | uso no openfoam       | localizacao                      |
+| ---------------------------- | --------------------- | -------------------------------- |
+| `cfd.inlet_velocity`       | velocidade de entrada | `0/U`                          |
+| `cfd.fluid_density`        | densidade do fluido   | `constant/transportProperties` |
+| `cfd.fluid_viscosity`      | viscosidade dinamica  | `constant/transportProperties` |
+| `cfd.max_iterations`       | numero de iteracoes   | `system/controlDict`           |
+| `cfd.convergence_criteria` | criterio de parada    | `system/fvSolution`            |
 
 ## troubleshooting
 
 ### erro: "blockMesh: command not found"
 
 **solucao:** carregue o ambiente openfoam:
+
 ```bash
 source /opt/openfoam11/etc/bashrc
 ```
@@ -218,6 +216,7 @@ source /opt/openfoam11/etc/bashrc
 ### erro: "cannot find file leito.stl"
 
 **solucao:** verifique se o stl foi copiado:
+
 ```bash
 ls -la constant/triSurface/
 ```
@@ -225,11 +224,13 @@ ls -la constant/triSurface/
 ### erro: "simulation diverged" ou "floating point exception"
 
 **causas possiveis:**
+
 1. malha de baixa qualidade (execute `checkMesh`)
 2. condicoes iniciais muito altas (reduza `inlet_velocity`)
 3. timestep muito grande (reduza `deltaT` no `controlDict`)
 
 **solucoes:**
+
 ```bash
 # verificar malha
 checkMesh
@@ -244,11 +245,10 @@ nano system/controlDict
 ### simulacao muito lenta
 
 **otimizacoes:**
+
 1. reduzir refinamento em `snappyHexMeshDict`
 2. usar computacao paralela (adicionar `mpirun -np 4 simpleFoam -parallel`)
 3. aumentar tolerancias em `fvSolution`
-
----
 
 ## proximos passos
 
@@ -257,12 +257,9 @@ nano system/controlDict
 3. **visualizacao web**: dashboard para visualizar resultados sem paraview
 4. **batch processing**: executar multiplas simulacoes variando parametros
 
----
-
 ## referencias
 
 - [openfoam user guide](https://www.openfoam.com/documentation/user-guide)
 - [snappyhexmesh tutorial](https://www.openfoam.com/documentation/tutorial-guide)
 - [simpleFoam solver](https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-incompressible-simpleFoam.html)
 - [paraview tutorial](https://www.paraview.org/Wiki/ParaView/Users_Guide/Introduction)
-

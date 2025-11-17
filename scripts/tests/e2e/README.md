@@ -31,38 +31,37 @@ tests/e2e/
 **6 testes end-to-end:**
 
 1. **test_basic_generation** - geracao basica
+
    - cria arquivo .bed
    - compila para .bed.json
    - valida sintaxe
-
 2. **test_3d_generation** - geracao 3d completa
+
    - gera arquivo .bed
    - compila para json
    - gera modelo 3d no blender
    - valida arquivo .blend
-
 3. **test_3d_and_open_blender** - gerar e visualizar
+
    - gera modelo 3d
    - abre no blender gui
    - teste interativo (requer confirmacao manual)
-
 4. **test_openfoam_setup** - configuracao cfd
+
    - gera modelo 3d
    - exporta stl
    - cria caso openfoam
    - valida estrutura de arquivos
-
 5. **test_full_simulation_quick** - simulacao rapida
+
    - pipeline completo
    - executa apenas blockmesh (rapido)
    - valida malha gerada
-
 6. **test_parametric_study** - estudo parametrico
+
    - gera multiplos leitos
    - varia diametro e numero de particulas
    - valida todos os arquivos
-
----
 
 ## como usar
 
@@ -74,6 +73,7 @@ python test_full_pipeline.py
 ```
 
 **saida esperada:**
+
 ```
 ======================================================================
 INICIANDO SUITE DE TESTES E2E
@@ -106,8 +106,6 @@ total de testes: 6
 taxa de sucesso: 100.0%
 ```
 
----
-
 ### pular testes interativos
 
 ```bash
@@ -115,8 +113,6 @@ python test_full_pipeline.py --skip-interactive
 ```
 
 isso pula o teste que abre o blender gui.
-
----
 
 ### executar teste especifico
 
@@ -130,8 +126,6 @@ python test_full_pipeline.py --test test_openfoam_setup
 # apenas estudo parametrico
 python test_full_pipeline.py --test test_parametric_study
 ```
-
----
 
 ## relatorios
 
@@ -177,8 +171,6 @@ cada teste gera logs especificos:
 - `logs/test04_openfoam_setup.log` - log setup openfoam
 - `logs/test05_openfoam_run.log` - log simulacao
 
----
-
 ## cenarios de teste
 
 ### cenario 1: validacao basica
@@ -186,40 +178,38 @@ cada teste gera logs especificos:
 **objetivo:** validar compilador dsl
 
 **testes:**
+
 - test_basic_generation
 
 **tempo:** ~5 segundos
-
----
 
 ### cenario 2: geracao 3d
 
 **objetivo:** validar pipeline blender
 
 **testes:**
+
 - test_basic_generation
 - test_3d_generation
 
 **tempo:** ~2 minutos
-
----
 
 ### cenario 3: visualizacao
 
 **objetivo:** verificar modelo visualmente
 
 **testes:**
+
 - test_3d_and_open_blender
 
 **tempo:** ~3 minutos + tempo manual
-
----
 
 ### cenario 4: cfd completo
 
 **objetivo:** validar pipeline openfoam
 
 **testes:**
+
 - test_openfoam_setup
 - test_full_simulation_quick
 
@@ -227,40 +217,38 @@ cada teste gera logs especificos:
 
 **requisitos:** wsl2 + openfoam (windows)
 
----
-
 ### cenario 5: estudo parametrico
 
 **objetivo:** testar multiplas configuracoes
 
 **testes:**
+
 - test_parametric_study
 
 **tempo:** ~30 segundos
 
 **saida:** 4 leitos com variacoes
 
----
-
 ## configuracao
 
 ### requisitos
 
 **minimos:**
+
 - python 3.8+
 - java 17+
 - antlr 4.13.1
 - compilador dsl funcional
 
 **para testes 3d:**
+
 + blender 4.0+
 
 **para testes cfd:**
+
 + wsl2 (windows)
 + openfoam 11
 + paraview (opcional)
-
----
 
 ### verificar ambiente
 
@@ -278,28 +266,25 @@ python scripts/automation/run_tests.py
 # [ok] wsl2 (se windows)
 ```
 
----
-
 ## parametros dos testes
 
 cada teste usa parametros diferentes:
 
-| teste | diametro | altura | particulas | objetivo |
-|-------|----------|--------|------------|----------|
-| test01 | 0.05m | 0.1m | 20 | rapido, validacao basica |
-| test02 | 0.05m | 0.1m | 30 | tamanho medio |
-| test03 | 0.08m | 0.15m | 50 | maior, visualizacao |
-| test04 | 0.05m | 0.1m | 20 | rapido, cfd |
-| test05 | 0.05m | 0.1m | 15 | muito rapido, simulacao |
-| test06 | varia | 0.1m | varia | multiplas configuracoes |
+| teste  | diametro | altura | particulas | objetivo                 |
+| ------ | -------- | ------ | ---------- | ------------------------ |
+| test01 | 0.05m    | 0.1m   | 20         | rapido, validacao basica |
+| test02 | 0.05m    | 0.1m   | 30         | tamanho medio            |
+| test03 | 0.08m    | 0.15m  | 50         | maior, visualizacao      |
+| test04 | 0.05m    | 0.1m   | 20         | rapido, cfd              |
+| test05 | 0.05m    | 0.1m   | 15         | muito rapido, simulacao  |
+| test06 | varia    | 0.1m   | varia      | multiplas configuracoes  |
 
----
-
-  ## troubleshooting
+## troubleshooting
 
 ### erro: "blender nao encontrado"
 
 **solucao:**
+
 ```bash
 # instalar blender
 python scripts/automation/install_blender.py
@@ -307,11 +292,10 @@ python scripts/automation/install_blender.py
 # ou adicionar ao path manualmente
 ```
 
----
-
 ### erro: "wsl nao disponivel"
 
 **solucao:**
+
 ```bash
 # instalar wsl + openfoam
 python scripts/automation/install_openfoam.py
@@ -320,11 +304,10 @@ python scripts/automation/install_openfoam.py
 python test_full_pipeline.py --skip-interactive
 ```
 
----
-
 ### erro: "compilacao falhou"
 
 **solucao:**
+
 ```bash
 # verificar antlr
 python scripts/automation/install_antlr.py
@@ -333,37 +316,33 @@ python scripts/automation/install_antlr.py
 python dsl/compiler/bed_compiler_antlr_standalone.py tests/e2e/outputs/test01.bed
 ```
 
----
-
 ### testes muito lentos
 
 **causas:**
+
 - muitas particulas
 - iteracoes de empacotamento altas
 - simulacao openfoam completa
 
 **solucao:**
+
 - reduzir `particle_count` (20 e rapido)
 - reduzir `packing_iterations` (30 e suficiente)
 - usar `quick=True` nas simulacoes (apenas blockmesh)
-
----
 
 ## metricas de performance
 
 tempos esperados (computador medio):
 
-| teste | tempo | gargalo |
-|-------|-------|---------|
-| test01 | 5s | compilacao |
-| test02 | 2min | blender physics |
-| test03 | 3min | blender + manual |
-| test04 | 5min | exportacao stl |
-| test05 | 10min | blockmesh |
-| test06 | 30s | multiplas compilacoes |
-| **total** | **~20min** | fisica + cfd |
-
----
+| teste           | tempo            | gargalo               |
+| --------------- | ---------------- | --------------------- |
+| test01          | 5s               | compilacao            |
+| test02          | 2min             | blender physics       |
+| test03          | 3min             | blender + manual      |
+| test04          | 5min             | exportacao stl        |
+| test05          | 10min            | blockmesh             |
+| test06          | 30s              | multiplas compilacoes |
+| **total** | **~20min** | fisica + cfd          |
 
 ## integracao ci/cd
 
@@ -379,24 +358,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+    
       - name: instalar dependencias
         run: |
           python scripts/automation/setup_complete.py --skip-openfoam
-      
+    
       - name: executar testes e2e
         run: |
           cd tests/e2e
           python test_full_pipeline.py --skip-interactive
-      
+    
       - name: upload resultados
         uses: actions/upload-artifact@v2
         with:
           name: test-results
           path: tests/e2e/results/
 ```
-
----
 
 ## referencias
 
@@ -405,32 +382,30 @@ jobs:
 - [documentacao projeto](../../README.md)
 - [guia openfoam](../../docs/OPENFOAM_WINDOWS_GUIA.md)
 
----
-
 ## proximos passos
 
 1. **executar testes**
+
    ```bash
    python test_full_pipeline.py
    ```
-
 2. **analisar resultados**
+
    ```bash
    cat results/report_*.json
    ```
-
 3. **verificar logs se houver falhas**
+
    ```bash
    cat logs/*.log
    ```
-
 4. **visualizar modelos gerados**
+
    ```bash
    blender outputs/*.blend
    ```
-
 5. **verificar casos openfoam**
+
    ```bash
    ls -la outputs/*_cfd/
    ```
-

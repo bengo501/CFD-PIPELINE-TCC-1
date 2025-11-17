@@ -10,8 +10,6 @@ esta pasta contem scripts para instalacao e configuracao automatica de todos os 
 - [requisitos](#requisitos)
 - [troubleshooting](#troubleshooting)
 
----
-
 ## instalacao rapida
 
 ### windows
@@ -41,8 +39,6 @@ python3 scripts/automation/setup_complete.py
 python3 scripts/automation/setup_complete.py --skip-openfoam
 ```
 
----
-
 ## scripts disponiveis
 
 ### 1. setup_complete.py (recomendado)
@@ -50,39 +46,43 @@ python3 scripts/automation/setup_complete.py --skip-openfoam
 **script mestre** que configura todo o projeto automaticamente.
 
 **uso:**
+
 ```bash
 python scripts/automation/setup_complete.py [opcoes]
 ```
 
 **opcoes:**
+
 - `--skip-openfoam` - pula instalacao do openfoam
 
 **componentes configurados:**
-1. ✅ python (verificacao de versao)
-2. ✅ java + antlr (compilador dsl)
-3. ✅ blender (geracao de modelos 3d)
-4. ✅ wsl2 + openfoam (simulacao cfd - windows apenas)
-5. ✅ estrutura de diretorios
-6. ✅ arquivo de configuracao
+
+1. python (verificacao de versao)
+2. java + antlr (compilador dsl)
+3. blender (geracao de modelos 3d)
+4. wsl2 + openfoam (simulacao cfd - windows apenas)
+5. estrutura de diretorios
+6. arquivo de configuracao
 
 **tempo estimado:** 15-60 minutos (depende da conexao e componentes escolhidos)
-
----
 
 ### 2. install_antlr.py
 
 instala **java** e **antlr** para compilar a dsl.
 
 **uso:**
+
 ```bash
 python scripts/automation/install_antlr.py [opcoes]
 ```
 
 **opcoes:**
+
 - `--antlr-version VERSION` - versao do antlr (padrao: 4.13.1)
 - `--java-version VERSION` - versao do java (padrao: 17)
 
 **o que faz:**
+
 1. verifica se java esta instalado
 2. instala java automaticamente se necessario
 3. baixa antlr jar
@@ -91,23 +91,24 @@ python scripts/automation/install_antlr.py [opcoes]
 
 **tempo estimado:** 5-10 minutos
 
----
-
 ### 3. install_blender.py
 
 instala **blender** automaticamente.
 
 **uso:**
+
 ```bash
 python scripts/automation/install_blender.py [opcoes]
 ```
 
 **opcoes:**
+
 - `--version VERSION` - versao do blender (padrao: 4.0.2)
 - `--no-system-package` - nao usar gerenciador de pacotes
 - `--install-dir DIR` - diretorio customizado
 
 **o que faz:**
+
 1. detecta sistema operacional
 2. tenta instalar via gerenciador de pacotes (apt/dnf/brew)
 3. se falhar, baixa e instala manualmente
@@ -115,23 +116,24 @@ python scripts/automation/install_blender.py [opcoes]
 
 **tempo estimado:** 5-15 minutos
 
----
-
 ### 4. install_openfoam.py
 
 instala **wsl2** e **openfoam** no windows.
 
 **uso:**
+
 ```bash
 python scripts/automation/install_openfoam.py [opcoes]
 ```
 
 **opcoes:**
+
 - `--version VERSION` - versao do openfoam (padrao: 11)
 - `--skip-wsl-install` - pula instalacao do wsl2
 - `--no-extras` - nao instala paraview e tutorial
 
 **o que faz:**
+
 1. verifica/instala wsl2
 2. instala ubuntu no wsl
 3. atualiza pacotes
@@ -146,23 +148,21 @@ python scripts/automation/install_openfoam.py [opcoes]
 
 **atencao:** pode requerer reinicializacao do windows
 
----
-
 ### 5. setup_all.bat (windows apenas)
 
 **arquivo batch** interativo para windows.
 
 **uso:**
+
 ```batch
 scripts\automation\setup_all.bat
 ```
 
 **modos:**
+
 1. **completo** - todos os componentes (python + java + antlr + blender + openfoam)
 2. **basico** - sem openfoam (python + java + antlr + blender)
 3. **minimo** - apenas dsl (python + java + antlr)
-
----
 
 ## instalacao por componente
 
@@ -173,12 +173,11 @@ python scripts/automation/install_antlr.py
 ```
 
 **resultado:**
-- ✅ java instalado
-- ✅ antlr jar baixado
-- ✅ parser python gerado
-- ✅ compilador dsl funcional
 
----
+- java instalado
+- antlr jar baixado
+- parser python gerado
+- compilador dsl funcional
 
 ### apenas blender
 
@@ -187,11 +186,10 @@ python scripts/automation/install_blender.py
 ```
 
 **resultado:**
-- ✅ blender instalado
-- ✅ blender no path
-- ✅ scripts python do blender funcionais
 
----
+- blender instalado
+- blender no path
+- scripts python do blender funcionais
 
 ### apenas openfoam (windows)
 
@@ -200,20 +198,19 @@ python scripts/automation/install_openfoam.py
 ```
 
 **resultado:**
-- ✅ wsl2 instalado
-- ✅ ubuntu instalado
-- ✅ openfoam instalado
-- ✅ paraview instalado
-- ✅ caso tutorial criado
 
----
+- wsl2 instalado
+- ubuntu instalado
+- openfoam instalado
+- paraview instalado
+- caso tutorial criado
 
 ## requisitos
 
 ### requisitos minimos
 
 - **python**: 3.8 ou superior
-- **espaco em disco**: 
+- **espaco em disco**:
   - minimo: 2 gb (python + java + antlr)
   - basico: 5 gb (+ blender)
   - completo: 15 gb (+ wsl2 + openfoam)
@@ -234,26 +231,25 @@ python scripts/automation/install_openfoam.py
 ### erro: "python nao encontrado"
 
 **solucao:**
+
 1. instale python de [python.org](https://python.org)
 2. marque "add python to path" durante instalacao
 3. reinicie o terminal
 
----
-
 ### erro: "java nao encontrado apos instalacao"
 
 **solucao:**
+
 1. reinicie o terminal
 2. verifique: `java -version`
 3. se ainda falhar, adicione manualmente ao path:
    - windows: `C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin`
    - linux: `/usr/lib/jvm/java-17-openjdk/bin`
 
----
-
 ### erro: "wsl nao encontrado"
 
 **solucao:**
+
 1. verifique versao do windows: `winver` (requer 2004+)
 2. habilite wsl nas features do windows:
    ```powershell
@@ -263,11 +259,10 @@ python scripts/automation/install_openfoam.py
 3. reinicie o computador
 4. execute novamente
 
----
-
 ### erro: "antlr falhou ao gerar parser"
 
 **solucao:**
+
 1. verifique se `Bed.g4` existe em `dsl/grammar/`
 2. verifique erros de sintaxe na gramatica
 3. tente manualmente:
@@ -275,20 +270,18 @@ python scripts/automation/install_openfoam.py
    java -jar dsl/antlr-4.13.1-complete.jar -Dlanguage=Python3 -o dsl/generated dsl/grammar/Bed.g4
    ```
 
----
-
 ### erro: "blender nao abre modelo"
 
 **solucao:**
+
 1. verifique se arquivo `.blend` existe
 2. teste blender manualmente: `blender --version`
 3. verifique logs em `output/` ou `temp/`
 
----
-
 ### erro: "openfoam command not found no wsl"
 
 **solucao:**
+
 1. abra wsl: `wsl`
 2. carregue openfoam:
    ```bash
@@ -299,31 +292,31 @@ python scripts/automation/install_openfoam.py
    echo "source /opt/openfoam11/etc/bashrc" >> ~/.bashrc
    ```
 
----
-
 ### downloads muito lentos
 
 **solucao:**
+
 1. use cabo ethernet ao inves de wifi
 2. pause outros downloads
 3. tente em horario diferente
 4. considere instalacao manual de componentes grandes (blender, openfoam)
-
----
 
 ## instalacao manual alternativa
 
 se os scripts automaticos falharem, instale manualmente:
 
 ### 1. python
+
 - download: [python.org](https://python.org)
 - versao minima: 3.8
 
 ### 2. java
+
 - download: [adoptium.net](https://adoptium.net/)
 - versao minima: 17
 
 ### 3. antlr
+
 - download jar: [antlr.org](https://www.antlr.org/download.html)
 - salve em: `dsl/antlr-4.13.1-complete.jar`
 - gere parser:
@@ -332,13 +325,13 @@ se os scripts automaticos falharem, instale manualmente:
   ```
 
 ### 4. blender
+
 - download: [blender.org](https://www.blender.org/download/)
 - versao minima: 4.0
 
 ### 5. openfoam (windows)
-- siga: [docs/OPENFOAM_WINDOWS_GUIA.md](../../docs/OPENFOAM_WINDOWS_GUIA.md)
 
----
+- siga: [docs/OPENFOAM_WINDOWS_GUIA.md](../../docs/OPENFOAM_WINDOWS_GUIA.md)
 
 ## estrutura de arquivos gerados
 
@@ -364,34 +357,31 @@ CFD-PIPELINE-TCC-1/
 └── config.ini                        # configuracao do projeto
 ```
 
----
-
 ## proximos passos apos instalacao
 
 1. **testar wizard:**
+
    ```bash
    python dsl/bed_wizard.py
    ```
-
 2. **criar primeiro leito:**
+
    - escolher modo blender
    - definir parametros
    - gerar modelo 3d
-
 3. **executar simulacao cfd:**
+
    ```bash
    python scripts/openfoam_scripts/setup_openfoam_case.py \
      dsl/leito.bed.json \
      output/models/leito.blend \
      --output-dir output/cfd
    ```
-
 4. **ler documentacao:**
+
    - `docs/UML_COMPLETO.md` - arquitetura
    - `docs/OPENFOAM_WINDOWS_GUIA.md` - guia openfoam
    - `dsl/documentacao.html` - documentacao web
-
----
 
 ## suporte
 
@@ -402,8 +392,6 @@ se encontrar problemas:
 3. verifique issues no github
 4. contate o desenvolvedor
 
----
-
 ## referencias
 
 - [python](https://python.org)
@@ -412,4 +400,3 @@ se encontrar problemas:
 - [blender](https://www.blender.org/)
 - [openfoam](https://www.openfoam.com/)
 - [wsl2](https://docs.microsoft.com/en-us/windows/wsl/)
-

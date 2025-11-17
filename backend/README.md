@@ -2,9 +2,7 @@
 
 api rest para gerenciar pipeline de simulações cfd de leitos empacotados.
 
----
-
-## 🚀 início rápido
+## início rápido
 
 ### 1. instalar dependências
 
@@ -29,9 +27,7 @@ uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
 - **redoc:** http://localhost:8000/redoc
 - **api root:** http://localhost:8000
 
----
-
-## 📋 endpoints principais
+## endpoints principais
 
 ### bed compiler
 
@@ -42,6 +38,7 @@ POST /api/bed/compile
 compila parâmetros em arquivo `.bed` e `.bed.json`
 
 **body:**
+
 ```json
 {
   "parameters": {
@@ -54,6 +51,7 @@ compila parâmetros em arquivo `.bed` e `.bed.json`
 ```
 
 **response:**
+
 ```json
 {
   "success": true,
@@ -62,8 +60,6 @@ compila parâmetros em arquivo `.bed` e `.bed.json`
   "message": "compilação bem-sucedida"
 }
 ```
-
----
 
 ### gerar modelo 3d
 
@@ -74,6 +70,7 @@ POST /api/model/generate
 gera modelo 3d no blender (assíncrono)
 
 **body:**
+
 ```json
 {
   "json_file": "output/leito_20251009_091500.bed.json",
@@ -82,6 +79,7 @@ gera modelo 3d no blender (assíncrono)
 ```
 
 **response:**
+
 ```json
 {
   "job_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -89,8 +87,6 @@ gera modelo 3d no blender (assíncrono)
   "message": "geração de modelo iniciada"
 }
 ```
-
----
 
 ### criar simulação openfoam
 
@@ -101,6 +97,7 @@ POST /api/simulation/create
 cria caso openfoam (assíncrono)
 
 **body:**
+
 ```json
 {
   "json_file": "output/leito_20251009_091500.bed.json",
@@ -109,8 +106,6 @@ cria caso openfoam (assíncrono)
 }
 ```
 
----
-
 ### verificar job
 
 ```http
@@ -118,6 +113,7 @@ GET /api/job/{job_id}
 ```
 
 **response:**
+
 ```json
 {
   "job_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -130,8 +126,6 @@ GET /api/job/{job_id}
 }
 ```
 
----
-
 ### listar arquivos
 
 ```http
@@ -140,9 +134,7 @@ GET /api/files/{file_type}
 
 tipos: `bed`, `json`, `blend`, `stl`, `simulations`
 
----
-
-## 🏗️ arquitetura
+## arquitetura
 
 ```
 backend/
@@ -162,7 +154,7 @@ backend/
 
 ---
 
-## 🔄 fluxo de trabalho
+## fluxo de trabalho
 
 ```
 1. POST /api/bed/compile
@@ -185,9 +177,7 @@ backend/
    └─> lista simulações criadas
 ```
 
----
-
-## 🧪 testar api
+## testar api
 
 ### usar curl
 
@@ -223,17 +213,17 @@ curl http://localhost:8000/api/job/{job_id}
 4. preencher body
 5. executar
 
----
-
-## 🔧 configuração
+## configuração
 
 ### cors
 
 por padrão, permite acesso de:
+
 - http://localhost:3000 (react cra)
 - http://localhost:5173 (vite)
 
 editar em `main.py`:
+
 ```python
 app.add_middleware(
     CORSMiddleware,
@@ -245,18 +235,18 @@ app.add_middleware(
 ### porta
 
 alterar em `main.py`:
+
 ```python
 uvicorn.run(..., port=8000)
 ```
 
 ou via comando:
+
 ```bash
 uvicorn backend.app.main:app --port 3001
 ```
 
----
-
-## 📊 monitoramento
+## monitoramento
 
 ### status do sistema
 
@@ -265,6 +255,7 @@ GET /api/status
 ```
 
 retorna:
+
 - status da api
 - disponibilidade dos serviços
 - estatísticas de jobs
@@ -277,11 +268,12 @@ GET /health
 
 ---
 
-## 🐛 troubleshooting
+## troubleshooting
 
 ### erro: "module 'backend' has no attribute 'app'"
 
 executar do diretório raiz do projeto:
+
 ```bash
 python -m backend.app.main
 ```
@@ -289,6 +281,7 @@ python -m backend.app.main
 ### erro: "blender not found"
 
 editar `blender_service.py` e adicionar caminho:
+
 ```python
 self.blender_exe = r"C:\caminho\para\blender.exe"
 ```
@@ -296,13 +289,12 @@ self.blender_exe = r"C:\caminho\para\blender.exe"
 ### erro: "compilation failed"
 
 verificar:
+
 1. antlr está instalado
 2. arquivos em `dsl/generated/` existem
 3. executar `python dsl/setup_antlr.py`
 
----
-
-## 🐳 containerização (futuro)
+## containerização (futuro)
 
 ```dockerfile
 # Dockerfile
@@ -326,9 +318,7 @@ docker build -t cfd-backend .
 docker run -p 8000:8000 -v $(pwd)/output:/app/output cfd-backend
 ```
 
----
-
-## 📝 desenvolvimento
+## desenvolvimento
 
 ### adicionar novo endpoint
 
@@ -342,9 +332,7 @@ docker run -p 8000:8000 -v $(pwd)/output:/app/output cfd-backend
 2. implementar classe com métodos assíncronos
 3. importar em `routes.py`
 
----
-
-## ✅ próximos passos
+## próximos passos
 
 - [ ] adicionar autenticação (jwt)
 - [ ] persistência de jobs (database)
@@ -353,8 +341,3 @@ docker run -p 8000:8000 -v $(pwd)/output:/app/output cfd-backend
 - [ ] rate limiting
 - [ ] logging estruturado
 - [ ] testes unitários
-
----
-
-**api pronta para uso! 🚀**
-

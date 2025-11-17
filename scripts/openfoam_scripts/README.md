@@ -4,8 +4,6 @@
 
 scripts python para integrar o blender com o openfoam, criando e executando simulações cfd automaticamente.
 
----
-
 ## arquivo principal
 
 ### `setup_openfoam_case.py`
@@ -23,8 +21,6 @@ gera malha com snappyhexmesh
 configura condições de contorno
 
 executa simulação (opcional)prepara visualização no paraview
-
----
 
 ## como usar
 
@@ -53,8 +49,6 @@ python setup_openfoam_case.py \
     ../../output/models/leito_blender.blend \
     --output-dir ../../output/cfd/meu_caso
 ```
-
----
 
 ## workflow completo
 
@@ -97,8 +91,6 @@ explorer.exe .
 # duplo clique em caso.foam
 ```
 
----
-
 ## estrutura do caso gerado
 
 ```
@@ -127,8 +119,6 @@ output/cfd/leito_blender/
 └── caso.foam                   # para paraview
 ```
 
----
-
 ## parâmetros cfd suportados
 
 o script lê os seguintes parâmetros do `arquivo.bed.json`:
@@ -155,8 +145,6 @@ se a seção `cfd` não existir, usa:
 - **inlet_velocity**: 0.1 m/s
 - **fluid_viscosity**: 1.5e-5 m²/s (ar)
 - **max_iterations**: 1000
-
----
 
 ## saída do script
 
@@ -209,8 +197,6 @@ para executar a simulacao:
 ou execute este script com --run
 ```
 
----
-
 ## executar simulação
 
 ### opção 1: flag --run
@@ -249,8 +235,6 @@ simpleFoam > log.simpleFoam 2>&1 &
 # 5. monitorar
 tail -f log.simpleFoam
 ```
-
----
 
 ## monitoramento
 
@@ -297,8 +281,6 @@ proximos passos:
 - `log.checkMesh`: qualidade da malha
 - `log.simpleFoam`: simulação principal
 
----
-
 ## visualização
 
 ### paraview (recomendado)
@@ -328,8 +310,6 @@ postProcess -func forces
 postProcess -func surfaceFieldValue
 ```
 
----
-
 ## troubleshooting
 
 ### problema 1: blender não encontrado
@@ -342,8 +322,6 @@ FileNotFoundError: blender nao encontrado no sistema
 
 **solução:**
 adicione o caminho do blender no script ou ao path do sistema.
-
----
 
 ### problema 2: openfoam não encontrado
 
@@ -362,8 +340,6 @@ source /opt/openfoam11/etc/bashrc
 # adicionar ao ~/.bashrc para carregar sempre
 echo "source /opt/openfoam11/etc/bashrc" >> ~/.bashrc
 ```
-
----
 
 ### problema 3: erro na geração de malha
 
@@ -384,8 +360,6 @@ cat log.snappyHexMesh
 # 2. refinamento muito alto (editar snappyHexMeshDict)
 # 3. locationInMesh fora do domínio
 ```
-
----
 
 ### problema 4: simulação não converge
 
@@ -414,8 +388,6 @@ relaxationFactors
 }
 ```
 
----
-
 ## próximas melhorias
 
 ### recursos planejados
@@ -426,8 +398,6 @@ relaxationFactors
 - [ ] integração com dashboard web
 - [ ] suporte a diferentes solvers (pisoFoam, etc)
 - [ ] templates para diferentes tipos de escoamento
-
----
 
 ## exemplos
 
@@ -471,8 +441,6 @@ editar `leito.bed.json`:
 }
 ```
 
----
-
 ## dependências
 
 ### python
@@ -491,15 +459,8 @@ editar `leito.bed.json`:
 - wsl2 + ubuntu (windows)
 - ou linux nativo
 
----
-
 ## referências
 
 - **openfoam user guide**: https://www.openfoam.com/documentation/user-guide
 - **snappyhexmesh tutorial**: https://cfd.direct/openfoam/user-guide/v6-snappyHexMesh/
 - **simpleFoam**: https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-incompressible-simpleFoam.html
-
----
-
-*última atualização: outubro 2024*
-*versão: 1.0.0*
