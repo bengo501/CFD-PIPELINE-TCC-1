@@ -12,7 +12,7 @@ class FileManager:
     
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent.parent
-        self.output_dir = self.project_root / "output"
+        self.output_dir = self.project_root / "generated"
         self.dsl_dir = self.project_root / "dsl"
     
     def list_files(self, directory: str, extensions: List[str]) -> List[FileInfo]:

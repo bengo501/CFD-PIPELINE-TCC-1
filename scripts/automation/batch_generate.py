@@ -13,7 +13,7 @@ class BatchGenerator:
     
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent
-        self.output_dir = self.project_root / "output" / "batch"
+        self.output_dir = self.project_root / "generated" / "batch"
         self.dsl_dir = self.project_root / "dsl"
         self.wizard = self.dsl_dir / "bed_wizard.py"
         self.compiler = self.dsl_dir / "compiler" / "bed_compiler_antlr_standalone.py"

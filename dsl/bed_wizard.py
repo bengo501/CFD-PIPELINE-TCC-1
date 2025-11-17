@@ -1432,7 +1432,7 @@ cfd {
             print("  ✓ arquivos validados")
             
             # determinar diretorio de saida
-            output_root = Path(__file__).parent.parent / "output" / "cfd"
+            output_root = Path(__file__).parent.parent / "generated" / "cfd"
             output_root.mkdir(parents=True, exist_ok=True)
             
             # encontrar script de setup
