@@ -78,6 +78,26 @@ scripts/github/**
 .env.local
 .env.*.local
 
+# pasta .config (manter estrutura, ignorar .env local)
+.config/**
+!.config/.gitkeep
+!.config/config.ini
+!.config/env.example
+
+# pasta docker (manter todos os arquivos)
+!docker/.gitkeep
+!docker/docker-compose.yml
+!docker/docker-setup.bat
+!docker/docker-setup.sh
+!docker/Dockerfile
+!docker/Dockerfile.frontend
+
+# pasta tests (manter todos os arquivos)
+!tests/.gitkeep
+!tests/test_data.json
+!tests/test_pipeline.py
+!tests/test.bed
+
 # arquivos do sistema
 Thumbs.db
 desktop.ini
