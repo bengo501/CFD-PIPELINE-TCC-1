@@ -1112,7 +1112,7 @@ cfd {
             project_root = Path(__file__).parent.parent
             dsl_dir = Path(__file__).parent
             blender_script = project_root / "scripts" / "blender_scripts" / "leito_extracao.py"
-            output_dir = project_root / "output" / "models"
+            output_dir = project_root / "generated" / "3d" / "output"
             
             # obter caminho completo do arquivo json
             # o compilador gera arquivo.bed.json, nao arquivo.json

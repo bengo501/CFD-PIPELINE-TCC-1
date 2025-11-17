@@ -16,7 +16,7 @@ class BlenderService:
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.scripts_dir = self.project_root / "scripts" / "blender_scripts"
         self.leito_script = self.scripts_dir / "leito_extracao.py"
-        self.output_dir = self.project_root / "output" / "models"
+        self.output_dir = self.project_root / "generated" / "3d" / "output"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # detectar blender

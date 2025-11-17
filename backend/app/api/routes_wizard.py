@@ -93,8 +93,8 @@ async def create_bed_from_wizard(request: WizardRequest):
         # definir caminhos
         project_root = Path(__file__).parent.parent.parent.parent
         dsl_dir = project_root / "dsl"
-        output_dir = project_root / "output"
-        output_dir.mkdir(exist_ok=True)
+        output_dir = project_root / "generated" / "configs"
+        output_dir.mkdir(parents=True, exist_ok=True)
         
         # gerar conteúdo do arquivo .bed
         bed_content = generate_bed_content(request.params, request.mode)

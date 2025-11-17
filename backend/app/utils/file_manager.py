@@ -108,11 +108,11 @@ class FileManager:
             Path completo
         """
         type_dirs = {
-            "bed": self.output_dir,
-            "json": self.output_dir,
-            "blend": self.output_dir / "models",
-            "stl": self.output_dir / "models",
-            "simulation": self.output_dir / "simulations"
+            "bed": self.output_dir / "configs",
+            "json": self.output_dir / "configs",
+            "blend": self.output_dir / "3d" / "output",
+            "stl": self.output_dir / "cfd",
+            "simulation": self.output_dir / "cfd"
         }
         
         base_dir = type_dirs.get(file_type, self.output_dir)

@@ -63,7 +63,7 @@ async def create_cfd_case(request: CFDRequest, background_tasks: BackgroundTasks
         if request.output_dir:
             output_dir = project_root / request.output_dir
         else:
-            output_dir = project_root / "output" / "cfd" / f"sim_{simulation_id}"
+            output_dir = project_root / "generated" / "cfd" / f"sim_{simulation_id}"
         
         # criar entrada de status
         simulations_status[simulation_id] = {
@@ -256,8 +256,8 @@ async def run_cfd_from_wizard(
         file_base = fileName.replace('.bed', '')
         
         # buscar arquivos
-        bed_json = project_root / "output" / f"{file_base}.bed.json"
-        blend_file = project_root / "output" / "models" / f"{file_base}.blend"
+        bed_json = project_root / "generated" / "configs" / f"{file_base}.bed.json"
+        blend_file = project_root / "generated" / "3d" / "output" / f"{file_base}.blend"
         
         # verificar se existem
         if not bed_json.exists():
@@ -310,7 +310,7 @@ async def create_case_only(
             raise HTTPException(status_code=404, detail="arquivo json não encontrado")
         
         # criar caso CFD
-        case_dir = Path("output/cfd") / case_name
+        case_dir = Path("generated/cfd") / case_name
         case_dir.mkdir(parents=True, exist_ok=True)
         
         # configurar caso CFD
@@ -345,7 +345,7 @@ async def create_case_from_json_only(
             raise HTTPException(status_code=404, detail="arquivo json não encontrado")
         
         # criar caso CFD
-        case_dir = Path("output/cfd") / case_name
+        case_dir = Path("generated/cfd") / case_name
         case_dir.mkdir(parents=True, exist_ok=True)
         
         # configurar caso CFD sem modelo 3D

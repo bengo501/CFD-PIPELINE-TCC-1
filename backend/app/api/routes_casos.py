@@ -14,11 +14,11 @@ router = APIRouter()
 @router.get("/casos/list")
 async def listar_casos():
     """
-    listar todos os casos cfd existentes no diretório output/cfd/
+    listar todos os casos cfd existentes no diretório generated/cfd/
     """
     try:
         project_root = Path(__file__).parent.parent.parent.parent
-        cfd_dir = project_root / "output" / "cfd"
+        cfd_dir = project_root / "generated" / "cfd"
         
         if not cfd_dir.exists():
             return {
@@ -29,7 +29,7 @@ async def listar_casos():
         
         casos = []
         
-        # percorrer todos os diretórios em output/cfd/
+        # percorrer todos os diretórios em generated/cfd/
         for item in cfd_dir.iterdir():
             if item.is_dir():
                 caso_info = analisar_caso(item)
@@ -152,7 +152,7 @@ async def obter_detalhes_caso(nome_caso: str):
     """
     try:
         project_root = Path(__file__).parent.parent.parent.parent
-        caso_dir = project_root / "output" / "cfd" / nome_caso
+        caso_dir = project_root / "generated" / "cfd" / nome_caso
         
         if not caso_dir.exists():
             raise HTTPException(status_code=404, detail="caso não encontrado")
@@ -214,7 +214,7 @@ async def deletar_caso(nome_caso: str):
     """
     try:
         project_root = Path(__file__).parent.parent.parent.parent
-        caso_dir = project_root / "output" / "cfd" / nome_caso
+        caso_dir = project_root / "generated" / "cfd" / nome_caso
         
         if not caso_dir.exists():
             raise HTTPException(status_code=404, detail="caso não encontrado")
@@ -241,7 +241,7 @@ async def executar_caso_existente(nome_caso: str):
     """
     try:
         project_root = Path(__file__).parent.parent.parent.parent
-        caso_dir = project_root / "output" / "cfd" / nome_caso
+        caso_dir = project_root / "generated" / "cfd" / nome_caso
         
         if not caso_dir.exists():
             raise HTTPException(status_code=404, detail="caso não encontrado")
