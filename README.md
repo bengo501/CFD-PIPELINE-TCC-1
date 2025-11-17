@@ -72,6 +72,7 @@ python dsl/bed_wizard.py
 ```
 
 **features:**
+
 - cilindros ou cubos
 - tampas planas ou hemisfericas
 - particulas esfericas com fisica
@@ -90,6 +91,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 ```
 
 **etapas automatizadas:**
+
 1. exportar stl do blender
 2. criar caso openfoam (0/, constant/, system/)
 3. gerar malha com blockmesh
@@ -100,14 +102,14 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 
 ## tecnologias utilizadas
 
-| componente | tecnologia | versao | uso |
-|------------|-----------|--------|-----|
-| dsl | antlr | 4.13.1 | parser e compilador |
-| geometria | blender | 4.0+ | geracao 3d e fisica |
-| cfd | openfoam | 11 | simulacao fluidos |
-| visualizacao | paraview | 5.11+ | pos-processamento |
-| linguagem | python | 3.8+ | automacao e scripts |
-| ambiente | wsl2 + ubuntu | 22.04 | execucao openfoam no windows |
+| componente   | tecnologia    | versao | uso                          |
+| ------------ | ------------- | ------ | ---------------------------- |
+| dsl          | antlr         | 4.13.1 | parser e compilador          |
+| geometria    | blender       | 4.0+   | geracao 3d e fisica          |
+| cfd          | openfoam      | 11     | simulacao fluidos            |
+| visualizacao | paraview      | 5.11+  | pos-processamento            |
+| linguagem    | python        | 3.8+   | automacao e scripts          |
+| ambiente     | wsl2 + ubuntu | 22.04  | execucao openfoam no windows |
 
 ## documentacao
 
@@ -136,6 +138,7 @@ python bed_wizard.py
 ```
 
 **opcoes:**
+
 1. modo interativo - responder questoes
 2. modo edicao - editar arquivo .bed
 3. modo blender - gerar apenas 3d
@@ -211,10 +214,7 @@ CFD-PIPELINE-TCC-1/
 │   └── batch/                       # resultados de execucoes em lote
 │
 ├── docs/                             # documentacao
-│   ├── UML_COMPLETO.md              # diagramas arquitetura
-│   ├── OPENFOAM_WINDOWS_GUIA.md     # guia openfoam
-│   ├── GUIA_EXECUCAO_RAPIDO.md      # guia de execucao rapida
-│   └── README.md                    # indice docs
+│   └── GUIA_EXECUCAO_RAPIDO.md      # guia de execucao rapida
 │
 └── README.md                         # este arquivo
 ```
@@ -298,6 +298,7 @@ python scripts/standalone_scripts/executar_leito_headless.py
 ```bash
 python scripts/openfoam_scripts/setup_openfoam_case.py --help
 ```
+
 ## autor
 
 **bengo501**
