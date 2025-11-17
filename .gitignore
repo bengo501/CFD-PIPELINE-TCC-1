@@ -44,6 +44,12 @@ output/cfd/**
 !output/models/.gitkeep
 !output/cfd/.gitkeep
 
+# arquivos gerados pelo blender e scripts
+exports/standalone_generated/**
+models/blender_generated/**
+!exports/standalone_generated/.gitkeep
+!models/blender_generated/.gitkeep
+
 # arquivos de configuração local
 .env
 .env.local
