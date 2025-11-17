@@ -35,24 +35,24 @@ ENV/
 *.log
 *.cache
 
-# arquivos de saída gerados
-output/*.bed
-output/*.json
-output/models/**
-output/cfd/**
-!output/.gitkeep
-!output/models/.gitkeep
-!output/cfd/.gitkeep
+# arquivos gerados consolidados
+generated/**
+!generated/.gitkeep
+!generated/configs/.gitkeep
+!generated/3d/blender/.gitkeep
+!generated/3d/exports/.gitkeep
+!generated/3d/output/.gitkeep
+!generated/cfd/.gitkeep
 
-# arquivos gerados pelo blender e scripts
+# pastas antigas (deprecated) - remover após migração
+output/**
 exports/standalone_generated/**
 models/blender_generated/**
-!exports/standalone_generated/.gitkeep
-!models/blender_generated/.gitkeep
-
-# arquivos dsl gerados
 dsl/bed_files/**
 dsl/json_files/**
+!output/.gitkeep
+!exports/standalone_generated/.gitkeep
+!models/blender_generated/.gitkeep
 !dsl/bed_files/.gitkeep
 !dsl/json_files/.gitkeep
 
