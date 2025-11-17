@@ -50,6 +50,12 @@ models/blender_generated/**
 !exports/standalone_generated/.gitkeep
 !models/blender_generated/.gitkeep
 
+# arquivos dsl gerados
+dsl/bed_files/**
+dsl/json_files/**
+!dsl/bed_files/.gitkeep
+!dsl/json_files/.gitkeep
+
 # arquivos de configuração local
 .env
 .env.local
