@@ -56,6 +56,10 @@ dsl/json_files/**
 !dsl/bed_files/.gitkeep
 !dsl/json_files/.gitkeep
 
+# scripts github locais
+scripts/github/**
+!scripts/github/.gitkeep
+
 # arquivos de configuração local
 .env
 .env.local
