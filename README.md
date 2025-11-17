@@ -68,7 +68,7 @@ cria modelo 3d com fisica rigid body:
 ```bash
 python dsl/bed_wizard.py
 # escolher modo blender
-# modelo salvo em output/models/
+# modelo salvo em generated/3d/output/
 ```
 
 **features:**
@@ -84,8 +84,8 @@ configura e executa simulacao automaticamente:
 ```bash
 python scripts/openfoam_scripts/setup_openfoam_case.py \
   dsl/leito.bed.json \
-  output/models/leito.blend \
-  --output-dir output/cfd \
+  generated/3d/output/leito.blend \
+  --output-dir generated/cfd \
   --run
 ```
 
@@ -116,6 +116,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 - **[scripts/automation/README.md](scripts/automation/README.md)** - instalacao e configuracao
 - **[docs/UML_COMPLETO.md](docs/UML_COMPLETO.md)** - arquitetura e diagramas
 - **[docs/OPENFOAM_WINDOWS_GUIA.md](docs/OPENFOAM_WINDOWS_GUIA.md)** - guia openfoam
+- **[docs/GUIA_EXECUCAO_RAPIDO.md](docs/GUIA_EXECUCAO_RAPIDO.md)** - guia de execucao rapida frontend + backend
 - **[dsl/documentacao.html](dsl/documentacao.html)** - documentacao web interativa
 
 ### guias especificos
@@ -156,12 +157,12 @@ python executar_leito_headless.py
 # configurar caso
 python scripts/openfoam_scripts/setup_openfoam_case.py \
   dsl/leito_interativo.bed.json \
-  output/models/leito_interativo.blend \
-  --output-dir output/cfd
+  generated/3d/output/leito_interativo.blend \
+  --output-dir generated/cfd
 
 # executar no wsl
 wsl
-cd /mnt/c/Users/[SEU_USUARIO]/Downloads/CFD-PIPELINE-TCC-1/output/cfd/leito_interativo
+cd /mnt/c/Users/[SEU_USUARIO]/Downloads/CFD-PIPELINE-TCC-1/generated/cfd/leito_interativo
 source /opt/openfoam11/etc/bashrc
 ./Allrun
 
@@ -173,17 +174,19 @@ paraview caso.foam
 
 ```
 CFD-PIPELINE-TCC-1/
+├── .config/                         # arquivos de configuracao (config.ini, env.example)
+├── docker/                          # docker-compose e dockerfiles
 ├── dsl/                              # domain specific language
 │   ├── grammar/
 │   │   └── Bed.g4                   # gramatica antlr
 │   ├── compiler/
 │   │   └── bed_compiler_antlr_standalone.py
-│   ├── generated/                    # parser gerado
+│   ├── generated/                   # parser gerado pelo antlr
 │   ├── bed_wizard.py                # interface principal
 │   └── documentacao.html            # docs web
 │
 ├── scripts/
-│   ├── automation/                   # scripts de instalacao
+│   ├── automation/                  # scripts de instalacao e setup
 │   │   ├── setup_complete.py        # setup completo
 │   │   ├── install_openfoam.py      # instalador openfoam
 │   │   ├── install_antlr.py         # instalador antlr
@@ -192,16 +195,25 @@ CFD-PIPELINE-TCC-1/
 │   │   └── leito_extracao.py        # geracao 3d
 │   ├── openfoam_scripts/
 │   │   └── setup_openfoam_case.py   # configuracao cfd
-│   └── standalone_scripts/
-│       └── executar_leito_headless.py
+│   ├── standalone_scripts/
+│   │   └── executar_leito_headless.py
+│   └── tests/                       # testes automatizados
+│       ├── e2e/                     # testes end-to-end do pipeline
+│       └── smoke/                   # smoke tests basicos (bed + pipeline reduzido)
 │
-├── output/
-│   ├── models/                       # arquivos .blend gerados
-│   └── cfd/                          # casos openfoam
+├── generated/                       # artefatos gerados pelo pipeline
+│   ├── 3d/
+│   │   ├── blender/                 # arquivos .blend fonte
+│   │   ├── exports/                 # glb/gltf/obj/stl exportados
+│   │   └── output/                  # modelos 3d finais por execucao
+│   ├── cfd/                         # casos openfoam (malha, 0/, system/, constant/)
+│   ├── configs/                     # arquivos .bed e .bed.json normalizados
+│   └── batch/                       # resultados de execucoes em lote
 │
 ├── docs/                             # documentacao
 │   ├── UML_COMPLETO.md              # diagramas arquitetura
 │   ├── OPENFOAM_WINDOWS_GUIA.md     # guia openfoam
+│   ├── GUIA_EXECUCAO_RAPIDO.md      # guia de execucao rapida
 │   └── README.md                    # indice docs
 │
 └── README.md                         # este arquivo
@@ -244,7 +256,7 @@ python dsl/bed_wizard.py
 # diametro particula: 0.005m
 ```
 
-**resultado:** `output/models/leito_blender.blend`
+**resultado:** `generated/3d/output/leito_blender.blend`
 
 ### exemplo 2: simulacao cfd completa
 
@@ -258,8 +270,8 @@ python dsl/bed_wizard.py  # modo interativo
 # 3. configurar cfd
 python scripts/openfoam_scripts/setup_openfoam_case.py \
   dsl/leito_interativo.bed.json \
-  output/models/leito_interativo.blend \
-  --output-dir output/cfd \
+  generated/3d/output/leito_interativo.blend \
+  --output-dir generated/cfd \
   --run
 
 # 4. visualizar
