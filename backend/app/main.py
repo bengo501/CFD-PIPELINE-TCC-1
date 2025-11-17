@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 # montar pasta de arquivos estáticos
-output_dir = project_root / "output"
+output_dir = project_root / "generated"
 output_dir.mkdir(exist_ok=True)
 
 app.mount("/files", StaticFiles(directory=str(output_dir)), name="files")

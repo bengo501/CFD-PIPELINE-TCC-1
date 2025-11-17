@@ -17,7 +17,7 @@ class OpenFOAMService:
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.scripts_dir = self.project_root / "scripts" / "openfoam_scripts"
         self.setup_script = self.scripts_dir / "setup_openfoam_case.py"
-        self.output_dir = self.project_root / "output" / "simulations"
+        self.output_dir = self.project_root / "generated" / "cfd"
         self.output_dir.mkdir(parents=True, exist_ok=True)
     
     def check_availability(self) -> bool:

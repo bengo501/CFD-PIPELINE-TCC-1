@@ -14,7 +14,7 @@ class BedService:
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.dsl_dir = self.project_root / "dsl"
         self.compiler_script = self.dsl_dir / "compiler" / "bed_compiler_antlr_standalone.py"
-        self.output_dir = self.project_root / "output"
+        self.output_dir = self.project_root / "generated" / "configs"
         
     def check_availability(self) -> bool:
         """verifica se compilador está disponível"""
