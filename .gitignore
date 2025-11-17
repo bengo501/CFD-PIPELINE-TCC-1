@@ -92,12 +92,13 @@ scripts/github/**
 !docker/Dockerfile
 !docker/Dockerfile.frontend
 
-# pasta tests (manter todos os arquivos)
+# pasta tests - smoke tests (testes básicos)
 !scripts/tests/.gitkeep
-!scripts/tests/test_data.json
-!scripts/tests/test_pipeline.py
-!scripts/tests/test.bed
-!scripts/tests/teste_simples.blend
+!scripts/tests/smoke/.gitkeep
+!scripts/tests/smoke/test_data.json
+!scripts/tests/smoke/test_pipeline.py
+!scripts/tests/smoke/test.bed
+!scripts/tests/smoke/teste_simples.blend
 
 # arquivos do sistema
 Thumbs.db
