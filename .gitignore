@@ -72,6 +72,8 @@ scripts/github/**
 .github/workflows/**
 !.github/scripts/.gitkeep
 !.github/docs/.gitkeep
+!.github/ISSUE_TEMPLATE/.gitkeep
+!.github/workflows/.gitkeep
 
 # arquivos de configuração local
 .env
@@ -80,12 +82,10 @@ scripts/github/**
 
 # pasta .config (manter estrutura, ignorar .env local)
 .config/**
-!.config/.gitkeep
 !.config/config.ini
 !.config/env.example
 
 # pasta docker (manter todos os arquivos)
-!docker/.gitkeep
 !docker/docker-compose.yml
 !docker/docker-setup.bat
 !docker/docker-setup.sh
@@ -93,7 +93,6 @@ scripts/github/**
 !docker/Dockerfile.frontend
 
 # pasta tests (manter todos os arquivos)
-!tests/.gitkeep
 !tests/test_data.json
 !tests/test_pipeline.py
 !tests/test.bed
