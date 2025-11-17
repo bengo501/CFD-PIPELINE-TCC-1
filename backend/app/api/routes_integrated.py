@@ -397,7 +397,7 @@ async def _create_openfoam_case(json_file: str, blend_file: str, job: Job, jobs_
         blend_path = Path(blend_file)
         
         # diretorio de saida
-        output_root = Path("output/cfd")
+        output_root = Path("generated/cfd")
         output_root.mkdir(parents=True, exist_ok=True)
         
         # script de setup

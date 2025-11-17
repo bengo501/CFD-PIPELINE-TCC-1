@@ -392,9 +392,13 @@ cfd {
             "scripts/blender_scripts",
             "scripts/openfoam_scripts",
             "docs",
-            "output",
-            "output/models",
-            "output/cfd"
+            "generated",
+            "generated/3d",
+            "generated/3d/blender",
+            "generated/3d/exports",
+            "generated/3d/output",
+            "generated/cfd",
+            "generated/configs"
         ]
         
         all_ok = True

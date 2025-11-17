@@ -189,9 +189,13 @@ class CompleteSetup:
         print("-" * 50)
         
         directories = [
-            "output",
-            "output/models",
-            "output/cfd",
+            "generated",
+            "generated/3d",
+            "generated/3d/blender",
+            "generated/3d/exports",
+            "generated/3d/output",
+            "generated/cfd",
+            "generated/configs",
             "dsl/examples",
             "dsl/generated",
             "temp",
@@ -226,9 +230,12 @@ root = {self.project_root}
 [paths]
 dsl_dir = dsl
 scripts_dir = scripts
-output_dir = output
-models_dir = output/models
-cfd_dir = output/cfd
+generated_dir = generated
+configs_dir = generated/configs
+models_dir = generated/3d/output
+exports_dir = generated/3d/exports
+blender_dir = generated/3d/blender
+cfd_dir = generated/cfd
 temp_dir = temp
 logs_dir = logs
 
@@ -261,7 +268,7 @@ convergence_criteria = 1e-6
 [export_defaults]
 # formatos de exportacao padrao
 formats = blend,stl
-output_dir = output/models
+output_dir = generated/3d/output
 """
         
         try:
@@ -360,9 +367,9 @@ output_dir = output/models
         print()
         print("3. executar simulacao cfd (requer openfoam):")
         print("   python scripts/openfoam_scripts/setup_openfoam_case.py \\")
-        print("     dsl/leito.bed.json \\")
-        print("     output/models/leito.blend \\")
-        print("     --output-dir output/cfd")
+        print("     generated/configs/leito.bed.json \\")
+        print("     generated/3d/output/leito.blend \\")
+        print("     --output-dir generated/cfd")
         print()
         print("4. documentacao:")
         print("   - docs/UML_COMPLETO.md - diagramas do projeto")

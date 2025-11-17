@@ -861,7 +861,7 @@ def main():
     parser.add_argument(
         '--output-dir',
         type=str,
-        default='output/cfd',
+        default='generated/cfd',
         help='diretorio de saida para caso openfoam'
     )
     parser.add_argument(

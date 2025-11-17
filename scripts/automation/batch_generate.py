@@ -52,7 +52,7 @@ packing {{
 
 export {{
     formats = ["blend", "stl"]
-    output_dir = "output/batch/{output_name}"
+    output_dir = "generated/batch/{output_name}"
 }}
 
 cfd {{
@@ -280,7 +280,7 @@ exemplos:
         
         print(f"\nproximos passos:")
         print(f"1. gerar modelos 3d:")
-        print(f"   for f in output/batch/*.bed.json; do")
+        print(f"   for f in generated/batch/*.bed.json; do")
         print(f"     python scripts/blender_scripts/leito_extracao.py --params $f")
         print(f"   done")
         print(f"2. executar simulacoes cfd em cada modelo")

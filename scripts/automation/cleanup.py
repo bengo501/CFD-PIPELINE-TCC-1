@@ -112,10 +112,10 @@ class ProjectCleanup:
         """limpa logs do openfoam"""
         print("\n[4/7] limpando logs openfoam...")
         
-        cfd_dir = self.project_root / "output" / "cfd"
+        cfd_dir = self.project_root / "generated" / "cfd"
         
         if not cfd_dir.exists():
-            print("  output/cfd/ nao existe")
+            print("  generated/cfd/ nao existe")
             return
         
         log_patterns = ['log.*', '*.log']
@@ -143,10 +143,10 @@ class ProjectCleanup:
         """limpa simulacoes antigas"""
         print(f"\n[5/7] limpando simulacoes antigas (>{days_old} dias)...")
         
-        cfd_dir = self.project_root / "output" / "cfd"
+        cfd_dir = self.project_root / "generated" / "cfd"
         
         if not cfd_dir.exists():
-            print("  output/cfd/ nao existe")
+            print("  generated/cfd/ nao existe")
             return
         
         cutoff_time = time.time() - (days_old * 24 * 60 * 60)

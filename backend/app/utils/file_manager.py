@@ -20,7 +20,7 @@ class FileManager:
         lista arquivos em diretório
         
         args:
-            directory: subdiretório dentro de output/ ou dsl/
+            directory: subdiretório dentro de generated/
             extensions: lista de extensões (ex: [".bed", ".json"])
         
         returns:
@@ -64,7 +64,7 @@ class FileManager:
         lista diretórios (usado para casos openfoam)
         
         args:
-            directory: subdiretório dentro de output/
+            directory: subdiretório dentro de generated/
         
         returns:
             lista de FileInfo (representando diretórios)
