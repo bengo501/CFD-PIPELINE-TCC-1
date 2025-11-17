@@ -37,12 +37,17 @@ ENV/
 
 # arquivos gerados consolidados
 generated/**
+# manter estrutura de pastas
+!generated/*/
+!generated/*/*/
+!generated/*/*/*/
+!generated/*/*/*/*/
+# manter .gitkeep em todas as pastas
 !generated/.gitkeep
-!generated/configs/.gitkeep
-!generated/3d/blender/.gitkeep
-!generated/3d/exports/.gitkeep
-!generated/3d/output/.gitkeep
-!generated/cfd/.gitkeep
+!generated/*/.gitkeep
+!generated/*/*/.gitkeep
+!generated/*/*/*/.gitkeep
+!generated/*/*/*/*/.gitkeep
 
 # pastas antigas (deprecated) - remover após migração
 output/**
