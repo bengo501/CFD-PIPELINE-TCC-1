@@ -21,32 +21,6 @@ este projeto implementa um pipeline completo e reproduzivel para simulacao cfd (
 4. **containerizacao** - docker compose para reproducibilidade total (em desenvolvimento)
 5. **interface web** - dashboard para visualizacao e analise (planejado)
 
-## instalacao rapida
-
-### windows
-
-```batch
-# baixar o projeto
-git clone https://github.com/bengo501/CFD-PIPELINE-TCC-1.git
-cd CFD-PIPELINE-TCC-1
-
-# executar configuracao automatica
-scripts\automation\setup_all.bat
-```
-
-### linux / macos
-
-```bash
-# baixar o projeto
-git clone https://github.com/bengo501/CFD-PIPELINE-TCC-1.git
-cd CFD-PIPELINE-TCC-1
-
-# executar configuracao automatica
-python3 scripts/automation/setup_complete.py
-```
-
-**tempo estimado:** 15-60 minutos (depende dos componentes escolhidos)
-
 ### 1. dsl - domain specific language
 
 linguagem declarativa `.bed` para descrever leitos empacotados:
