@@ -60,6 +60,14 @@ dsl/json_files/**
 scripts/github/**
 !scripts/github/.gitkeep
 
+# arquivos .github organizados localmente
+.github/scripts/**
+.github/docs/**
+.github/ISSUE_TEMPLATE/**
+.github/workflows/**
+!.github/scripts/.gitkeep
+!.github/docs/.gitkeep
+
 # arquivos de configuração local
 .env
 .env.local
