@@ -315,30 +315,42 @@ async def _execute_full_pipeline_with_simulation(
         job.logs.append(f"[{datetime.now()}] etapa 2/4: gerando modelo 3d no blender")
         job.updated_at = datetime.now()
         
-        # determinar formatos de exportacao
-        export_formats = parameters.get("export", {}).get("formats", ["blend", "stl"])
-        if "stl" not in export_formats:
-            export_formats.append("stl")  # stl é obrigatório para cfd
+        # criar sub-job para blender
+        blender_job_id = str(uuid.uuid4())
+        blender_job = Job(
+            job_id=blender_job_id,
+            job_type=JobType.GENERATE_MODEL,
+            status=JobStatus.QUEUED,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata={}
+        )
+        jobs_store[blender_job_id] = blender_job
         
         # gerar modelo no blender
-        model_result = await blender_service.generate_model(
+        await blender_service.generate_model(
+            job_id=blender_job_id,
             json_file=json_file,
-            export_formats=export_formats
+            open_blender=False,
+            jobs_store=jobs_store,
+            bed_id=job.metadata.get("bed_id"),
+            db_session=db_session
         )
         
-        blend_file = model_result.get("blend_file")
-        stl_file = model_result.get("stl_file")
-        
-        job.progress = 40
-        job.output_files.append(blend_file)
-        if stl_file:
-            job.output_files.append(stl_file)
-        job.metadata["blend_file"] = blend_file
-        job.metadata["stl_file"] = stl_file
-        job.logs.append(f"[{datetime.now()}] ✓ modelo 3d gerado: {blend_file}")
-        if stl_file:
-            job.logs.append(f"[{datetime.now()}] ✓ arquivo stl exportado: {stl_file}")
-        job.updated_at = datetime.now()
+        # verificar se blender foi bem sucedido
+        if blender_job.status == JobStatus.COMPLETED:
+            blend_file = blender_job.metadata.get("blend_file")
+            if blend_file:
+                job.progress = 40
+                job.output_files.append(blend_file)
+                job.metadata["blend_file"] = blend_file
+                job.logs.append(f"[{datetime.now()}] ✓ modelo 3d gerado: {blend_file}")
+                job.updated_at = datetime.now()
+            else:
+                raise Exception("blender concluiu mas não retornou arquivo .blend")
+        else:
+            error_msg = blender_job.error_message or "erro desconhecido no blender"
+            raise Exception(f"erro na geracao do modelo: {error_msg}")
         
         # ===== etapa 3: criar caso openfoam (40-50%) =====
         job.progress = 40
@@ -393,24 +405,42 @@ async def _create_openfoam_case(json_file: str, blend_file: str, job: Job, jobs_
     try:
         import sys
         
-        json_path = Path(json_file)
-        blend_path = Path(blend_file)
+        # usar project_root para caminhos absolutos
+        project_root = Path(__file__).parent.parent.parent.parent
+        
+        json_path = project_root / json_file
+        blend_path = project_root / blend_file
+        
+        # verificar se arquivos existem
+        if not json_path.exists():
+            job.logs.append(f"[{datetime.now()}] erro: arquivo json nao encontrado: {json_path}")
+            return None
+        
+        if not blend_path.exists():
+            job.logs.append(f"[{datetime.now()}] erro: arquivo blend nao encontrado: {blend_path}")
+            return None
         
         # diretorio de saida
-        output_root = Path("generated/cfd")
+        output_root = project_root / "output" / "cfd"
         output_root.mkdir(parents=True, exist_ok=True)
         
         # script de setup
-        script_path = Path("scripts/openfoam_scripts/setup_openfoam_case.py")
+        script_path = project_root / "scripts" / "openfoam_scripts" / "setup_openfoam_case.py"
         
         if not script_path.exists():
-            job.logs.append(f"[{datetime.now()}] erro: script setup_openfoam_case.py nao encontrado")
+            job.logs.append(f"[{datetime.now()}] erro: script setup_openfoam_case.py nao encontrado em {script_path}")
             return None
         
         job.logs.append(f"[{datetime.now()}] executando setup_openfoam_case.py...")
         job.updated_at = datetime.now()
         
         # executar script
+        job.logs.append(f"[{datetime.now()}] executando: python {script_path}")
+        job.logs.append(f"[{datetime.now()}] json: {json_path}")
+        job.logs.append(f"[{datetime.now()}] blend: {blend_path}")
+        job.logs.append(f"[{datetime.now()}] output: {output_root}")
+        job.updated_at = datetime.now()
+        
         process = await asyncio.create_subprocess_exec(
             sys.executable,
             str(script_path),
@@ -418,23 +448,33 @@ async def _create_openfoam_case(json_file: str, blend_file: str, job: Job, jobs_
             str(blend_path),
             "--output-dir", str(output_root),
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(project_root)  # executar do diretório raiz
         )
         
         stdout, stderr = await process.communicate()
         
         if process.returncode == 0:
             # parsear output para logs
-            for line in stdout.decode().split('\n'):
+            stdout_text = stdout.decode('utf-8', errors='ignore')
+            for line in stdout_text.split('\n'):
                 if line.strip():
                     job.logs.append(f"[{datetime.now()}] {line}")
             
-            # determinar diretorio do caso
-            case_name = json_path.stem.replace('.bed', '')
+            # determinar diretorio do caso (tentar extrair do output ou usar nome do json)
+            case_name = json_path.stem.replace('.bed', '').replace('.json', '')
             case_dir = output_root / case_name
             
+            # verificar se diretório foi criado
+            if not case_dir.exists():
+                # tentar encontrar qualquer diretório criado recentemente
+                recent_dirs = [d for d in output_root.iterdir() if d.is_dir()]
+                if recent_dirs:
+                    case_dir = max(recent_dirs, key=lambda p: p.stat().st_mtime)
+                    job.logs.append(f"[{datetime.now()}] usando diretorio encontrado: {case_dir}")
+            
             job.updated_at = datetime.now()
-            return str(case_dir)
+            return str(case_dir.relative_to(project_root))
         else:
             job.logs.append(f"[{datetime.now()}] erro na criacao do caso openfoam")
             job.logs.append(f"[{datetime.now()}] codigo de erro: {process.returncode}")

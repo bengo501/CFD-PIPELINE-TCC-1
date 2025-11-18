@@ -173,19 +173,24 @@ async def get_job(job_id: str):
 async def list_jobs(status: str = None, job_type: str = None):
     """
     lista jobs com filtros opcionais
+    inclui jobs regulares e jobs do pipeline completo
     """
-    jobs = list(jobs_store.values())
+    # importar jobs do pipeline completo
+    from backend.app.api.routes_integrated import jobs_store_integrated
+    
+    # combinar jobs de ambos os armazenamentos
+    all_jobs = list(jobs_store.values()) + list(jobs_store_integrated.values())
     
     if status:
-        jobs = [j for j in jobs if j.status == status]
+        all_jobs = [j for j in all_jobs if j.status == status]
     
     if job_type:
-        jobs = [j for j in jobs if j.job_type == job_type]
+        all_jobs = [j for j in all_jobs if j.job_type == job_type]
     
     # ordenar por data de criação (mais recente primeiro)
-    jobs.sort(key=lambda x: x.created_at, reverse=True)
+    all_jobs.sort(key=lambda x: x.created_at, reverse=True)
     
-    return jobs
+    return all_jobs
 
 # ==================== ENDPOINTS DE ARQUIVOS ====================
 
