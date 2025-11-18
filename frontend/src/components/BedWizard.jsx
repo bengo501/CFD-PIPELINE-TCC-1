@@ -149,7 +149,7 @@ const BedWizard = () => {
       };
 
       // enviar para API backend
-      const response = await fetch('http://localhost:3000/api/bed/wizard', {
+      const response = await fetch('http://localhost:8000/api/bed/wizard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ const BedWizard = () => {
         if (mode === 'blender' || mode === 'blender_interactive') {
           if (confirm('deseja gerar o modelo 3D agora?')) {
             // chamar endpoint de geração
-            const genResponse = await fetch('http://localhost:3000/api/model/generate', {
+            const genResponse = await fetch('http://localhost:8000/api/model/generate', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ const BedWizard = () => {
         if (mode === 'pipeline_completo') {
           if (confirm('deseja executar o pipeline completo agora? (modelo 3d + simulação cfd)')) {
             // chamar endpoint do pipeline completo
-            const pipelineResponse = await fetch('http://localhost:3000/api/pipeline/full-simulation', {
+            const pipelineResponse = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -794,7 +794,7 @@ const BedWizard = () => {
   // carregar template padrão
   const loadDefaultBedTemplate = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/bed/template/default');
+      const response = await fetch('http://localhost:8000/api/bed/template/default');
       if (response.ok) {
         const data = await response.json();
         setBedFileContent(data.content);
@@ -817,7 +817,7 @@ const BedWizard = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/bed/process', {
+      const response = await fetch('http://localhost:8000/api/bed/process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -833,7 +833,7 @@ const BedWizard = () => {
         
         // se modo blender interativo, gerar modelo
         if (mode === 'blender_interactive') {
-          const genResponse = await fetch('http://localhost:3000/api/model/generate', {
+          const genResponse = await fetch('http://localhost:8000/api/model/generate', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -851,7 +851,7 @@ const BedWizard = () => {
         
         // se modo pipeline blender + cfd, gerar modelo e criar caso CFD
         if (mode === 'pipeline_blender_cfd') {
-          const genResponse = await fetch('http://localhost:3000/api/model/generate', {
+          const genResponse = await fetch('http://localhost:8000/api/model/generate', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -866,7 +866,7 @@ const BedWizard = () => {
             const genResult = await genResponse.json();
             
             // criar caso CFD
-            const cfdResponse = await fetch('http://localhost:3000/api/cfd/create-case', {
+            const cfdResponse = await fetch('http://localhost:8000/api/cfd/create-case', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -891,7 +891,7 @@ const BedWizard = () => {
         
         // se modo apenas caso CFD, criar caso CFD sem gerar modelo
         if (mode === 'cfd_only') {
-          const cfdResponse = await fetch('http://localhost:3000/api/cfd/create-case-only', {
+          const cfdResponse = await fetch('http://localhost:8000/api/cfd/create-case-only', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -912,7 +912,7 @@ const BedWizard = () => {
         
         // se modo pipeline completo, executar pipeline
         if (mode === 'pipeline_completo') {
-          const pipelineResponse = await fetch('http://localhost:3000/api/pipeline/full-simulation', {
+          const pipelineResponse = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

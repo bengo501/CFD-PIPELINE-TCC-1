@@ -69,6 +69,7 @@ function JobStatus({ currentJob }) {
       )
       case 'generate_model': return '🎨 modelo 3d'
       case 'simulation': return '🌊 simulação'
+      case 'full_pipeline': return '🚀 pipeline completo'
       default: return jobType
     }
   }

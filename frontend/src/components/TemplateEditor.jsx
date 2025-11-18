@@ -20,7 +20,7 @@ function TemplateEditor() {
   const loadDefaultTemplate = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://localhost:3000/api/bed/template/default')
+      const response = await fetch('http://localhost:8000/api/bed/template/default')
       if (response.ok) {
         const data = await response.json()
         setBedContent(data.content)
@@ -34,7 +34,7 @@ function TemplateEditor() {
 
   const loadSavedTemplates = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/templates/list')
+      const response = await fetch('http://localhost:8000/api/templates/list')
       if (response.ok) {
         const data = await response.json()
         setSavedTemplates(data.templates || [])
@@ -87,7 +87,7 @@ function TemplateEditor() {
     const templateName = prompt('nome do template:')
     if (templateName) {
       try {
-        const response = await fetch('http://localhost:3000/api/templates/save', {
+        const response = await fetch('http://localhost:8000/api/templates/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -107,7 +107,7 @@ function TemplateEditor() {
 
   const handleLoadTemplate = async (templateId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/templates/${templateId}`)
+      const response = await fetch(`http://localhost:8000/api/templates/${templateId}`)
       if (response.ok) {
         const data = await response.json()
         setBedContent(data.content)
@@ -121,7 +121,7 @@ function TemplateEditor() {
   const handleDeleteTemplate = async (templateId) => {
     if (confirm('tem certeza que deseja excluir este template?')) {
       try {
-        const response = await fetch(`http://localhost:3000/api/templates/${templateId}`, {
+        const response = await fetch(`http://localhost:8000/api/templates/${templateId}`, {
           method: 'DELETE'
         })
         if (response.ok) {

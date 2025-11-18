@@ -18,7 +18,7 @@ const CasosCFD = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:3000/api/casos/list');
+      const response = await fetch('http://localhost:8000/api/casos/list');
       
       if (response.ok) {
         const data = await response.json();
@@ -36,7 +36,7 @@ const CasosCFD = () => {
 
   const obterDetalhes = async (nomeCaso) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/casos/${nomeCaso}/detalhes`);
+      const response = await fetch(`http://localhost:8000/api/casos/${nomeCaso}/detalhes`);
       
       if (response.ok) {
         const data = await response.json();
@@ -53,7 +53,7 @@ const CasosCFD = () => {
     }
     
     try {
-      const response = await fetch(`http://localhost:3000/api/casos/${nomeCaso}`, {
+      const response = await fetch(`http://localhost:8000/api/casos/${nomeCaso}`, {
         method: 'DELETE'
       });
       
