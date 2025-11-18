@@ -49,7 +49,7 @@ const PipelineCompletoFull = () => {
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/pipeline/job/${jobId}`);
+        const response = await fetch(`http://localhost:8000/api/pipeline/job/${jobId}`);
         if (response.ok) {
           const data = await response.json();
           setJobData(data);
@@ -76,7 +76,7 @@ const PipelineCompletoFull = () => {
       setEtapaAtual('executando');
       setJobData(null);
 
-      const response = await fetch('http://localhost:3000/api/pipeline/full-simulation', {
+      const response = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parametros)

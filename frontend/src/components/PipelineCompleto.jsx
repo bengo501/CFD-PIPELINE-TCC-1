@@ -39,7 +39,7 @@ const PipelineCompleto = () => {
       setProgresso(10);
       adicionarLog('compilando arquivo .bed com antlr...', 'info');
       
-      const respostaCompilacao = await fetch('http://localhost:3000/api/bed/wizard', {
+      const respostaCompilacao = await fetch('http://localhost:8000/api/bed/wizard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parametros)
@@ -59,7 +59,7 @@ const PipelineCompleto = () => {
       adicionarLog('gerando modelo 3d no blender (com física)...', 'info');
       adicionarLog('executando animação de queda das partículas (20s)...', 'info');
       
-      const respostaBlender = await fetch('http://localhost:3000/api/integrated/generate-model', {
+      const respostaBlender = await fetch('http://localhost:8000/api/integrated/generate-model', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,7 +85,7 @@ const PipelineCompleto = () => {
         setEtapaAtual('cfd');
         adicionarLog('criando caso openfoam...', 'info');
         
-        const respostaCFD = await fetch('http://localhost:3000/api/cfd/run-from-wizard', {
+        const respostaCFD = await fetch('http://localhost:8000/api/cfd/run-from-wizard', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -111,7 +111,7 @@ const PipelineCompleto = () => {
         const monitorarSimulacao = async () => {
           const intervalo = setInterval(async () => {
             try {
-              const respostaStatus = await fetch(`http://localhost:3000/api/cfd/status/${dadosCFD.simulation_id}`);
+              const respostaStatus = await fetch(`http://localhost:8000/api/cfd/status/${dadosCFD.simulation_id}`);
               const status = await respostaStatus.json();
               
               setProgresso(status.progress);

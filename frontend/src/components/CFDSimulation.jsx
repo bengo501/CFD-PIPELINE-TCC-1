@@ -11,7 +11,7 @@ const CFDSimulation = ({ bedFileName }) => {
   // carregar lista de simulacoes
   const loadSimulations = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/cfd/list');
+      const response = await fetch('http://localhost:8000/api/cfd/list');
       if (response.ok) {
         const data = await response.json();
         setSimulations(data.simulations);
@@ -27,7 +27,7 @@ const CFDSimulation = ({ bedFileName }) => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:3000/api/cfd/run-from-wizard', {
+      const response = await fetch('http://localhost:8000/api/cfd/run-from-wizard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ const CFDSimulation = ({ bedFileName }) => {
   // deletar simulacao
   const deleteSimulation = async (simId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/cfd/${simId}`, {
+      const response = await fetch(`http://localhost:8000/api/cfd/${simId}`, {
         method: 'DELETE',
       });
 
