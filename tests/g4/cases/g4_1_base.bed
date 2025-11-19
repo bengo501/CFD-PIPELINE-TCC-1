@@ -1,0 +1,50 @@
+// G4-1: Caso base monodisperso laminar
+// Objetivo: Validar o fluxo completo em cenário ideal
+
+bed {
+    diameter = 0.05 m;           // D definido
+    height = 0.1 m;              // H definido
+    wall_thickness = 0.002 m;
+    clearance = 0.01 m;
+    material = "steel";
+}
+
+lids {
+    top_type = "flat";
+    bottom_type = "flat";
+    top_thickness = 0.003 m;
+    bottom_thickness = 0.003 m;
+}
+
+particles {
+    kind = "sphere";             // Partículas esféricas
+    diameter = 0.005 m;          // dp explícito
+    count = 100;                 // count explícito
+    density = 2500.0 kg/m3;
+    restitution = 0.3;
+    friction = 0.5;
+    seed = 42;                   // Seed fixa
+}
+
+packing {
+    method = "rigid_body";
+    gravity = -9.81 m/s2;
+    substeps = 10;
+    max_time = 5.0 s;
+}
+
+export {
+    formats = ["blend", "stl"];
+    units = "m";
+}
+
+cfd {
+    regime = "laminar";          // Regime laminar
+    inlet_velocity = 0.1 m/s;    // Única inlet_U
+    fluid_density = 1000.0 kg/m3;  // rho em SI
+    fluid_viscosity = 0.001 Pa.s;   // mu em SI
+    cells_per_dp = 5;            // Moderado
+    max_iterations = 1000;
+    convergence_criteria = 1e-6;
+}
+

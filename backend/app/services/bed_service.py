@@ -14,7 +14,7 @@ class BedService:
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.dsl_dir = self.project_root / "dsl"
         self.compiler_script = self.dsl_dir / "compiler" / "bed_compiler_antlr_standalone.py"
-        self.output_dir = self.project_root / "generated" / "configs"
+        self.output_dir = self.project_root / "output"
         
     def check_availability(self) -> bool:
         """verifica se compilador está disponível"""
@@ -61,29 +61,37 @@ class BedService:
             "json_file": str(Path(json_file).relative_to(self.project_root))
         }
         
-        # salvar no banco se solicitado
+        # salvar no banco se solicitado (opcional - falha graciosamente se banco não disponível)
         if save_to_db and db_session:
-            from backend.app.database import crud, schemas
-            
-            bed_data = schemas.BedCreate(
-                name=filename,
-                description=f"leito gerado automaticamente em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                diameter=parameters.get('diameter', 0.05),
-                height=parameters.get('height', 0.1),
-                wall_thickness=parameters.get('wall_thickness', 0.002),
-                particle_count=parameters.get('particle_count', 100),
-                particle_diameter=parameters.get('particle_diameter', 0.005),
-                particle_kind=parameters.get('particle_type', 'sphere'),
-                packing_method=parameters.get('packing_method', 'rigid_body'),
-                porosity=parameters.get('porosity'),
-                bed_file_path=result["bed_file"],
-                json_file_path=result["json_file"],
-                parameters_json=parameters,
-                created_by='api'
-            )
-            
-            db_bed = crud.BedCRUD.create(db_session, bed_data)
-            result["bed_id"] = db_bed.id
+            try:
+                from backend.app.database import crud, schemas
+                
+                bed_data = schemas.BedCreate(
+                    name=filename,
+                    description=f"leito gerado automaticamente em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                    diameter=parameters.get('bed', {}).get('diameter', 0.05) if isinstance(parameters.get('bed'), dict) else parameters.get('diameter', 0.05),
+                    height=parameters.get('bed', {}).get('height', 0.1) if isinstance(parameters.get('bed'), dict) else parameters.get('height', 0.1),
+                    wall_thickness=parameters.get('bed', {}).get('wall_thickness', 0.002) if isinstance(parameters.get('bed'), dict) else parameters.get('wall_thickness', 0.002),
+                    particle_count=parameters.get('particles', {}).get('particle_count', 100) if isinstance(parameters.get('particles'), dict) else parameters.get('particle_count', 100),
+                    particle_diameter=parameters.get('particles', {}).get('particle_diameter', 0.005) if isinstance(parameters.get('particles'), dict) else parameters.get('particle_diameter', 0.005),
+                    particle_kind=parameters.get('particles', {}).get('particle_type', 'sphere') if isinstance(parameters.get('particles'), dict) else parameters.get('particle_type', 'sphere'),
+                    packing_method=parameters.get('packing', {}).get('packing_method', 'rigid_body') if isinstance(parameters.get('packing'), dict) else parameters.get('packing_method', 'rigid_body'),
+                    porosity=parameters.get('particles', {}).get('target_porosity') if isinstance(parameters.get('particles'), dict) else parameters.get('porosity'),
+                    bed_file_path=result["bed_file"],
+                    json_file_path=result["json_file"],
+                    parameters_json=parameters,
+                    created_by='api'
+                )
+                
+                db_bed = crud.BedCRUD.create(db_session, bed_data)
+                result["bed_id"] = db_bed.id
+            except Exception as db_error:
+                # Falha graciosamente - banco não é obrigatório para compilação
+                # Log do erro mas continua o processo
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Falha ao salvar no banco de dados (continuando sem salvar): {str(db_error)}")
+                # Não adiciona bed_id ao resultado, mas continua normalmente
         
         return result
     
@@ -153,10 +161,10 @@ export {{
         if 'cfd_regime' in params:
             content += f"""
 cfd {{
-  regime: {params['cfd_regime']}
-  inlet_velocity: {params.get('inlet_velocity', 0.01)}m/s
-  fluid_density: {params.get('fluid_density', 1000.0)}kg/m³
-  fluid_viscosity: {params.get('fluid_viscosity', 0.001)}Pa.s
+    regime = "{params['cfd_regime']}";
+    inlet_velocity = {params.get('inlet_velocity', 0.01)} m/s;
+    fluid_density = {params.get('fluid_density', 1000.0)} kg/m3;
+    fluid_viscosity = {params.get('fluid_viscosity', 0.001)} Pa.s;
 }}
 """
         
@@ -165,8 +173,18 @@ cfd {{
     async def _run_compiler(self, bed_file: str) -> str:
         """executa compilador antlr"""
         try:
+            # arquivo json gerado tem mesmo nome + .json
+            json_file = f"{bed_file}.json"
+            
+            # executar compilador com parâmetro -o para especificar saída
             result = subprocess.run(
-                [sys.executable, str(self.compiler_script), bed_file],
+                [
+                    sys.executable,
+                    str(self.compiler_script),
+                    bed_file,
+                    "-o", json_file,
+                    "-v"  # modo verbose para debug
+                ],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -174,13 +192,17 @@ cfd {{
             )
             
             if result.returncode != 0:
-                raise Exception(f"erro na compilação: {result.stderr}")
+                error_msg = result.stderr if result.stderr else result.stdout
+                raise Exception(f"erro na compilação: {error_msg}")
             
-            # arquivo json gerado tem mesmo nome + .json
-            json_file = f"{bed_file}.json"
-            
-            if not Path(json_file).exists():
-                raise Exception("arquivo json não foi gerado")
+            # verificar se arquivo foi gerado
+            json_path = Path(json_file)
+            if not json_path.exists():
+                # tentar caminho absoluto
+                json_path = Path(bed_file).parent / Path(json_file).name
+                if not json_path.exists():
+                    raise Exception(f"arquivo json não foi gerado. stdout: {result.stdout}, stderr: {result.stderr}")
+                json_file = str(json_path)
             
             return json_file
             
