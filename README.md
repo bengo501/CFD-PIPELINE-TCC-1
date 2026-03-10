@@ -302,6 +302,4 @@ python scripts/openfoam_scripts/setup_openfoam_case.py --help
 ## autor
 
 **bengo501**
-
 - github: [@bengo501](https://github.com/bengo501)
-- projeto: [CFD-PIPELINE-TCC-1](https://github.com/bengo501/CFD-PIPELINE-TCC-1)
