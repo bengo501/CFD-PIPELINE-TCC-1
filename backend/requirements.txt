@@ -18,9 +18,15 @@ fastapi-cors==0.0.6
 
 # banco de dados postgresql
 sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+# psycopg2-binary==2.9.9
 alembic==1.13.0
 
 # opcional: armazenamento futuro
 # boto3==1.29.7  # minio/s3
+
+# visualização 3d (python + opengl)
+numpy==1.26.4
+PyOpenGL==3.1.7
+PyOpenGL-accelerate==3.1.7
+glfw==2.7.0
 
