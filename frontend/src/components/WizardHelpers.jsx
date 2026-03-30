@@ -129,6 +129,49 @@ export const DocsModal = ({ show, onClose }) => {
   );
 };
 
+export const CreditsModal = ({ show, onClose }) => {
+  if (!show) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>créditos</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-body">
+          <div className="credits-content">
+            <section>
+              <h3>projeto</h3>
+              <p>
+                cfd pipeline — sistema de simulação de leitos empacotados com openfoam e blender,
+                desenvolvido como projeto de tcc integrado.
+              </p>
+            </section>
+
+            <section>
+              <h3>instituições</h3>
+              <ul>
+                <li>pucrs — escola politécnica</li>
+                <li>laboratório lope</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3>agradecimentos</h3>
+              <p>
+                agradecimentos à comunidade de software livre (openfoam, blender, python, react, vite) e
+                aos laboratórios que apoiaram o desenvolvimento.
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const TemplateEditor = ({ show, onClose, onSubmit }) => {
   const [templateText, setTemplateText] = useState(
     `// template padrao para leito empacotado

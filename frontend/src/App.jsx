@@ -12,7 +12,7 @@ import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import TemplateEditor from './components/TemplateEditor'
 import ThemeIcon from './components/ThemeIcon'
-import { HelpModal, DocsModal } from './components/WizardHelpers'
+import { HelpModal, DocsModal, CreditsModal } from './components/WizardHelpers'
 import { getSystemStatus } from './services/api'
 import { useLanguage } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
@@ -27,6 +27,7 @@ function App() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
+  const [showCredits, setShowCredits] = useState(false)
   const [expandedSections, setExpandedSections] = useState({})
 
   useEffect(() => {
@@ -41,10 +42,22 @@ function App() {
         setIsScrolled(false)
       }
     }
-    
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        if (showHelp) setShowHelp(false)
+        if (showDocs) setShowDocs(false)
+        if (showCredits) setShowCredits(false)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showHelp, showDocs, showCredits])
 
   const checkSystemStatus = async () => {
     try {
@@ -298,7 +311,7 @@ function App() {
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('database')}>
                 <h3 className="nav-section-title">
-                  <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="database" className="section-icon" location="sidebar" />
+                  <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="database" className="section-icon database-icon" location="sidebar" />
                   {language === 'pt' ? 'banco de dados' : 'database'}
                 </h3>
                 <ThemeIcon 
@@ -315,7 +328,7 @@ function App() {
                     className={`nav-item ${activeTab === 'database' ? 'active' : ''}`}
                     onClick={() => setActiveTab('database')}
                   >
-                    <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="banco de dados" className="nav-icon" />
+                    <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="banco de dados" className="nav-icon database-icon" />
                     <span className="nav-label">{language === 'pt' ? 'banco de dados' : 'database'}</span>
                   </button>
                 </div>
@@ -666,28 +679,46 @@ function App() {
             <div className="footer-section footer-academic">
               <h4>{language === 'pt' ? 'acadêmico' : 'academic'}</h4>
               <div className="academic-logos">
-                <img 
-                  src="/image/logo-light.png" 
-                  alt="pucrs logo" 
-                  className="academic-logo"
-                />
-                <img 
-                  src="/image/escola-politecnica.png" 
-                  alt="escola politecnica" 
-                  className="academic-logo"
-                />
-                <img 
-                  src="/image/logo_lope.png" 
-                  alt="lope laboratorio" 
-                  className="academic-logo"
-                />
+                <a 
+                  href="https://vhlab.com.br/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <img 
+                    src="/image/logo-light.png" 
+                    alt="pucrs logo" 
+                    className="academic-logo"
+                  />
+                </a>
+                <a 
+                  href="https://portal.pucrs.br/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <img 
+                    src="/image/escola-politecnica.png" 
+                    alt="escola politecnica / vhlab" 
+                    className="academic-logo"
+                  />
+                </a>
+                <a 
+                  href="https://www.politecnica.pucrs.br/laboratorios/lope/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <img 
+                    src="/image/logo_lope.png" 
+                    alt="lope laboratorio" 
+                    className="academic-logo"
+                  />
+                </a>
               </div>
               <p className="academic-info">
                 <strong>{language === 'pt' ? 'tcc' : 'final project'}</strong><br />
                 {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
                 {language === 'pt' ? 'engenharia química' : 'chemical engineering'}
               </p>
-              <p className="academic-year">2024/2025</p>
+              <p className="academic-year">2024/2026</p>
             </div>
           </div>
 
@@ -814,12 +845,27 @@ function App() {
             </ul>
           </div>
 
+          <div className="footer-section footer-credits">
+            <h4>{language === 'pt' ? 'créditos' : 'credits'}</h4>
+            <p className="credits-text">
+              {language === 'pt'
+                ? 'projeto de tcc desenvolvido na pucrs / escola politécnica, em colaboração com o laboratório lope.'
+                : 'final project developed at pucrs / school of engineering, in collaboration with lope laboratory.'}
+            </p>
+            <button
+              className="footer-credits-btn"
+              onClick={() => setShowCredits(true)}
+            >
+              {language === 'pt' ? 'ver créditos' : 'view credits'}
+            </button>
+          </div>
+
         </div>
 
         <div className="footer-bottom">
           <div className="footer-bottom-content">
             <p className="copyright">
-              © 2024-2025 cfd pipeline. 
+              © 2024-2026 cfd pipeline. 
               {language === 'pt' ? ' código aberto sob licença mit.' : ' open source under mit license.'}
             </p>
             <div className="footer-social">
@@ -871,6 +917,10 @@ function App() {
       <DocsModal 
         show={showDocs} 
         onClose={() => setShowDocs(false)} 
+      />
+      <CreditsModal 
+        show={showCredits} 
+        onClose={() => setShowCredits(false)} 
       />
     </div>
   )
