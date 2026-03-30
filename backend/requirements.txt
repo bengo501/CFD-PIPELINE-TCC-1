@@ -6,7 +6,8 @@ uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
 # validação e serialização
-pydantic==2.5.0
+# usar versão mais recente compatível (corrige erro com python 3.13)
+pydantic>=2.7.4,<3.0.0
 pydantic-settings==2.1.0
 
 # utilitários
@@ -17,16 +18,15 @@ aiofiles==23.2.1
 fastapi-cors==0.0.6
 
 # banco de dados postgresql
-sqlalchemy==2.0.23
+# usar versão mais recente compatível com python 3.13
+sqlalchemy>=2.0.38,<2.1.0
 # psycopg2-binary==2.9.9
 alembic==1.13.0
 
 # opcional: armazenamento futuro
 # boto3==1.29.7  # minio/s3
 
-# visualização 3d (python + opengl)
-numpy==1.26.4
-PyOpenGL==3.1.7
-PyOpenGL-accelerate==3.1.7
-glfw==2.7.0
-
+#
+# observação: dependências de visualização 3d (numpy, pyopengl, glfw, etc.)
+# foram movidas para requirements-visualizacao.txt e nao sao mais instaladas
+# pelo backend.

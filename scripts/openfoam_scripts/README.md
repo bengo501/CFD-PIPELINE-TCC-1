@@ -119,6 +119,66 @@ generated/cfd/leito_blender/
 └── caso.foam                   # para paraview
 ```
 
+## resultados padronizados (results.json)
+
+apos executar a simulacao (no wsl ou windows), recomenda-se gerar um arquivo
+`results.json` dentro do diretorio do caso para armazenar as principais metricas
+e metadados em um formato leve e facil de consumir pelo backend.
+
+### formato
+
+exemplo de `generated/cfd/leito_blender/results.json`:
+
+```json
+{
+  "case_name": "leito_blender",
+  "created_at": "2026-03-19T10:00:00",
+  "completed_at": "2026-03-19T10:05:30",
+  "solver": "simpleFoam",
+  "execution_time": 330.5,
+  "mesh_cells_count": 850000,
+  "mesh_quality": "good",
+  "pressure_drop": 123.4,
+  "average_velocity": 0.25,
+  "reynolds_number": 1500,
+  "log_file": "generated/cfd/leito_blender/log.simpleFoam",
+  "metrics": {
+    "pressure_drop": { "value": 123.4, "unit": "Pa" },
+    "average_velocity": { "value": 0.25, "unit": "m/s" },
+    "reynolds_number": { "value": 1500, "unit": "" }
+  }
+}
+```
+
+- campos escalares principais (`pressure_drop`, `average_velocity`, `reynolds_number`,
+  `mesh_cells_count`, `mesh_quality`, `execution_time`) sao usados direto pelo backend.
+- o bloco `metrics` permite guardar informacoes extras ou futuras metricas sem quebrar o formato.
+
+### geracao automatizada com script python
+
+este repositorio inclui o script
+`scripts/openfoam_scripts/postprocess_results.py`, que facilita a criacao
+do arquivo `results.json` apos a simulacao:
+
+```bash
+cd scripts/openfoam_scripts
+
+python postprocess_results.py \
+  --case-dir ../../generated/cfd/leito_blender \
+  --pressure-drop 123.4 \
+  --average-velocity 0.25 \
+  --reynolds-number 1500 \
+  --mesh-cells 850000 \
+  --mesh-quality good
+```
+
+se o arquivo `log.simpleFoam` existir no diretorio do caso, o script tenta
+extrair automaticamente o `execution_time` a partir da linha `ExecutionTime = ... s`.
+
+em um fluxo mais avancado, voce pode chamar esse script a partir do `Allrun`
+ou de um script de pos-processamento no wsl, passando as metricas calculadas
+por `postProcess` ou `sample`.
+
 ## parâmetros cfd suportados
 
 o script lê os seguintes parâmetros do `arquivo.bed.json`:

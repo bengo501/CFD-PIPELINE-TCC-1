@@ -67,5 +67,27 @@ export const getSystemStatus = async () => {
   return response.data;
 };
 
+// resumo de simulacoes para o dashboard
+export const getSimulationsSummary = async () => {
+  const response = await api.get('/api/simulations/summary');
+  return response.data;
+};
+
+// simulacoes recentes (para o dashboard)
+export const listRecentSimulations = async (limit = 8) => {
+  const response = await api.get('/api/simulations/recent', {
+    params: { limit }
+  });
+  return response.data;
+};
+
+// resultados de uma simulacao especifica
+export const getSimulationResults = async (simulationId, resultType = null) => {
+  const params = {};
+  if (resultType) params.result_type = resultType;
+  const response = await api.get(`/api/results/simulation/${simulationId}`, { params });
+  return response.data;
+};
+
 export default api;
 

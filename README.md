@@ -120,6 +120,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 - **[docs/OPENFOAM_WINDOWS_GUIA.md](docs/OPENFOAM_WINDOWS_GUIA.md)** - guia openfoam
 - **[docs/GUIA_EXECUCAO_RAPIDO.md](docs/GUIA_EXECUCAO_RAPIDO.md)** - guia de execucao rapida frontend + backend
 - **[dsl/documentacao.html](dsl/documentacao.html)** - documentacao web interativa
+ - **[docs/CFD_RESULTS_PIPELINE.md](docs/CFD_RESULTS_PIPELINE.md)** - fluxo de resultados cfd (openfoam → banco → dashboard)
 
 ### guias especificos
 

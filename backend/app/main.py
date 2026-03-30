@@ -12,6 +12,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from backend.app.api import routes
+from backend.app.database.connection import DatabaseConnection
 
 # criar app fastapi
 app = FastAPI(
@@ -54,6 +55,16 @@ app.include_router(routes_wizard.router, prefix="/api")
 app.include_router(routes_cfd.router, prefix="/api")
 app.include_router(routes_casos.router, prefix="/api")
 app.include_router(routes_templates.router, prefix="/api")
+
+
+# eventos de ciclo de vida
+@app.on_event("startup")
+async def on_startup():
+    """
+    criar tabelas do banco automaticamente em desenvolvimento
+    (para sqlite; em producao usar alembic para migrations)
+    """
+    DatabaseConnection.create_tables()
 
 # rota raiz
 @app.get("/")

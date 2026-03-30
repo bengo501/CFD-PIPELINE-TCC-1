@@ -3,38 +3,28 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import ThemeIcon from './ThemeIcon';
 import './Dashboard.css';
+import { getSimulationsSummary, listRecentSimulations } from '../services/api';
 
 function Dashboard() {
   const { language } = useLanguage();
   const { theme } = useTheme();
   const [dashboardData, setDashboardData] = useState({
-    totalSimulations: 8,
-    completedSimulations: 2,
-    runningSimulations: 2,
-    failedSimulations: 2,
-    pendingSimulations: 2,
-    successRate: 25,
+    totalSimulations: 0,
+    completedSimulations: 0,
+    runningSimulations: 0,
+    failedSimulations: 0,
+    pendingSimulations: 0,
+    successRate: 0,
     averageTime: 0,
-    cpuUsage: 50,
-    memoryUsage: 16,
-    resourceLimit: 92,
-    resourceUsed: 8
+    cpuUsage: 0,
+    memoryUsage: 0,
+    resourceLimit: 100,
+    resourceUsed: 0
   });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-
-  // simular dados de simulações
-  const [simulations] = useState([
-    { id: 1, name: 'Simulação Leito 1', status: 'completed', date: '2024-01-15' },
-    { id: 2, name: 'Simulação Leito 2', status: 'running', date: '2024-01-16' },
-    { id: 3, name: 'Simulação Leito 3', status: 'pending', date: '2024-01-17' },
-    { id: 4, name: 'Simulação Leito 4', status: 'failed', date: '2024-01-18' },
-    { id: 5, name: 'Simulação Leito 5', status: 'completed', date: '2024-01-19' },
-    { id: 6, name: 'Simulação Leito 6', status: 'running', date: '2024-01-20' },
-    { id: 7, name: 'Simulação Leito 7', status: 'pending', date: '2024-01-21' },
-    { id: 8, name: 'Simulação Leito 8', status: 'failed', date: '2024-01-22' }
-  ]);
+  const [simulations, setSimulations] = useState([]);
 
   const filteredSimulations = simulations.filter(sim => {
     const matchesSearch = sim.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -70,6 +60,41 @@ function Dashboard() {
   const getStatusClass = (status) => {
     return `simulation-status ${status}`;
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const summary = await getSimulationsSummary();
+        const recent = await listRecentSimulations(8);
+
+        setDashboardData(prev => ({
+          ...prev,
+          totalSimulations: summary.total || 0,
+          completedSimulations: summary.by_status?.completed || 0,
+          runningSimulations: summary.by_status?.running || 0,
+          failedSimulations: summary.by_status?.failed || 0,
+          pendingSimulations: summary.by_status?.pending || 0,
+          successRate: summary.success_rate || 0,
+          // por enquanto mantemos averageTime, cpuUsage, memoryUsage como mock/placeholder
+        }));
+
+        if (recent && Array.isArray(recent.items)) {
+          // adaptar para o formato esperado pela UI (id, name, status, date)
+          const mapped = recent.items.map(sim => ({
+            id: sim.id,
+            name: sim.name,
+            status: sim.status,
+            date: sim.created_at ? new Date(sim.created_at).toISOString().slice(0, 10) : '',
+          }));
+          setSimulations(mapped);
+        }
+      } catch (error) {
+        console.error('erro ao carregar dados do dashboard:', error);
+      }
+    };
+
+    loadData();
+  }, []);
 
   return (
     <div className="dashboard">

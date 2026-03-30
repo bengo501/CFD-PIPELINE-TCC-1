@@ -7,9 +7,11 @@ from typing import List, Optional
 from pathlib import Path
 
 from backend.app.database.connection import get_db
-from backend.app.database import crud, schemas
+from backend.app.database import crud, schemas, models
+from backend.app.services.results_service import ResultsService
 
 router = APIRouter()
+results_service = ResultsService()
 
 
 # ==================== ENDPOINTS BEDS ====================
@@ -261,6 +263,113 @@ async def get_result(result_id: int, db: Session = Depends(get_db)):
     if not db_result:
         raise HTTPException(status_code=404, detail="resultado nao encontrado")
     return db_result
+
+
+# ==================== ENDPOINTS DE INGESTAO E RESUMOS PARA DASHBOARD ====================
+
+@router.post(
+    "/simulations/{simulation_id}/ingest-results",
+    response_model=schemas.SimulationResponse,
+    tags=["database", "simulations"],
+)
+async def ingest_results_for_simulation(
+    simulation_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    ler generated/cfd/NOME_CASO/results.json e atualizar Simulation/Result.
+
+    este endpoint pode ser chamado apos a simulacao openfoam concluir.
+    """
+    sim = crud.SimulationCRUD.get(db, simulation_id)
+    if not sim:
+        raise HTTPException(status_code=404, detail="simulacao nao encontrada")
+
+    try:
+        updated = results_service.ingest_simulation_results(db, simulation_id)
+        if not updated:
+            raise HTTPException(status_code=404, detail="simulacao nao encontrada")
+        return updated
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro ao ingerir resultados: {str(e)}")
+
+
+@router.get(
+    "/simulations/summary",
+    tags=["database", "simulations"],
+)
+async def get_simulations_summary(db: Session = Depends(get_db)):
+    """
+    resumo agregado de simulacoes para o dashboard.
+
+    retorna contagens por status, taxa de sucesso e medias basicas
+    de algumas metricas (pressure_drop, reynolds_number).
+    """
+    sims: list[models.Simulation] = db.query(models.Simulation).all()
+    total = len(sims)
+    by_status = {
+        "pending": 0,
+        "running": 0,
+        "completed": 0,
+        "failed": 0,
+    }
+
+    pressures: list[float] = []
+    reynolds: list[float] = []
+
+    for s in sims:
+        if s.status in by_status:
+            by_status[s.status] += 1
+        if s.pressure_drop is not None:
+            pressures.append(s.pressure_drop)
+        if s.reynolds_number is not None:
+            reynolds.append(s.reynolds_number)
+
+    completed = by_status["completed"]
+    success_rate = (completed / total * 100.0) if total > 0 else 0.0
+
+    avg_pressure = sum(pressures) / len(pressures) if pressures else None
+    avg_reynolds = sum(reynolds) / len(reynolds) if reynolds else None
+
+    return {
+        "total": total,
+        "by_status": by_status,
+        "success_rate": success_rate,
+        "average_pressure_drop": avg_pressure,
+        "average_reynolds_number": avg_reynolds,
+    }
+
+
+@router.get(
+    "/simulations/recent",
+    response_model=schemas.SimulationListResponse,
+    tags=["database", "simulations"],
+)
+async def list_recent_simulations(
+    limit: int = Query(8, ge=1, le=100, description="numero maximo de simulacoes"),
+    db: Session = Depends(get_db),
+):
+    """
+    listar as simulacoes mais recentes (para o dashboard).
+    """
+    try:
+        sims_query = db.query(models.Simulation).order_by(
+            models.Simulation.created_at.desc()
+        )
+        simulations = sims_query.limit(limit).all()
+        total = sims_query.count()
+        # reusar schema de lista com uma 'pagina' unica
+        return schemas.SimulationListResponse(
+            total=total,
+            page=1,
+            per_page=limit,
+            pages=1,
+            items=simulations,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro ao listar simulacoes recentes: {str(e)}")
 
 
 @router.delete("/results/{result_id}", tags=["database", "results"])

@@ -1,0 +1,27 @@
+﻿{
+    "solver":  "simpleFoam",
+    "completed_at":  "2026-03-30T14:12:52",
+    "average_velocity":  0.2,
+    "mesh_quality":  "good",
+    "pressure_drop":  120,
+    "created_at":  "2026-03-30T14:10:52",
+    "log_file":  "generated/cfd/demo_sim_fino/log.simpleFoam",
+    "reynolds_number":  800,
+    "case_name":  "demo_sim_fino",
+    "mesh_cells_count":  150000,
+    "execution_time":  120,
+    "metrics":  {
+                    "average_velocity":  {
+                                             "unit":  "m/s",
+                                             "value":  0.2
+                                         },
+                    "reynolds_number":  {
+                                            "unit":  "",
+                                            "value":  800
+                                        },
+                    "pressure_drop":  {
+                                          "unit":  "Pa",
+                                          "value":  120
+                                      }
+                }
+}

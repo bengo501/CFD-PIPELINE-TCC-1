@@ -10,9 +10,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # configuracao do banco de dados
+# padrao de desenvolvimento: sqlite local (dispensa driver postgres)
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://cfd_user:cfd_password@localhost:5432/cfd_pipeline"
+    "sqlite:///./cfd_pipeline.db"
 )
 
 # criar engine do sqlalchemy
