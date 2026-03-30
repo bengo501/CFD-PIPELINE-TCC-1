@@ -162,7 +162,7 @@ function Dashboard() {
 
         <div className="resource-card">
           <div className="resource-icon">
-            <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="memory" className="card-icon" />
+            <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="memory" className="card-icon db-memory-icon" />
           </div>
           <div className="resource-content">
             <div className="resource-value">{dashboardData.memoryUsage}GB</div>

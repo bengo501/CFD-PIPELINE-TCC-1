@@ -394,6 +394,7 @@ input, textarea, select {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-family: 'Inter', sans-serif;
+  color: var(--text-light); /* manter sempre clara em ambos os temas */
 }
 
 .header-right {
@@ -498,6 +499,11 @@ input, textarea, select {
   object-fit: contain;
   font-size: 1.2rem;
   line-height: 1;
+}
+
+/* ícone do botão de tema sempre branco em ambos os temas */
+.theme-toggle .theme-icon {
+  filter: brightness(0) invert(1);
 }
 
 .theme-text,

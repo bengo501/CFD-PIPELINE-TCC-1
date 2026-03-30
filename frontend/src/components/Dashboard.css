@@ -318,7 +318,7 @@
 
 .simulation-name {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-light);
   font-size: 1rem;
 }
 
@@ -400,6 +400,44 @@
   width: 14px;
   height: 14px;
   object-fit: contain;
+}
+
+/* ajustes específicos por tema */
+
+/* modo claro: ícones de ação (ver/baixar) em preto */
+[data-theme="light"] .simulation-actions .action-icon {
+  filter: brightness(0);
+}
+
+/* modo escuro: cartões de simulação mais escuros, títulos em preto e ícones em branco */
+[data-theme="dark"] .simulation-card {
+  background: #1f1f1f;
+}
+
+[data-theme="dark"] .simulation-status .status-icon {
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="dark"] .simulation-actions .action-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* modo escuro: ícone de memória (banco de dados) sempre branco no card de recursos */
+[data-theme="dark"] .db-memory-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* botão "Ver" sem caixa/borda, apenas texto+ícone, mantendo "Baixar" como botão principal */
+.action-btn.view {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.action-btn.view:hover {
+  background: transparent;
+  border: none;
+  color: var(--primary);
 }
 
 /* responsividade */
