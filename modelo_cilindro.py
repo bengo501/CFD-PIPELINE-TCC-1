@@ -78,29 +78,31 @@ def gera_malha_tubo_com_tampas(p: params_cilindro) -> mesh:
         m.indices.append((b_i, b_n, t_i))
         m.indices.append((t_i, b_n, t_n))
 
+    # vertices centrais das tampas (discos cheios, sem furo)
+    indice_centro_inferior = len(m.vertices)
+    m.vertices.append((0.0, 0.0, 0.0))
+
+    indice_centro_superior = len(m.vertices)
+    m.vertices.append((0.0, 0.0, p.altura))
+
+    # tampa inferior (disco cheio em z = 0, usando apenas a borda externa)
     for i in range(p.segmentos):
         ni = (i + 1) % p.segmentos
 
-        bo_i = 2 * i
+        bo_i = 2 * i       # vertice da borda externa (base)
         bo_n = 2 * ni
 
-        bi_i = base_interna + 2 * i
-        bi_n = base_interna + 2 * ni
+        # triangulo em leque a partir do centro
+        m.indices.append((indice_centro_inferior, bo_n, bo_i))
 
-        m.indices.append((bo_i, bo_n, bi_n))
-        m.indices.append((bo_i, bi_n, bi_i))
-
+    # tampa superior (disco cheio em z = altura, usando apenas a borda externa)
     for i in range(p.segmentos):
         ni = (i + 1) % p.segmentos
 
-        to_i = 2 * i + 1
+        to_i = 2 * i + 1   # vertice da borda externa (topo)
         to_n = 2 * ni + 1
 
-        ti_i = base_interna + 2 * i + 1
-        ti_n = base_interna + 2 * ni + 1
-
-        m.indices.append((to_i, ti_n, to_n))
-        m.indices.append((to_i, ti_i, ti_n))
+        m.indices.append((indice_centro_superior, to_i, to_n))
 
     return m
 
