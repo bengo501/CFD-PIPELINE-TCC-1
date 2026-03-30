@@ -219,6 +219,55 @@ CFD-PIPELINE-TCC-1/
 └── README.md                         # este arquivo
 ```
 
+## categorias de pastas
+
+- **codigo-fonte principal**
+  - `backend/` - api fastapi, servicos, modelos, integracoes (openfoam, blender, dsl)
+  - `frontend/` - aplicacao web (react/vite)
+  - `dsl/` - gramatica, compilador e wizard (`Bed.g4`, `bed_wizard.py`, `compiler/`)
+  - `scripts/` - scripts de automacao, openfoam, blender e testes (`automation/`, `openfoam_scripts/`, `blender_scripts/`, `standalone_scripts/`, `tests/`)
+  - `docs/`, `.github/`, `.config/` - documentacao, templates e configuracoes
+
+- **codigo gerado mas versionado**
+  - `dsl/generated/` - arquivos python gerados pelo antlr a partir de `Bed.g4` (lexer/parser/listener)
+
+- **dados gerados em runtime (artefatos do pipeline)**
+  - `generated/3d/` - arquivos `.blend`, exports (`.glb`, `.gltf`, `.obj`, `.stl`) e modelos finais por execucao
+  - `generated/cfd/` - casos openfoam (malha, `0/`, `system/`, `constant/`, resultados)
+  - `generated/configs/` - arquivos `.bed` e `.bed.json` normalizados
+  - `generated/batch/` - execucoes em lote
+  - diretorios de saida de testes em `scripts/tests/e2e/**` (`outputs/`, `results/`, `logs/`)
+
+- **artefatos temporarios / caches**
+  - `**/__pycache__/`, `**/*.pyc`
+  - `.pytest_cache/`, `coverage/`, `htmlcov/`
+  - `frontend/node_modules/` e caches do vite (`frontend/node_modules/.vite/`)
+
+estes artefatos podem ser regenerados (ou sao apenas cache) e **nao precisam ser versionados**.
+
+## limpeza segura do workspace
+
+para evitar quebrar o pipeline, use as regras abaixo ao limpar o projeto:
+
+- **nao remover automaticamente**
+  - `backend/**`, `frontend/**`, `dsl/**`, `scripts/**`, `docs/**`, `.github/**`, `.config/**`
+  - arquivos de configuracao locais (`config/config.ini`, `backend/.env`, etc.) - sempre fazer backup antes de qualquer limpeza agressiva
+
+- **seguro remover sempre (regeravel)**
+  - caches python: `**/__pycache__/`, `**/*.pyc`, `.pytest_cache/`
+  - relatorios de cobertura: `coverage/`, `htmlcov/`
+  - dependencias do frontend: `frontend/node_modules/` (reinstalar com `npm install`)
+  - caches vite: `frontend/node_modules/.vite/`
+  - saidas e logs de testes e2e em `scripts/tests/e2e/**/outputs`, `logs`, `results`
+
+- **remover apenas se voce quiser refazer simulacoes / modelos**
+  - qualquer coisa em `generated/**`:
+    - apagar `generated/3d/**` remove modelos 3d ja gerados
+    - apagar `generated/cfd/**` remove casos e resultados openfoam
+    - apagar `generated/configs/**` remove `.bed.json` normalizados (podem ser recriados a partir dos `.bed`)
+
+antes de automatizar qualquer limpeza (por exemplo com scripts), sempre valide se o caminho alvo entra em uma destas categorias e **nunca** inclua pastas de codigo-fonte por engano.
+
 ## scripts de automacao
 
 ### instalacao completa
@@ -242,6 +291,19 @@ python scripts/automation/install_openfoam.py
 ```
 
 mais detalhes: [scripts/automation/README.md](scripts/automation/README.md)
+
+## ferramentas auxiliares (dev tools)
+
+- **visualizacao de cilindro de teste em opengl**
+  - scripts: `tools/vis_cilindro/modelo_cilindro.py` e `tools/vis_cilindro/visualizador.py`
+  - wrapper no windows: `executar_modelo_e_visualizar.bat`
+  - saidas em: `generated/3d/cilindro_teste/`
+
+- **limpeza de workspace**
+  - script: `tools/clean_workspace.py`
+  - comportamento:
+    - remove caches (`__pycache__`, `.pytest_cache`, `coverage`, `htmlcov`, `frontend/node_modules`, logs, saidas de testes e2e)
+    - opcionalmente, pode apagar toda a pasta `generated/` (somente apos confirmacao explicita no terminal)
 
 ## exemplos
 

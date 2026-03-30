@@ -12,7 +12,7 @@ cd scripts/openfoam_scripts
 python setup_openfoam_case.py ^
   ../../dsl/leito_interativo.bed.json ^
   ../../output/models/leito_interativo.blend ^
-  --output-dir ../../output/cfd
+   --output-dir ../../generated/cfd
 ```
 
 **parametros:**
@@ -48,7 +48,7 @@ wsl
 no terminal wsl, navegue ate o diretorio do caso:
 
 ```bash
-cd /mnt/c/Users/joxto/Downloads/CFD-PIPELINE-TCC-1/output/cfd/leito_interativo
+cd /mnt/c/Users/joxto/Downloads/CFD-PIPELINE-TCC-1/generated/cfd/leito_interativo
 ```
 
 **nota:** substitua `joxto` pelo seu nome de usuario do windows
@@ -163,7 +163,7 @@ cd scripts/openfoam_scripts
 python setup_openfoam_case.py ^
   ../../dsl/leito_interativo.bed.json ^
   ../../output/models/leito_interativo.blend ^
-  --output-dir ../../output/cfd ^
+  --output-dir ../../generated/cfd ^
   --run
 ```
 

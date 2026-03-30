@@ -26,7 +26,7 @@ assignees: ''
 **exemplo:**
 ```python
 # uso esperado
-python scripts/automation/analyze_results.py output/cfd/case_01
+python scripts/automation/analyze_results.py generated/cfd/case_01
 # saída: relatório pdf com gráficos
 ```
 

@@ -1,16 +1,17 @@
 import math
 import time
+from pathlib import Path
 
 import glfw
 import numpy as np
 from OpenGL.GL import *
 
 
-def carregar_obj(caminho):
+def carregar_obj(caminho: Path):
     vertices = []
     indices = []
 
-    with open(caminho, "r", encoding="utf-8") as f:
+    with caminho.open("r", encoding="utf-8") as f:
         for linha in f:
             if linha.startswith("v "):
                 _, x, y, z = linha.strip().split()
@@ -29,9 +30,9 @@ def carregar_obj(caminho):
     return vertices, indices
 
 
-def carregar_particulas_xyz(caminho):
+def carregar_particulas_xyz(caminho: Path):
     pontos = []
-    with open(caminho, "r", encoding="utf-8") as f:
+    with caminho.open("r", encoding="utf-8") as f:
         for linha in f:
             linha = linha.strip()
             if not linha:
@@ -178,7 +179,7 @@ def main():
     largura, altura = 1280, 720
     glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
     glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    glfw.window_hint(glfw.OPENGL_CORE_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
     janela = glfw.create_window(largura, altura, "visualizador cfd", None, None)
     if not janela:
@@ -193,10 +194,16 @@ def main():
     programa = criar_programa(vertex_shader_src, fragment_shader_src)
     glUseProgram(programa)
 
-    vertices_malha, indices_malha = carregar_obj("tubo_com_tampas.obj")
+    base_dir = Path(__file__).resolve().parents[2]
+    data_dir = base_dir / "generated" / "3d" / "cilindro_teste"
+
+    obj_path = data_dir / "tubo_com_tampas.obj"
+    particulas_path = data_dir / "particulas.xyz"
+
+    vertices_malha, indices_malha = carregar_obj(obj_path)
     vao_malha, vbo_malha, ebo_malha, num_indices = criar_vao_malha(vertices_malha, indices_malha)
 
-    vertices_particulas = carregar_particulas_xyz("particulas.xyz")
+    vertices_particulas = carregar_particulas_xyz(particulas_path)
     vao_part, vbo_part, num_pontos = criar_vao_pontos(vertices_particulas)
 
     loc_u_mvp = glGetUniformLocation(programa, "u_mvp")

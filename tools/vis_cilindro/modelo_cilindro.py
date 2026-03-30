@@ -1,6 +1,7 @@
 import math
 import random
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Tuple
 
 
@@ -187,8 +188,9 @@ def simula_ate_tampa_fechar(p_cil: params_cilindro,
     return particulas, tampa_superior_fechada
 
 
-def salvar_obj(m: mesh, caminho: str) -> None:
-    with open(caminho, "w", encoding="utf-8") as f:
+def salvar_obj(m: mesh, caminho: Path) -> None:
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    with caminho.open("w", encoding="utf-8") as f:
         for vx, vy, vz in m.vertices:
             f.write(f"v {vx} {vy} {vz}\n")
 
@@ -196,14 +198,22 @@ def salvar_obj(m: mesh, caminho: str) -> None:
             f.write(f"f {a + 1} {b + 1} {c + 1}\n")
 
 
-def salvar_particulas_xyz(particulas: List[particula], caminho: str) -> None:
-    with open(caminho, "w", encoding="utf-8") as f:
+def salvar_particulas_xyz(particulas: List[particula], caminho: Path) -> None:
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    with caminho.open("w", encoding="utf-8") as f:
         for p in particulas:
             x, y, z = p.pos
             f.write(f"{x} {y} {z}\n")
 
 
 if __name__ == "__main__":
+    # raiz do repositorio: CFD-PIPELINE-TCC-1/
+    base_dir = Path(__file__).resolve().parents[2]
+    out_dir = base_dir / "generated" / "3d" / "cilindro_teste"
+
+    obj_path = out_dir / "tubo_com_tampas.obj"
+    particulas_path = out_dir / "particulas.xyz"
+
     p_cil = params_cilindro(
         raio_externo=1.0,
         raio_interno=0.8,
@@ -220,11 +230,11 @@ if __name__ == "__main__":
     )
 
     malha = gera_malha_tubo_com_tampas(p_cil)
-    salvar_obj(malha, "tubo_com_tampas.obj")
-    print("arquivo tubo_com_tampas.obj salvo")
+    salvar_obj(malha, obj_path)
+    print(f"arquivo {obj_path} salvo")
 
     particulas_finais, tampa_fechada = simula_ate_tampa_fechar(p_cil, p_par)
-    salvar_particulas_xyz(particulas_finais, "particulas.xyz")
-    print("arquivo particulas.xyz salvo")
+    salvar_particulas_xyz(particulas_finais, particulas_path)
+    print(f"arquivo {particulas_path} salvo")
     print("tampa fechada:", tampa_fechada)
 
