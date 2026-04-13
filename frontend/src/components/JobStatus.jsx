@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
-import { getJobStatus, listJobs } from '../services/api'
+import { listJobs } from '../services/api'
 import ThemeIcon from './ThemeIcon'
+import BackendConnectionError from './BackendConnectionError'
+import { useLanguage } from '../context/LanguageContext'
 
 function JobStatus({ currentJob }) {
+  const { t } = useLanguage()
   const [jobs, setJobs] = useState([])
   const [selectedJob, setSelectedJob] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [connectionError, setConnectionError] = useState(null)
 
   useEffect(() => {
     loadJobs()
@@ -26,7 +30,8 @@ function JobStatus({ currentJob }) {
     try {
       const jobsList = await listJobs()
       setJobs(jobsList)
-      
+      setConnectionError(null)
+
       // atualizar job selecionado se existir
       if (selectedJob) {
         const updated = jobsList.find(j => j.job_id === selectedJob.job_id)
@@ -36,6 +41,7 @@ function JobStatus({ currentJob }) {
       }
     } catch (error) {
       console.error('erro ao carregar jobs:', error)
+      setConnectionError(t('backendConnectionError'))
     }
   }
 
@@ -80,6 +86,8 @@ function JobStatus({ currentJob }) {
         <ThemeIcon light="job_monitor_clock_white.png" dark="job_monitor_clock_white.png" alt="monitoramento" className="section-icon" />
         monitoramento de jobs
       </h2>
+
+      {connectionError && <BackendConnectionError message={connectionError} />}
 
       <div className="jobs-layout">
         {/* lista de jobs */}

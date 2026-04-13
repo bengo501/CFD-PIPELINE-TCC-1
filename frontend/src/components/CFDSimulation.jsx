@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import '../styles/CFDSimulation.css';
 import ThemeIcon from './ThemeIcon';
+import BackendConnectionError from './BackendConnectionError';
 
 const CFDSimulation = ({ bedFileName }) => {
   const [simulations, setSimulations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [connectionError, setConnectionError] = useState(null);
+  const [apiError, setApiError] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // carregar lista de simulacoes
@@ -15,17 +17,20 @@ const CFDSimulation = ({ bedFileName }) => {
       if (response.ok) {
         const data = await response.json();
         setSimulations(data.simulations);
+        setConnectionError(null);
       }
     } catch (err) {
       console.error('erro ao carregar simulacoes:', err);
+      setConnectionError('erro de conexão com o backend');
     }
   };
 
   // criar nova simulacao
   const startSimulation = async (runSim = true) => {
     setLoading(true);
-    setError(null);
-    
+    setApiError(null);
+    setConnectionError(null);
+
     try {
       const response = await fetch('http://localhost:8000/api/cfd/run-from-wizard', {
         method: 'POST',
@@ -43,11 +48,11 @@ const CFDSimulation = ({ bedFileName }) => {
         alert(`simulacao iniciada! id: ${data.simulation_id}`);
         loadSimulations();
       } else {
-        const error = await response.json();
-        setError(error.detail);
+        const errBody = await response.json().catch(() => ({}));
+        setApiError(errBody.detail || 'erro ao iniciar simulação');
       }
     } catch (err) {
-      setError('erro de conexao com o backend');
+      setConnectionError('erro de conexão com o backend');
       console.error('erro:', err);
     } finally {
       setLoading(false);
@@ -145,9 +150,10 @@ const CFDSimulation = ({ bedFileName }) => {
         </div>
       )}
 
-      {error && (
-        <div className="error-message">
-          <strong>erro:</strong> {error}
+      {connectionError && <BackendConnectionError message={connectionError} />}
+      {apiError && (
+        <div className="cfd-api-error-banner" role="alert">
+          <strong>erro:</strong> {apiError}
         </div>
       )}
 

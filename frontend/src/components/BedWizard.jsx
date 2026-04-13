@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import BedPreview3D from './BedPreview3D';
 import { HelpModal, DocsModal } from './WizardHelpers';
 import ThemeIcon from './ThemeIcon';
+import BackendConnectionError from './BackendConnectionError';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/BedWizard.css';
 
 const BedWizard = () => {
+  const { language, t } = useLanguage();
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState(null);
   const [params, setParams] = useState({
@@ -97,17 +100,21 @@ const BedWizard = () => {
   const [bedFileContent, setBedFileContent] = useState('');
   const [bedFileName, setBedFileName] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [wizardConnectionError, setWizardConnectionError] = useState(null);
 
-  const steps = [
-    { title: 'escolha o modo', section: 'mode' },
-    { title: 'geometria do leito', section: 'bed' },
-    { title: 'tampas', section: 'lids' },
-    { title: 'partículas', section: 'particles' },
-    { title: 'empacotamento', section: 'packing' },
-    { title: 'exportação', section: 'export' },
-    { title: 'cfd (opcional)', section: 'cfd' },
-    { title: 'confirmação', section: 'confirm' }
-  ];
+  const steps = useMemo(
+    () => [
+      { title: t('selectMode'), section: 'mode' },
+      { title: t('bedGeometry'), section: 'bed' },
+      { title: t('lids'), section: 'lids' },
+      { title: t('particles'), section: 'particles' },
+      { title: t('packing'), section: 'packing' },
+      { title: t('export'), section: 'export' },
+      { title: t('cfdParams'), section: 'cfd' },
+      { title: t('confirmation'), section: 'confirm' },
+    ],
+    [language]
+  );
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -141,6 +148,7 @@ const BedWizard = () => {
 
   const handleSubmit = async () => {
     try {
+      setWizardConnectionError(null);
       // preparar dados para envio
       const bedData = {
         mode: mode,
@@ -223,7 +231,7 @@ const BedWizard = () => {
       }
     } catch (error) {
       console.error('erro:', error);
-      alert('erro de conexão com o backend');
+      setWizardConnectionError(t('backendConnectionError'));
     }
   };
 
@@ -231,10 +239,13 @@ const BedWizard = () => {
   const renderModeSelection = () => (
     <div className="mode-selection">
       <div className="mode-header">
-        <h2>
-          <ThemeIcon light="bedLight.png" dark="bedDark.png" alt="criar leito" className="title-icon" />
-          escolha o modo de criação
-        </h2>
+        <div className="mode-header-titles">
+          <h2>
+            <ThemeIcon light="bedLight.png" dark="bedDark.png" alt={t('createBed')} className="title-icon" />
+            {t('selectMode')}
+          </h2>
+          <p className="mode-header-subtitle">{t('selectModeSubtitle')}</p>
+        </div>
       </div>
       
       <div className="mode-cards">
@@ -794,6 +805,7 @@ const BedWizard = () => {
   // carregar template padrão
   const loadDefaultBedTemplate = async () => {
     try {
+      setWizardConnectionError(null);
       const response = await fetch('http://localhost:8000/api/bed/template/default');
       if (response.ok) {
         const data = await response.json();
@@ -805,7 +817,7 @@ const BedWizard = () => {
       }
     } catch (error) {
       console.error('erro:', error);
-      alert('erro de conexão com o backend');
+      setWizardConnectionError(t('backendConnectionError'));
     }
   };
 
@@ -817,6 +829,7 @@ const BedWizard = () => {
     }
 
     try {
+      setWizardConnectionError(null);
       const response = await fetch('http://localhost:8000/api/bed/process', {
         method: 'POST',
         headers: {
@@ -942,7 +955,7 @@ const BedWizard = () => {
       }
     } catch (error) {
       console.error('erro:', error);
-      alert('erro de conexão com o backend');
+      setWizardConnectionError(t('backendConnectionError'));
     }
   };
 
@@ -953,6 +966,9 @@ const BedWizard = () => {
 
   return (
     <div className="bed-wizard">
+      {wizardConnectionError && (
+        <BackendConnectionError message={wizardConnectionError} />
+      )}
       {/* modais */}
       <HelpModal 
         show={showHelp} 

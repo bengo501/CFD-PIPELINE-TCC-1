@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import ThemeIcon from './ThemeIcon';
+import BackendConnectionError from './BackendConnectionError';
 import '../styles/PipelineCompletoFull.css';
 
 /**
@@ -19,10 +20,11 @@ import '../styles/PipelineCompletoFull.css';
  * - execucao simulacao cfd no wsl (50-100%)
  */
 const PipelineCompletoFull = () => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [etapaAtual, setEtapaAtual] = useState('inicio'); // inicio, configuracao, executando, concluido
   const [jobId, setJobId] = useState(null);
   const [jobData, setJobData] = useState(null);
+  const [connectionError, setConnectionError] = useState(null);
   const [parametros, setParametros] = useState({
     diameter: 0.05,
     height: 0.1,
@@ -65,6 +67,9 @@ const PipelineCompletoFull = () => {
         }
       } catch (error) {
         console.error('erro ao monitorar job:', error);
+        setConnectionError(t('backendConnectionError'));
+        setEtapaAtual('erro');
+        clearInterval(interval);
       }
     }, 2000); // atualiza a cada 2 segundos
 
@@ -72,10 +77,12 @@ const PipelineCompletoFull = () => {
   }, [jobId, etapaAtual]);
 
   const iniciarPipeline = async () => {
-    try {
-      setEtapaAtual('executando');
-      setJobData(null);
+    setConnectionError(null);
+    setEtapaAtual('executando');
+    setJobData(null);
+    setJobId(null);
 
+    try {
       const response = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,13 +90,22 @@ const PipelineCompletoFull = () => {
       });
 
       if (!response.ok) {
-        throw new Error('falha ao iniciar pipeline');
+        setEtapaAtual('erro');
+        setJobData({
+          error_message:
+            language === 'pt'
+              ? 'falha ao iniciar o pipeline (resposta inválida do servidor)'
+              : 'failed to start pipeline (invalid server response)',
+          logs: []
+        });
+        return;
       }
 
       const data = await response.json();
       setJobId(data.job_id);
     } catch (error) {
       console.error('erro ao iniciar pipeline:', error);
+      setConnectionError(t('backendConnectionError'));
       setEtapaAtual('erro');
     }
   };
@@ -426,6 +442,26 @@ const PipelineCompletoFull = () => {
   };
 
   const renderErro = () => {
+    if (connectionError) {
+      return (
+        <div className="pipeline-erro">
+          <BackendConnectionError message={connectionError} />
+          <button
+            type="button"
+            className="btn-tentar-novamente"
+            onClick={() => {
+              setConnectionError(null);
+              setEtapaAtual('configuracao');
+              setJobId(null);
+              setJobData(null);
+            }}
+          >
+            {language === 'pt' ? 'tentar novamente' : 'try again'}
+          </button>
+        </div>
+      );
+    }
+
     if (!jobData) return null;
 
     return (
@@ -451,6 +487,7 @@ const PipelineCompletoFull = () => {
         <button 
           className="btn-tentar-novamente"
           onClick={() => {
+            setConnectionError(null);
             setEtapaAtual('configuracao');
             setJobId(null);
             setJobData(null);

@@ -4,20 +4,28 @@ export const translations = {
   pt: {
     // header
     appTitle: 'pipeline cfd - leitos empacotados',
+    appCreativeTitle: 'bedflow atlas',
+    appTagline: 'packed beds - computational fluid dynamics - dashboard - pipeline - dsl',
+    footerBrandName: 'Bedflow Atlas',
+    footerLogoAlt: 'logotipo Bedflow Atlas',
+    backendConnectionError: 'erro de conexão com o backend',
+    errorLabel: 'erro:',
     online: 'online',
     offline: 'offline',
     jobs: 'jobs',
     running: 'em execução',
     
     // navegação
-    createBed: 'criar leito',
+    createBed: 'modo de criação',
+    headerStartButton: '+ começar',
     interactiveWizard: 'wizard interativo',
     cfdSimulation: 'simulação cfd',
     results: 'resultados',
     
     // wizard
     wizardTitle: 'wizard de parametrização de leitos empacotados',
-    selectMode: 'escolha o modo de criação',
+    selectMode: 'modo de criação',
+    selectModeSubtitle: 'escolha uma opção abaixo',
     help: 'ajuda',
     documentation: 'documentação',
     
@@ -140,20 +148,28 @@ export const translations = {
   en: {
     // header
     appTitle: 'cfd pipeline - packed beds',
+    appCreativeTitle: 'bedflow atlas',
+    appTagline: 'packed beds - computational fluid dynamics - dashboard - pipeline - dsl',
+    footerBrandName: 'Bedflow Atlas',
+    footerLogoAlt: 'Bedflow Atlas logo',
+    backendConnectionError: 'backend connection error',
+    errorLabel: 'error:',
     online: 'online',
     offline: 'offline',
     jobs: 'jobs',
     running: 'running',
     
     // navigation
-    createBed: 'create bed',
+    createBed: 'creation mode',
+    headerStartButton: '+ start',
     interactiveWizard: 'interactive wizard',
     cfdSimulation: 'cfd simulation',
     results: 'results',
     
     // wizard
     wizardTitle: 'packed bed parameterization wizard',
-    selectMode: 'choose creation mode',
+    selectMode: 'creation mode',
+    selectModeSubtitle: 'choose an option below',
     help: 'help',
     documentation: 'documentation',
     

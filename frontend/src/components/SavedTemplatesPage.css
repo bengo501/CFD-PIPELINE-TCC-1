@@ -1,0 +1,171 @@
+/* página templates salvos — mesmo padrão visual que relatórios/perfil (mockup + painel wip) */
+
+.saved-templates-page {
+  padding: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.saved-templates-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(240px, 300px);
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .saved-templates-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saved-templates-mockup-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--card-shadow);
+}
+
+.saved-templates-mockup-card h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 0.5rem 0;
+}
+
+.saved-templates-lead {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 1.15rem 0;
+  line-height: 1.45;
+}
+
+.saved-templates-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.15rem;
+  align-items: center;
+}
+
+.saved-templates-toolbar input {
+  flex: 1;
+  min-width: 160px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.saved-templates-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.saved-templates-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0.35rem 0.75rem;
+  align-items: start;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.saved-templates-card-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.saved-templates-card-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.saved-templates-card-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.saved-templates-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+}
+
+.saved-templates-actions button {
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: not-allowed;
+  opacity: 0.55;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+}
+
+.saved-templates-wip-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  position: sticky;
+  top: 1rem;
+}
+
+.saved-templates-wip-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  margin-bottom: 0.65rem;
+}
+
+.saved-templates-wip-icon {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto 0.75rem;
+  display: block;
+  filter: var(--icon-filter, none);
+}
+
+.saved-templates-wip-note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}

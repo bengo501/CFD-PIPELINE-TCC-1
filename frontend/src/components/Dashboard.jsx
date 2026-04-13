@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import ThemeIcon from './ThemeIcon';
+import BackendConnectionError from './BackendConnectionError';
 import './Dashboard.css';
 import { getSimulationsSummary, listRecentSimulations } from '../services/api';
 
 function Dashboard() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { theme } = useTheme();
   const [dashboardData, setDashboardData] = useState({
     totalSimulations: 0,
@@ -25,6 +26,7 @@ function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [simulations, setSimulations] = useState([]);
+  const [connectionError, setConnectionError] = useState(null);
 
   const filteredSimulations = simulations.filter(sim => {
     const matchesSearch = sim.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -64,6 +66,7 @@ function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setConnectionError(null);
         const summary = await getSimulationsSummary();
         const recent = await listRecentSimulations(8);
 
@@ -90,6 +93,7 @@ function Dashboard() {
         }
       } catch (error) {
         console.error('erro ao carregar dados do dashboard:', error);
+        setConnectionError(t('backendConnectionError'));
       }
     };
 
@@ -102,6 +106,8 @@ function Dashboard() {
         <h1>{language === 'pt' ? 'Dashboard' : 'Dashboard'}</h1>
         <p>{language === 'pt' ? 'Gerencie suas simulações CFD de leitos empacotados' : 'Manage your packed bed CFD simulations'}</p>
       </div>
+
+      {connectionError && <BackendConnectionError message={connectionError} />}
 
       {/* métricas principais */}
       <div className="metrics-grid">

@@ -89,14 +89,16 @@
   font-style: italic;
 }
 
-/* mensagens de erro */
-.error-message {
-  background: #ffebee;
-  border: 1px solid #f44336;
-  color: #c62828;
-  padding: 15px;
-  border-radius: 6px;
+/* erro de api (resposta http não ok) — distinto do banner de conexão */
+.cfd-api-error-banner {
+  background: #fff3e0;
+  border-left: 4px solid #e65100;
+  color: #bf360c;
+  padding: 15px 18px;
+  border-radius: 0 6px 6px 0;
   margin-bottom: 20px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.9rem;
 }
 
 /* lista de simulacoes */

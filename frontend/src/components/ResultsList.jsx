@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react'
 import { listFiles, downloadFile } from '../services/api'
 import ModelViewer from './ModelViewer'
 import ThemeIcon from './ThemeIcon'
+import BackendConnectionError from './BackendConnectionError'
+import { useLanguage } from '../context/LanguageContext'
 
 function ResultsList() {
+  const { t } = useLanguage()
   const [models, setModels] = useState([])
   const [simulations, setSimulations] = useState([])
   const [selectedModel, setSelectedModel] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [connectionError, setConnectionError] = useState(null)
 
   useEffect(() => {
     loadFiles()
@@ -16,6 +20,7 @@ function ResultsList() {
   const loadFiles = async () => {
     setLoading(true)
     try {
+      setConnectionError(null)
       // carregar modelos
       const modelsData = await listFiles('blend')
       setModels(modelsData.files)
@@ -25,6 +30,7 @@ function ResultsList() {
       setSimulations(simsData.files)
     } catch (error) {
       console.error('erro ao carregar arquivos:', error)
+      setConnectionError(t('backendConnectionError'))
     } finally {
       setLoading(false)
     }
@@ -47,6 +53,8 @@ function ResultsList() {
         <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="resultados" className="section-icon" />
         resultados
       </h2>
+
+      {connectionError && <BackendConnectionError message={connectionError} />}
 
       <div className="results-layout">
         {/* modelos 3d */}

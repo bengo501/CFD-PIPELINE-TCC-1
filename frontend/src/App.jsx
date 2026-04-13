@@ -13,6 +13,7 @@ import ResultsList from './components/ResultsList'
 import TemplateEditor from './components/TemplateEditor'
 import ProfilePage from './components/ProfilePage'
 import ReportsPage from './components/ReportsPage'
+import SavedTemplatesPage from './components/SavedTemplatesPage'
 import ThemeIcon from './components/ThemeIcon'
 import { HelpModal, DocsModal, CreditsModal } from './components/WizardHelpers'
 import { getSystemStatus } from './services/api'
@@ -75,6 +76,18 @@ function App() {
     setActiveTab('jobs')
   }
 
+  const goToCreationMode = () => {
+    setExpandedSections((prev) => {
+      const newState = {};
+      Object.keys(prev).forEach((key) => {
+        newState[key] = false;
+      });
+      newState.create = true;
+      return newState;
+    });
+    setActiveTab('wizard');
+  };
+
   const toggleSection = (section) => {
     setExpandedSections(prev => {
       // se a seção já está aberta, fecha ela
@@ -109,19 +122,21 @@ function App() {
                 className={`logo-icon ${theme === 'dark' ? 'logo-dark' : 'logo-light'}`}
               />
               <div className="logo-text">
-                <h1>{activeTab === 'dashboard' ? 'Dashboard CFD' : 'CFD Pipeline'}</h1>
-                <span className="subtitle">packed beds - computational fluid dynamics</span>
+                <h1>{t('appCreativeTitle')}</h1>
+                <span className="subtitle">{t('appTagline')}</span>
               </div>
             </div>
           </div>
           
           <div className="header-right">
-            {activeTab === 'dashboard' && (
-              <button className="new-simulation-btn">
-                <ThemeIcon light="runLight.png" dark="runLight.png" alt="nova simulação" className="btn-icon" />
-                {language === 'pt' ? '+ Nova Simulação' : '+ New Simulation'}
-              </button>
-            )}
+            <button
+              type="button"
+              className="new-simulation-btn"
+              onClick={goToCreationMode}
+            >
+              <ThemeIcon light="runLight.png" dark="runLight.png" alt={t('headerStartButton')} className="btn-icon" />
+              {t('headerStartButton')}
+            </button>
             <div className="system-status">
               {systemStatus && (
                 <>
@@ -235,7 +250,7 @@ function App() {
                     className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
                     onClick={() => setActiveTab('wizard')}
                   >
-                    <img src="/image/create_bed_white.png" alt="criar leito" className="nav-icon" />
+                    <img src="/image/create_bed_white.png" alt={t('createBed')} className="nav-icon" />
                     <span className="nav-label">{t('createBed')}</span>
                   </button>
                 </div>
@@ -519,20 +534,7 @@ function App() {
             </div>
           )}
 
-          {activeTab === 'templates-saved' && (
-            <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-content">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
-                  <h1 className="wip-title">{language === 'pt' ? 'templates salvos' : 'saved templates'}</h1>
-                </div>
-                <p>{language === 'pt' ? 'gerencie seus templates salvos' : 'manage your saved templates'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'templates-saved' && <SavedTemplatesPage />}
 
           {activeTab === 'database' && (
             <div className="tab-content">
@@ -598,11 +600,11 @@ function App() {
               <ThemeIcon 
                 light="cfdPipelineLight.png" 
                 dark="cfdPipelineLight.png" 
-                alt="cfd pipeline logo" 
+                alt={t('footerLogoAlt')} 
                 className="footer-icon"
                 location="footer"
               />
-              <span className="footer-title">cfd pipeline</span>
+              <span className="footer-title footer-brand-title">{t('footerBrandName')}</span>
             </div>
             <p className="footer-description">
               {language === 'pt' 
@@ -652,7 +654,7 @@ function App() {
                 </a>
               </div>
               <p className="academic-info">
-                <strong>{language === 'pt' ? 'tcc' : 'final project'}</strong><br />
+              <strong>{language === 'pt' ? 'TCC2' : 'final project'}</strong><br />
                 {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
                 {language === 'pt' ? 'engenharia química' : 'chemical engineering'}
               </p>
@@ -790,6 +792,37 @@ function App() {
                 ? 'projeto de tcc desenvolvido na pucrs / escola politécnica, em colaboração com o laboratório lope.'
                 : 'final project developed at pucrs / school of engineering, in collaboration with lope laboratory.'}
             </p>
+            <div className="footer-credits-detail">
+              {language === 'pt' ? (
+                <>
+                  <p>
+                    <strong>aluno:</strong> Bernardo Klein Heitz
+                  </p>
+                  <p>
+                    <strong>orientador</strong> — trabalho de conclusão de curso (ciência da computação): Marco Aurélio Mangan
+                  </p>
+                  <p>
+                    <strong>orientadores</strong> — bolsa de iniciação científica lope:<br />
+                    Professor Rubem Mário Vargas<br />
+                    Doutorando Henrique Martins Tavares
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    <strong>student:</strong> Bernardo Klein Heitz
+                  </p>
+                  <p>
+                    <strong>advisor</strong> — final project (computer science): Marco Aurélio Mangan
+                  </p>
+                  <p>
+                    <strong>advisors</strong> — lope scientific initiation scholarship:<br />
+                    Professor Rubem Mário Vargas<br />
+                    doctoral researcher Henrique Martins Tavares
+                  </p>
+                </>
+              )}
+            </div>
             <button
               className="footer-credits-btn"
               onClick={() => setShowCredits(true)}
@@ -803,7 +836,7 @@ function App() {
         <div className="footer-bottom">
           <div className="footer-bottom-content">
             <p className="copyright">
-              © 2024-2026 cfd pipeline. 
+              © 2024-2026 {t('footerBrandName')}.
               {language === 'pt' ? ' código aberto sob licença mit.' : ' open source under mit license.'}
             </p>
             <div className="footer-social">

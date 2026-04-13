@@ -1,4 +1,5 @@
 // componentes auxiliares para o wizard
+import { useLanguage } from '../context/LanguageContext';
 
 export const HelpModal = ({ show, onClose, section, paramHelp }) => {
   if (!show) return null;
@@ -130,39 +131,61 @@ export const DocsModal = ({ show, onClose }) => {
 };
 
 export const CreditsModal = ({ show, onClose }) => {
+  const { language } = useLanguage();
   if (!show) return null;
+
+  const pt = language === 'pt';
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>créditos</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <h2>{pt ? 'créditos' : 'credits'}</h2>
+          <button type="button" className="modal-close" onClick={onClose}>×</button>
         </div>
 
         <div className="modal-body">
           <div className="credits-content">
             <section>
-              <h3>projeto</h3>
+              <h3>{pt ? 'projeto' : 'project'}</h3>
               <p>
-                cfd pipeline — sistema de simulação de leitos empacotados com openfoam e blender,
-                desenvolvido como projeto de tcc integrado.
+                {pt
+                  ? 'bedflow atlas — sistema de simulação de leitos empacotados com openfoam e blender (tcc2).'
+                  : 'bedflow atlas — packed bed simulation with openfoam and blender (tcc2).'}
               </p>
             </section>
 
             <section>
-              <h3>instituições</h3>
+              <h3>{pt ? 'equipe' : 'team'}</h3>
+              {pt ? (
+                <ul>
+                  <li><strong>aluno:</strong> Bernardo Klein Heitz</li>
+                  <li><strong>orientador</strong> — trabalho de conclusão de curso (ciência da computação): Marco Aurélio Mangan</li>
+                  <li><strong>orientadores</strong> — bolsa de iniciação científica lope: Professor Rubem Mário Vargas; Doutorando Henrique Martins Tavares</li>
+                </ul>
+              ) : (
+                <ul>
+                  <li><strong>student:</strong> Bernardo Klein Heitz</li>
+                  <li><strong>advisor</strong> — final project (computer science): Marco Aurélio Mangan</li>
+                  <li><strong>advisors</strong> — lope scientific initiation scholarship: Professor Rubem Mário Vargas; doctoral researcher Henrique Martins Tavares</li>
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <h3>{pt ? 'instituições' : 'institutions'}</h3>
               <ul>
-                <li>pucrs — escola politécnica</li>
-                <li>laboratório lope</li>
+                <li>pucrs — {pt ? 'escola politécnica' : 'polytechnic school'}</li>
+                <li>{pt ? 'laboratório lope' : 'lope laboratory'}</li>
               </ul>
             </section>
 
             <section>
-              <h3>agradecimentos</h3>
+              <h3>{pt ? 'agradecimentos' : 'acknowledgments'}</h3>
               <p>
-                agradecimentos à comunidade de software livre (openfoam, blender, python, react, vite) e
-                aos laboratórios que apoiaram o desenvolvimento.
+                {pt
+                  ? 'à comunidade de software livre (openfoam, blender, python, react, vite) e aos laboratórios que apoiaram o desenvolvimento.'
+                  : 'to the open-source community (openfoam, blender, python, react, vite) and the labs that supported this work.'}
               </p>
             </section>
           </div>

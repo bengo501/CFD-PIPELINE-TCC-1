@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../styles/CasosCFD.css';
 import ThemeIcon from './ThemeIcon';
+import BackendConnectionError from './BackendConnectionError';
 
 const CasosCFD = () => {
   const [casos, setCasos] = useState([]);
@@ -117,11 +118,7 @@ const CasosCFD = () => {
         </button>
       </div>
 
-      {error && (
-        <div className="error-message">
-          <strong>erro:</strong> {error}
-        </div>
-      )}
+      {error && <BackendConnectionError message={error} />}
 
       {casos.length === 0 ? (
         <div className="sem-casos">

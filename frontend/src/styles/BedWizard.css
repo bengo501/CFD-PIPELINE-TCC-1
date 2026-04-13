@@ -377,8 +377,25 @@
 .mode-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 30px;
+}
+
+.mode-header-titles {
+  flex: 1;
+}
+
+.mode-header-titles h2 {
+  margin-bottom: 0.35rem;
+}
+
+.mode-header-subtitle {
+  margin: 0;
+  padding-left: 0;
+  font-size: 1rem;
+  color: var(--text-muted, #666);
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .mode-actions {

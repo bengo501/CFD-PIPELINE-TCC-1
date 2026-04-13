@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useTranslation } from '../i18n/translations'
 import ThemeIcon from './ThemeIcon'
+import BackendConnectionError from './BackendConnectionError'
 
 function BedForm({ onJobCreated }) {
   const { theme } = useTheme()
@@ -11,6 +12,7 @@ function BedForm({ onJobCreated }) {
   const { t } = useTranslation(language)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [connectionError, setConnectionError] = useState(false)
   const [success, setSuccess] = useState(null)
   
   const [parameters, setParameters] = useState({
@@ -38,6 +40,7 @@ function BedForm({ onJobCreated }) {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setConnectionError(false)
     setSuccess(null)
 
     try {
@@ -73,9 +76,11 @@ function BedForm({ onJobCreated }) {
         {t('parametrosLeito')}
       </h2>
       
-      {error && (
+      {connectionError && <BackendConnectionError />}
+
+      {error && !connectionError && (
         <div className="alert alert-error">
-          ❌ {error}
+          {error}
         </div>
       )}
       

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 import ThemeIcon from './ThemeIcon'
+import BackendConnectionError from './BackendConnectionError'
 import '../styles/TemplateEditor.css'
 
 function TemplateEditor() {
@@ -11,8 +12,10 @@ function TemplateEditor() {
   const [isLoading, setIsLoading] = useState(false)
   const [savedTemplates, setSavedTemplates] = useState([])
   const [showTemplateManager, setShowTemplateManager] = useState(false)
+  const [connectionError, setConnectionError] = useState(null)
 
   useEffect(() => {
+    setConnectionError(null)
     loadDefaultTemplate()
     loadSavedTemplates()
   }, [])
@@ -27,6 +30,7 @@ function TemplateEditor() {
       }
     } catch (error) {
       console.error('erro ao carregar template padrão:', error)
+      setConnectionError(t('backendConnectionError'))
     } finally {
       setIsLoading(false)
     }
@@ -41,18 +45,15 @@ function TemplateEditor() {
       }
     } catch (error) {
       console.error('erro ao carregar templates salvos:', error)
+      setConnectionError(t('backendConnectionError'))
     }
   }
 
   const handleGenerateFromForm = async () => {
-    try {
-      setIsLoading(true)
-      // aqui você pode implementar a lógica para gerar baseado nos parâmetros do formulário
-      // por enquanto, vamos usar o template padrão
-      await loadDefaultTemplate()
-    } catch (error) {
-      console.error('erro ao gerar template:', error)
-    }
+    setConnectionError(null)
+    // aqui você pode implementar a lógica para gerar baseado nos parâmetros do formulário
+    // por enquanto, vamos usar o template padrão
+    await loadDefaultTemplate()
   }
 
   const handleImportFile = (event) => {
@@ -87,6 +88,7 @@ function TemplateEditor() {
     const templateName = prompt('nome do template:')
     if (templateName) {
       try {
+        setConnectionError(null)
         const response = await fetch('http://localhost:8000/api/templates/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -101,12 +103,14 @@ function TemplateEditor() {
         }
       } catch (error) {
         console.error('erro ao salvar template:', error)
+        setConnectionError(t('backendConnectionError'))
       }
     }
   }
 
   const handleLoadTemplate = async (templateId) => {
     try {
+      setConnectionError(null)
       const response = await fetch(`http://localhost:8000/api/templates/${templateId}`)
       if (response.ok) {
         const data = await response.json()
@@ -115,12 +119,14 @@ function TemplateEditor() {
       }
     } catch (error) {
       console.error('erro ao carregar template:', error)
+      setConnectionError(t('backendConnectionError'))
     }
   }
 
   const handleDeleteTemplate = async (templateId) => {
     if (confirm('tem certeza que deseja excluir este template?')) {
       try {
+        setConnectionError(null)
         const response = await fetch(`http://localhost:8000/api/templates/${templateId}`, {
           method: 'DELETE'
         })
@@ -130,6 +136,7 @@ function TemplateEditor() {
         }
       } catch (error) {
         console.error('erro ao excluir template:', error)
+        setConnectionError(t('backendConnectionError'))
       }
     }
   }
@@ -144,6 +151,8 @@ function TemplateEditor() {
       <div className="template-editor-header">
         <h2>arquivo .bed</h2>
       </div>
+
+      {connectionError && <BackendConnectionError message={connectionError} />}
 
       <div className="template-editor-actions">
         <button 

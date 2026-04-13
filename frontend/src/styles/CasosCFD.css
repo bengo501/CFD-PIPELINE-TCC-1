@@ -50,15 +50,6 @@
   color: var(--text-muted, #666);
 }
 
-.error-message {
-  background: #FFEBEE;
-  border: 2px solid #FFCDD2;
-  color: var(--error);
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
 .sem-casos {
   text-align: center;
   padding: 80px 40px;
