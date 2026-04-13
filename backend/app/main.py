@@ -83,9 +83,7 @@ async def root():
 @app.get("/health")
 async def health():
     """verifica saúde do serviço"""
-    from backend.app.database.connection import check_connection
-    
-    db_status = check_connection()
+    db_status = DatabaseConnection.check_connection()
     
     return {
         "status": "healthy" if db_status else "degraded",

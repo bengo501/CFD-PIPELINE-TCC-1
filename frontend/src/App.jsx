@@ -11,6 +11,8 @@ import JobStatus from './components/JobStatus'
 import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import TemplateEditor from './components/TemplateEditor'
+import ProfilePage from './components/ProfilePage'
+import ReportsPage from './components/ReportsPage'
 import ThemeIcon from './components/ThemeIcon'
 import { HelpModal, DocsModal, CreditsModal } from './components/WizardHelpers'
 import { getSystemStatus } from './services/api'
@@ -352,13 +354,6 @@ function App() {
               {expandedSections.analysis && (
                 <div className="nav-subsection">
                   <button
-                    className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('analysis')}
-                  >
-                    <ThemeIcon light="analiseLight.png" dark="analiseLight.png" alt="análises" className="nav-icon" />
-                    <span className="nav-label">{language === 'pt' ? 'análises' : 'analysis'}</span>
-                  </button>
-                  <button
                     className={`nav-item ${activeTab === 'comparisons' ? 'active' : ''}`}
                     onClick={() => setActiveTab('comparisons')}
                   >
@@ -554,51 +549,7 @@ function App() {
             </div>
           )}
 
-          {activeTab === 'analysis' && (
-            <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-content">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
-                  <h1 className="wip-title">{language === 'pt' ? 'análises' : 'analysis'}</h1>
-                </div>
-                <p>{language === 'pt' ? 'realize análises dos resultados' : 'perform result analysis'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
-            </div>
-          )}
-
-
-          {activeTab === 'reports' && (
-            <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-content">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
-                  <h1 className="wip-title">{language === 'pt' ? 'relatórios' : 'reports'}</h1>
-                </div>
-                <p>{language === 'pt' ? 'gere relatórios das simulações' : 'generate simulation reports'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'history' && (
-            <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-content">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
-                  <h1 className="wip-title">{language === 'pt' ? 'histórico' : 'history'}</h1>
-                </div>
-                <p>{language === 'pt' ? 'visualize o histórico das simulações' : 'view simulation history'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'reports' && <ReportsPage />}
 
           {activeTab === 'dashboard' && (
             <div className="tab-content">
@@ -606,20 +557,7 @@ function App() {
             </div>
           )}
 
-          {activeTab === 'profile' && (
-            <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-content">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
-                  <h1 className="wip-title">{language === 'pt' ? 'perfil' : 'profile'}</h1>
-                </div>
-                <p>{language === 'pt' ? 'gerencie seu perfil e configurações pessoais' : 'manage your profile and personal settings'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'profile' && <ProfilePage />}
 
           {activeTab === 'settings' && (
             <div className="tab-content">
