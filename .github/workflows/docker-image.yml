@@ -14,5 +14,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Build backend image (raiz do repo)
+      run: docker build . --file docker/Dockerfile --build-arg WITH_BLENDER=1 --tag cfd-pipeline-backend:${{ github.sha }}

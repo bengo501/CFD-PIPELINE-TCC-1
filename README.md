@@ -11,6 +11,13 @@ https://github.com/bengo501/CFD-PIPELINE-TCC-1/milestones
 [![OpenFOAM](https://img.shields.io/badge/openfoam-11-green.svg)](https://openfoam.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## tcc2: escopo local, docker e template
+
+- **execução local** é o caminho principal do trabalho; stack em [`docker/docker-compose.yml`](docker/docker-compose.yml) (postgres, redis, minio, backend, frontend). na pasta `docker`: `docker compose up --build`.
+- **imagem backend**: construída a partir da **raiz do repo** (`docker build -f docker/Dockerfile ..`). variável de build **`WITH_BLENDER=0`** gera imagem sem blender (perfil **python modeling**); com **`1`** inclui blender.
+- **perfis de modelagem**: `MODELING_PROFILE=blender` (default) ou `MODELING_PROFILE=python` — ver [`docs/tcc2/PERFIS_MODELAGEM.md`](docs/tcc2/PERFIS_MODELAGEM.md). documentação para a monografia em [`docs/tcc2/`](docs/tcc2/).
+- **github template**: checklist em [`docs/tcc2/USO_COMO_TEMPLATE.md`](docs/tcc2/USO_COMO_TEMPLATE.md).
+
 ## sobre o projeto
 
 este projeto implementa um pipeline completo e reproduzivel para simulacao cfd (computational fluid dynamics) de leitos empacotados. a solucao aborda os principais problemas de reproducibilidade em simulacoes cientificas atraves de:
@@ -18,7 +25,7 @@ este projeto implementa um pipeline completo e reproduzivel para simulacao cfd (
 1. **dsl (domain specific language)** - linguagem `.bed` para descrever parametros de leitos
 2. **geracao automatica de geometria 3d** - usando blender com fisica rigid body
 3. **simulacao cfd automatizada** - usando openfoam (blockmesh, snappyhexmesh, simplefoam)
-4. **containerizacao** - docker compose para reproducibilidade total (em desenvolvimento)
+4. **containerizacao** - docker compose na pasta `docker/` para reproducibilidade local
 5. **interface web** - dashboard para visualizacao e analise (planejado)
 
 ### 1. dsl - domain specific language
@@ -115,6 +122,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 
 ### guias principais
 
+- **[docs/tcc2/](docs/tcc2/)** - escopo tcc2, perfis blender/python, template, registo de alterações
 - **[scripts/automation/README.md](scripts/automation/README.md)** - instalacao e configuracao
 - **[docs/UML_COMPLETO.md](docs/UML_COMPLETO.md)** - arquitetura e diagramas
 - **[docs/OPENFOAM_WINDOWS_GUIA.md](docs/OPENFOAM_WINDOWS_GUIA.md)** - guia openfoam

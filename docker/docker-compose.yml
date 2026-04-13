@@ -1,7 +1,10 @@
 version: '3.8'
 
+# imagem com blender: WITH_BLENDER=1 (default no build)
+# imagem sem blender (perfil python modeling): WITH_BLENDER=0 e MODELING_PROFILE=python
+# a partir desta pasta: docker compose up --build
+
 services:
-  # banco de dados postgresql
   postgres:
     image: postgres:15
     container_name: cfd_postgres
@@ -19,7 +22,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # redis para cache e celery
   redis:
     image: redis:7-alpine
     container_name: cfd_redis
@@ -34,7 +36,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # minio para armazenamento de arquivos
   minio:
     image: minio/minio
     container_name: cfd_minio
@@ -53,26 +54,26 @@ services:
       timeout: 20s
       retries: 3
 
-  # backend fastapi
   backend:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      args:
+        WITH_BLENDER: ${WITH_BLENDER:-1}
     container_name: cfd_backend
+    working_dir: /workspace
     ports:
       - "8000:8000"
     environment:
+      PYTHONPATH: /workspace
       DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/cfd_pipeline
       REDIS_URL: redis://redis:6379
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
-      CELERY_BROKER_URL: redis://redis:6379
-      CELERY_RESULT_BACKEND: redis://redis:6379
+      MODELING_PROFILE: ${MODELING_PROFILE:-blender}
     volumes:
-      - ../backend:/app
-      - ../scripts:/app/scripts
-      - ../generated:/app/generated
+      - ..:/workspace
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,9 +81,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # frontend react
   frontend:
     build:
       context: ..
@@ -97,52 +97,7 @@ services:
       - /app/node_modules
     depends_on:
       - backend
-    command: npm run dev
-
-  # celery worker para tarefas assíncronas
-  celery-worker:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: cfd_celery_worker
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/cfd_pipeline
-      REDIS_URL: redis://redis:6379
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      CELERY_BROKER_URL: redis://redis:6379
-      CELERY_RESULT_BACKEND: redis://redis:6379
-    volumes:
-      - ../backend:/app
-      - ../scripts:/app/scripts
-      - ../generated:/app/generated
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: celery -A app.core.celery worker --loglevel=info --concurrency=2
-
-  # celery beat para tarefas agendadas
-  celery-beat:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: cfd_celery_beat
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/cfd_pipeline
-      REDIS_URL: redis://redis:6379
-      CELERY_BROKER_URL: redis://redis:6379
-      CELERY_RESULT_BACKEND: redis://redis:6379
-    volumes:
-      - ../backend:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: celery -A app.core.celery beat --loglevel=info
+    command: npm run dev -- --host 0.0.0.0
 
 volumes:
   postgres_data:

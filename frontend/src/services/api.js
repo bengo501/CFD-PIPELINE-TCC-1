@@ -1,8 +1,12 @@
 // cliente http para api backend
 import axios from 'axios';
 
+const apiBase =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
+  'http://localhost:8000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: apiBase,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -58,7 +62,7 @@ export const listFiles = async (fileType) => {
 
 // download de arquivo
 export const downloadFile = (fileType, filename) => {
-  return `http://localhost:8000/api/files/download/${fileType}/${filename}`;
+  return `${apiBase}/api/files/download/${fileType}/${filename}`;
 };
 
 // status do sistema

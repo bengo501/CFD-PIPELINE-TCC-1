@@ -92,7 +92,8 @@ async def generate_model(request: GenerateModelRequest, background_tasks: Backgr
         job_id=job_id,
         json_file=request.json_file,
         open_blender=request.open_blender,
-        jobs_store=jobs_store
+        jobs_store=jobs_store,
+        modeling_profile=request.modeling_profile,
     )
     
     return JobResponse(
@@ -154,7 +155,7 @@ async def list_simulations():
     """
     lista simulações criadas
     """
-    files = file_manager.list_directories("simulations")
+    files = file_manager.list_directories("cfd")
     return FileListResponse(files=files, total=len(files))
 
 # ==================== ENDPOINTS DE JOBS ====================
@@ -198,14 +199,14 @@ async def list_jobs(status: str = None, job_type: str = None):
 async def list_files(file_type: str):
     """
     lista arquivos por tipo
-    tipos: bed, json, blend, stl, simulations
+    tipos: bed, json, blend, stl, simulations (pastas em generated/cfd)
     """
     type_mapping = {
         "bed": (".", [".bed"]),
         "json": (".", [".bed.json"]),
         "blend": ("models", [".blend"]),
         "stl": ("models", [".stl"]),
-        "simulations": ("simulations", [])
+        "simulations": ("cfd", [])
     }
     
     if file_type not in type_mapping:

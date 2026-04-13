@@ -755,18 +755,24 @@ exit 0
     def run(self, blend_file: Path, execute_simulation: bool = True):
         """
         executar todo o processo
-        
+
         args:
-            blend_file: arquivo .blend gerado pelo blender
+            blend_file: arquivo .blend gerado pelo blender, ou .stl ja exportado (perfil python)
             execute_simulation: se true, executa a simulacao apos criar o caso
         """
         print(f"\n{'='*60}")
         print(f"  configuracao de caso openfoam")
         print(f"{'='*60}")
-        
+
         try:
-            # exportar stl
-            stl_path = self.export_stl_from_blender(blend_file)
+            blend_file = Path(blend_file)
+            if blend_file.suffix.lower() == ".stl":
+                stl_path = blend_file.resolve()
+                if not stl_path.exists():
+                    raise FileNotFoundError(f"stl nao encontrado: {stl_path}")
+                print(f"\n[2/8] usando stl existente (sem blender): {stl_path}")
+            else:
+                stl_path = self.export_stl_from_blender(blend_file)
             
             # criar estrutura do caso
             self.create_case_structure()
@@ -856,7 +862,7 @@ def main():
     parser.add_argument(
         'blend_file',
         type=str,
-        help='caminho para arquivo .blend gerado'
+        help='caminho para .blend (exporta stl) ou .stl ja gerado (perfil python)'
     )
     parser.add_argument(
         '--output-dir',

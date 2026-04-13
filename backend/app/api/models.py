@@ -75,12 +75,20 @@ class GenerateModelRequest(BaseModel):
     """requisição para gerar modelo 3d"""
     json_file: str
     open_blender: bool = Field(False, description="abrir blender gui após gerar")
+    modeling_profile: Optional[str] = Field(
+        None,
+        description="blender ou python; None usa env MODELING_PROFILE",
+    )
 
 class SimulationRequest(BaseModel):
     """requisição para criar simulação cfd"""
     json_file: str
     blend_file: str
     run_simulation: bool = Field(False, description="executar simulação imediatamente")
+    modeling_profile: Optional[str] = Field(
+        None,
+        description="informativo; geometria já deve ser .blend ou .stl coerente",
+    )
 
 # modelos de job (tarefa assíncrona)
 class Job(BaseModel):

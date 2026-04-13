@@ -1,7 +1,7 @@
 """
 rotas integradas que combinam compilacao, geracao 3d, simulacao e banco de dados
 """
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -35,11 +35,15 @@ from pathlib import Path
 
 @router.post("/pipeline/create-bed", response_model=JobResponse, tags=["pipeline"])
 async def create_bed_full(
+    background_tasks: BackgroundTasks,
     parameters: BedParameters,
+    db: Session = Depends(get_db),
+    modeling_profile: str | None = Query(
+        None,
+        description="blender ou python; None usa env MODELING_PROFILE",
+    ),
     generate_model: bool = True,
     run_simulation: bool = False,
-    background_tasks: BackgroundTasks = None,
-    db: Session = Depends(get_db)
 ):
     """
     fluxo completo: compila .bed, salva no banco, opcionalmente gera modelo 3d e simulacao
@@ -68,23 +72,23 @@ async def create_bed_full(
         updated_at=datetime.now(),
         metadata={
             "generate_model": generate_model,
-            "run_simulation": run_simulation
+            "run_simulation": run_simulation,
+            "modeling_profile": modeling_profile,
         }
     )
     
     jobs_store_integrated[job_id] = job
     
-    # adicionar tarefa em background
-    if background_tasks:
-        background_tasks.add_task(
-            _execute_full_pipeline,
-            job_id=job_id,
-            parameters=parameters.model_dump(),
-            generate_model=generate_model,
-            run_simulation=run_simulation,
-            db_session=db,
-            jobs_store=jobs_store_integrated
-        )
+    background_tasks.add_task(
+        _execute_full_pipeline,
+        job_id=job_id,
+        parameters=parameters.model_dump(),
+        generate_model=generate_model,
+        run_simulation=run_simulation,
+        modeling_profile=modeling_profile,
+        db_session=db,
+        jobs_store=jobs_store_integrated,
+    )
     
     return JobResponse(
         job_id=job_id,
@@ -98,6 +102,7 @@ async def _execute_full_pipeline(
     parameters: dict,
     generate_model: bool,
     run_simulation: bool,
+    modeling_profile: str | None,
     db_session: Session,
     jobs_store: dict
 ):
@@ -148,7 +153,8 @@ async def _execute_full_pipeline(
                 open_blender=False,
                 jobs_store=jobs_store,
                 bed_id=result.get("bed_id"),
-                db_session=db_session
+                db_session=db_session,
+                modeling_profile=modeling_profile,
             )
             
             # verificar se blender foi bem sucedido
@@ -218,7 +224,11 @@ async def get_pipeline_job(job_id: str):
 async def execute_full_pipeline_with_simulation(
     parameters: BedParametersNested,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    modeling_profile: str | None = Query(
+        None,
+        description="blender ou python; None usa env MODELING_PROFILE",
+    ),
+    db: Session = Depends(get_db),
 ):
     """
     pipeline completo end-to-end com execucao da simulacao cfd no wsl
@@ -254,9 +264,10 @@ async def execute_full_pipeline_with_simulation(
     background_tasks.add_task(
         _execute_full_pipeline_with_simulation,
         job_id,
-        parameters.dict(),
+        parameters.model_dump(),
         db,
-        jobs_store_integrated
+        jobs_store_integrated,
+        modeling_profile,
     )
     
     return JobResponse(
@@ -270,7 +281,8 @@ async def _execute_full_pipeline_with_simulation(
     job_id: str,
     parameters: dict,
     db_session: Session,
-    jobs_store: dict
+    jobs_store: dict,
+    modeling_profile: str | None = None,
 ):
     """
     executa pipeline completo com simulacao cfd em background
@@ -312,7 +324,10 @@ async def _execute_full_pipeline_with_simulation(
         
         # ===== etapa 2: gerar modelo 3d no blender (15-40%) =====
         job.progress = 15
-        job.logs.append(f"[{datetime.now()}] etapa 2/4: gerando modelo 3d no blender")
+        job.logs.append(
+            f"[{datetime.now()}] etapa 2/4: gerando geometria 3d "
+            f"(perfil: {modeling_profile or 'env'})"
+        )
         job.updated_at = datetime.now()
         
         # criar sub-job para blender
@@ -334,7 +349,8 @@ async def _execute_full_pipeline_with_simulation(
             open_blender=False,
             jobs_store=jobs_store,
             bed_id=job.metadata.get("bed_id"),
-            db_session=db_session
+            db_session=db_session,
+            modeling_profile=modeling_profile,
         )
         
         # verificar se blender foi bem sucedido
@@ -347,9 +363,9 @@ async def _execute_full_pipeline_with_simulation(
                 job.logs.append(f"[{datetime.now()}] ✓ modelo 3d gerado: {blend_file}")
                 job.updated_at = datetime.now()
             else:
-                raise Exception("blender concluiu mas não retornou arquivo .blend")
+                raise Exception("geracao 3d concluiu mas nao retornou ficheiro de geometria")
         else:
-            error_msg = blender_job.error_message or "erro desconhecido no blender"
+            error_msg = blender_job.error_message or "erro desconhecido na geracao 3d"
             raise Exception(f"erro na geracao do modelo: {error_msg}")
         
         # ===== etapa 3: criar caso openfoam (40-50%) =====
@@ -443,11 +459,13 @@ async def _create_openfoam_case(json_file: str, blend_file: str, job: Job, jobs_
             return None
         
         if not blend_path.exists():
-            job.logs.append(f"[{datetime.now()}] erro: arquivo blend nao encontrado: {blend_path}")
+            job.logs.append(
+                f"[{datetime.now()}] erro: geometria (.blend ou .stl) nao encontrada: {blend_path}"
+            )
             return None
         
-        # diretorio de saida
-        output_root = project_root / "output" / "cfd"
+        # diretorio de saida (alinhar com openfoam_service e documentacao)
+        output_root = project_root / "generated" / "cfd"
         output_root.mkdir(parents=True, exist_ok=True)
         
         # script de setup

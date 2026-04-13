@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 from backend.app.api.models import JobStatus
+from backend.app import config as app_config
 
 class BlenderService:
     """gerencia geração de modelos 3d no blender"""
@@ -18,6 +19,9 @@ class BlenderService:
         self.leito_script = self.scripts_dir / "leito_extracao.py"
         self.output_dir = self.project_root / "generated" / "3d" / "output"
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.python_stl_script = (
+            self.project_root / "scripts" / "python_modeling" / "packed_bed_stl.py"
+        )
         
         # detectar blender
         self.blender_exe = self._find_blender()
@@ -71,7 +75,8 @@ class BlenderService:
         open_blender: bool,
         jobs_store: Dict[str, Any],
         bed_id: Optional[int] = None,
-        db_session = None
+        db_session = None,
+        modeling_profile: Optional[str] = None,
     ):
         """
         gera modelo 3d (executado em background)
@@ -85,10 +90,15 @@ class BlenderService:
         job = jobs_store[job_id]
         
         try:
+            profile = (modeling_profile or app_config.MODELING_PROFILE or "blender").strip().lower()
+            if profile not in ("blender", "python"):
+                raise ValueError(f"modeling_profile invalido: {profile} (use blender ou python)")
+
             # atualizar status
             job.status = JobStatus.RUNNING
             job.progress = 10
             job.updated_at = datetime.now()
+            job.metadata["modeling_profile"] = profile
             
             # preparar caminhos
             json_path = self.project_root / json_file
@@ -96,60 +106,89 @@ class BlenderService:
             if not json_path.exists():
                 raise FileNotFoundError(f"arquivo json não encontrado: {json_file}")
             
-            # gerar nome do arquivo .blend
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            blend_filename = f"leito_{timestamp}.blend"
-            blend_path = self.output_dir / blend_filename
-            
-            # executar blender headless
-            job.progress = 30
-            job.updated_at = datetime.now()
-            
-            cmd = [
-                self.blender_exe,
-                "--background",
-                "--python", str(self.leito_script),
-                "--",
-                "--params", str(json_path),
-                "--output", str(blend_path)
-            ]
-            
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minutos
-            )
-            
-            job.progress = 80
-            job.updated_at = datetime.now()
-            
-            if result.returncode != 0:
-                raise Exception(f"erro no blender: {result.stderr}")
-            
-            # verificar se arquivo foi gerado
-            if not blend_path.exists():
-                raise Exception("arquivo .blend não foi gerado")
-            
-            # atualizar job com sucesso
-            job.status = JobStatus.COMPLETED
-            job.progress = 100
-            job.updated_at = datetime.now()
-            job.output_files = [str(blend_path.relative_to(self.project_root))]
-            job.metadata["blend_file"] = str(blend_path.relative_to(self.project_root))
+
+            if profile == "python":
+                if not self.python_stl_script.exists():
+                    raise FileNotFoundError(f"script python modeling nao encontrado: {self.python_stl_script}")
+                stl_filename = f"leito_{timestamp}.stl"
+                stl_path = self.output_dir / stl_filename
+                job.progress = 30
+                job.updated_at = datetime.now()
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(self.python_stl_script),
+                        str(json_path),
+                        str(stl_path),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=600,
+                    cwd=str(self.project_root),
+                )
+                job.progress = 80
+                job.updated_at = datetime.now()
+                if result.returncode != 0:
+                    raise Exception(f"erro na geracao python/stl: {result.stderr or result.stdout}")
+                if not stl_path.exists():
+                    raise Exception("arquivo .stl nao foi gerado")
+                rel = str(stl_path.relative_to(self.project_root))
+                job.status = JobStatus.COMPLETED
+                job.progress = 100
+                job.updated_at = datetime.now()
+                job.output_files = [rel]
+                job.metadata["geometry_file"] = rel
+                job.metadata["blend_file"] = rel
+            else:
+                if not self.check_availability():
+                    raise RuntimeError(
+                        "perfil blender mas blender nao disponivel; use MODELING_PROFILE=python ou instale blender"
+                    )
+                blend_filename = f"leito_{timestamp}.blend"
+                blend_path = self.output_dir / blend_filename
+                job.progress = 30
+                job.updated_at = datetime.now()
+                cmd = [
+                    self.blender_exe,
+                    "--background",
+                    "--python", str(self.leito_script),
+                    "--",
+                    "--params", str(json_path),
+                    "--output", str(blend_path)
+                ]
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=300
+                )
+                job.progress = 80
+                job.updated_at = datetime.now()
+                if result.returncode != 0:
+                    raise Exception(f"erro no blender: {result.stderr}")
+                if not blend_path.exists():
+                    raise Exception("arquivo .blend não foi gerado")
+                rel = str(blend_path.relative_to(self.project_root))
+                job.status = JobStatus.COMPLETED
+                job.progress = 100
+                job.updated_at = datetime.now()
+                job.output_files = [rel]
+                job.metadata["geometry_file"] = rel
+                job.metadata["blend_file"] = rel
             
             # atualizar bed no banco se fornecido
             if bed_id and db_session:
                 from backend.app.database import crud, schemas
                 
-                update_data = schemas.BedUpdate(
-                    blend_file_path=str(blend_path.relative_to(self.project_root))
-                )
+                geom_rel = job.metadata.get("geometry_file") or job.metadata.get("blend_file")
+                update_data = schemas.BedUpdate(blend_file_path=geom_rel)
                 crud.BedCRUD.update(db_session, bed_id, update_data)
             
-            # abrir blender gui se solicitado
-            if open_blender and blend_path.exists():
-                subprocess.Popen([self.blender_exe, str(blend_path)])
+            if profile == "blender" and open_blender:
+                bp = self.project_root / (job.metadata.get("blend_file") or "")
+                if bp.suffix.lower() == ".blend" and bp.exists():
+                    subprocess.Popen([self.blender_exe, str(bp)])
             
         except subprocess.TimeoutExpired:
             job.status = JobStatus.FAILED
