@@ -41,7 +41,7 @@ function TemplateEditor() {
       const response = await fetch('http://localhost:8000/api/templates/list')
       if (response.ok) {
         const data = await response.json()
-        setSavedTemplates(data.templates || [])
+        setSavedTemplates(Array.isArray(data) ? data : data.templates || [])
       }
     } catch (error) {
       console.error('erro ao carregar templates salvos:', error)

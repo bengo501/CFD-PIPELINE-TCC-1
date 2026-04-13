@@ -93,5 +93,35 @@ export const getSimulationResults = async (simulationId, resultType = null) => {
   return response.data;
 };
 
+// templates .bed persistidos (bed_templates no sqlite/postgresql)
+export const listTemplates = async () => {
+  const response = await api.get('/api/templates/list');
+  return response.data;
+};
+
+export const getTemplate = async (templateId) => {
+  const response = await api.get(`/api/templates/${templateId}`);
+  return response.data;
+};
+
+export const saveTemplate = async (payload) => {
+  const response = await api.post('/api/templates/save', {
+    name: payload.name,
+    content: payload.content,
+    tag: payload.tag ?? 'bed',
+    source: payload.source ?? 'editor',
+  });
+  return response.data;
+};
+
+export const deleteTemplate = async (templateId) => {
+  await api.delete(`/api/templates/${templateId}`);
+};
+
+export const duplicateTemplate = async (templateId) => {
+  const response = await api.post(`/api/templates/${templateId}/duplicate`);
+  return response.data;
+};
+
 export default api;
 

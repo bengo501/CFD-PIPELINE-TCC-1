@@ -123,22 +123,40 @@ class TemplateCreate(BaseModel):
     """criar template"""
     name: str = Field(..., description="nome do template")
     content: str = Field(..., description="conteúdo do template")
+    tag: str = Field(default="bed", description="etiqueta: bed, preset, cfd, …")
+    source: str = Field(default="editor", description="origem: editor, import, duplicate")
+
+
+class TemplateSummary(BaseModel):
+    """listagem de templates sem conteúdo (payload leve)"""
+    id: str
+    name: str
+    created_at: str
+    updated_at: str
+    tag: str = "bed"
+    source: str = "editor"
+
 
 class TemplateResponse(BaseModel):
-    """resposta de template"""
+    """resposta de template com conteúdo completo"""
     id: str
     name: str
     content: str
     created_at: str
     updated_at: str
+    tag: str = "bed"
+    source: str = "editor"
+
 
 class Template(BaseModel):
-    """template completo"""
+    """template completo (legado / alias semântico)"""
     id: str
     name: str
     content: str
     created_at: str
     updated_at: str
+    tag: str = "bed"
+    source: str = "editor"
 
 class FileListResponse(BaseModel):
     """lista de arquivos"""

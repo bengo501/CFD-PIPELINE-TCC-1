@@ -159,6 +159,25 @@ class Result(Base):
         return f"<Result(id={self.id}, type='{self.result_type}', name='{self.name}')>"
 
 
+class BedTemplate(Base):
+    """
+    template .bed persistido (biblioteca do editor / templates salvos)
+    """
+    __tablename__ = "bed_templates"
+
+    id = Column(String(36), primary_key=True, index=True)
+    name = Column(String(255), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    tag = Column(String(50), nullable=False, default="bed")
+    source = Column(String(50), nullable=False, default="editor")
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<BedTemplate(id={self.id}, name='{self.name}')>"
+
+
 # indices adicionais para performance
 from sqlalchemy import Index
 
