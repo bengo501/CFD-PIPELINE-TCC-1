@@ -85,6 +85,20 @@ export const listRecentSimulations = async (limit = 8) => {
   return response.data;
 };
 
+// lista paginada de simulacoes (sqlite/postgresql)
+export const listSimulations = async ({
+  page = 1,
+  per_page = 100,
+  bed_id = null,
+  status = null
+} = {}) => {
+  const params = { page, per_page };
+  if (bed_id != null && bed_id !== '') params.bed_id = bed_id;
+  if (status != null && status !== '') params.status = status;
+  const response = await api.get('/api/simulations', { params });
+  return response.data;
+};
+
 // resultados de uma simulacao especifica
 export const getSimulationResults = async (simulationId, resultType = null) => {
   const params = {};

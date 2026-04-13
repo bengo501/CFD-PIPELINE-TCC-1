@@ -33,12 +33,16 @@ const SIMPLE_MODE_TABS = new Set([
   'settings',
 ])
 
+/** secções da sidebar que ainda têm submenu (dropdown) */
+const COLLAPSIBLE_NAV_SECTIONS = new Set(['templates', 'simulation', 'analysis', 'results'])
+
 function App() {
   const { language, toggleLanguage, t, setLanguage } = useLanguage();
   const { theme, toggleTheme, setThemeMode } = useTheme();
   const { simpleMode, devMode, applySettingsFromApi, setSimpleMode, setDevMode } = useAppUi();
   const [activeTab, setActiveTab] = useState('dashboard') // dashboard, create, wizard, pipeline, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
+  const [backendUnreachable, setBackendUnreachable] = useState(false)
   const [currentJob, setCurrentJob] = useState(null)
   const [lastBedFile, setLastBedFile] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -55,6 +59,11 @@ function App() {
       el.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     }
   }, [activeTab])
+
+  useEffect(() => {
+    const suffix = language === 'pt' ? 'pipeline cfd' : 'cfd pipeline'
+    document.title = `${t('appCreativeTitle')} — ${suffix}`
+  }, [language, t])
 
   useEffect(() => {
     let cancelled = false;
@@ -87,17 +96,31 @@ function App() {
         Object.keys(prev).forEach((k) => {
           next[k] = false;
         });
-        next.dashboard = true;
         return next;
       });
       setActiveTab('dashboard');
     }
   }, [simpleMode, activeTab]);
 
+  const checkSystemStatus = useCallback(async () => {
+    try {
+      const status = await getSystemStatus()
+      setSystemStatus(status)
+      setBackendUnreachable(false)
+    } catch (error) {
+      console.error('erro ao verificar sistema:', error)
+      setSystemStatus(null)
+      setBackendUnreachable(true)
+    }
+  }, [])
+
   useEffect(() => {
-    // verificar status do sistema ao carregar
     checkSystemStatus()
-    
+    const pollId = setInterval(checkSystemStatus, 25000)
+    return () => clearInterval(pollId)
+  }, [checkSystemStatus])
+
+  useEffect(() => {
     // detectar scroll para encolher header
     const handleScroll = () => {
       if (window.scrollY > 50) {
@@ -123,15 +146,6 @@ function App() {
     }
   }, [showHelp, showDocs, showCredits])
 
-  const checkSystemStatus = async () => {
-    try {
-      const status = await getSystemStatus()
-      setSystemStatus(status)
-    } catch (error) {
-      console.error('erro ao verificar sistema:', error)
-    }
-  }
-
   const handleLogout = useCallback(() => {
     sessionStorage.clear();
     ['app_simple_mode', 'app_dev_mode', 'jobsPollIntervalSec', 'theme', 'themeMode', 'language'].forEach((k) =>
@@ -147,7 +161,6 @@ function App() {
       Object.keys(prev).forEach((k) => {
         next[k] = false;
       });
-      next.dashboard = true;
       return next;
     });
     setActiveTab('dashboard');
@@ -176,7 +189,9 @@ function App() {
       Object.keys(prev).forEach((k) => {
         next[k] = false
       })
-      if (sec) next[sec] = true
+      if (sec && COLLAPSIBLE_NAV_SECTIONS.has(sec)) {
+        next[sec] = true
+      }
       return next
     })
     setActiveTab(tab)
@@ -193,7 +208,6 @@ function App() {
       Object.keys(prev).forEach((key) => {
         newState[key] = false;
       });
-      newState.create = true;
       return newState;
     });
     setActiveTab('wizard');
@@ -288,22 +302,42 @@ function App() {
               />
               <span className="theme-text">{theme === 'light' ? (language === 'pt' ? 'escuro' : 'dark') : (language === 'pt' ? 'claro' : 'light')}</span>
             </button>
-            
-            <button 
-              className="language-toggle" 
-              onClick={toggleLanguage} 
-              title={language === 'pt' ? 'switch to english' : 'mudar para português'}
-              aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
-            >
-              <ThemeIcon 
-                light={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
-                dark={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
-                alt={language === 'pt' ? 'brasil' : 'usa'} 
-                className="flag" 
-                location="header"
-              />
-              <span className="lang-text">{language === 'pt' ? 'br' : 'us'}</span>
-            </button>
+
+            <div className="header-lang-cluster">
+              {backendUnreachable && (
+                <button
+                  type="button"
+                  className="header-backend-warning"
+                  onClick={() => checkSystemStatus()}
+                  title={t('backendConnectionError')}
+                  aria-label={t('backendConnectionError')}
+                >
+                  <ThemeIcon
+                    light="offlineLight.png"
+                    dark="offlineDark.png"
+                    alt=""
+                    className="header-warning-icon"
+                    location="header"
+                  />
+                </button>
+              )}
+
+              <button 
+                className="language-toggle" 
+                onClick={toggleLanguage} 
+                title={language === 'pt' ? 'switch to english' : 'mudar para português'}
+                aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
+              >
+                <ThemeIcon 
+                  light={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
+                  dark={language === 'pt' ? "brazil_flag_icon_white.png" : "usa_flag_icon_white_50stars.png"} 
+                  alt={language === 'pt' ? 'brasil' : 'usa'} 
+                  className="flag" 
+                  location="header"
+                />
+                <span className="lang-text">{language === 'pt' ? 'br' : 'us'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -315,73 +349,49 @@ function App() {
         <aside className="sidebar">
           <nav className="sidebar-nav">
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('dashboard')}>
-                <h3 className="nav-section-title">
-                  <ThemeIcon light="analiseLight.png" dark="analiseLight.png" alt="dashboard" className="section-icon" location="sidebar" />
-                  {language === 'pt' ? 'dashboard' : 'dashboard'}
-                </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.dashboard ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
-              </div>
-              {expandedSections.dashboard && (
-                <div className="nav-subsection">
-                  <button
-                    className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('dashboard')}
-                  >
-                    <img src="/image/analiseLight.png" alt="dashboard" className="nav-icon" />
-                    <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
-                  </button>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`nav-item nav-item-root nav-item-folder-face ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => navigateToTab('dashboard')}
+              >
+                <ThemeIcon light="analiseLight.png" dark="analiseLight.png" alt="dashboard" className="nav-icon" location="sidebar" />
+                <span className="nav-label">{language === 'pt' ? 'dashboard' : 'dashboard'}</span>
+              </button>
             </div>
 
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('create')}>
-                <h3 className="nav-section-title">
-                  <ThemeIcon light="create_bed_white.png" dark="create_bed_white.png" alt="create" className="section-icon" location="sidebar" />
-                  {t('create')}
-                </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.create ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
-              </div>
-              {expandedSections.create && (
-                <div className="nav-subsection">
-                  <button
-                    className={`nav-item ${activeTab === 'wizard' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('wizard')}
-                  >
-                    <img src="/image/create_bed_white.png" alt={t('createBed')} className="nav-icon" />
-                    <span className="nav-label">{t('createBed')}</span>
-                  </button>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`nav-item nav-item-root nav-item-folder-face ${activeTab === 'wizard' ? 'active' : ''}`}
+                onClick={() => navigateToTab('wizard')}
+              >
+                <ThemeIcon light="create_bed_white.png" dark="create_bed_white.png" alt={t('create')} className="nav-icon" location="sidebar" />
+                <span className="nav-label">{t('create')}</span>
+              </button>
             </div>
 
             {!simpleMode && (
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('templates')}>
+              <div
+                className="nav-section-header"
+                onClick={() => toggleSection('templates')}
+                role="button"
+                tabIndex={0}
+                aria-expanded={!!expandedSections.templates}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSection('templates');
+                  }
+                }}
+              >
                 <h3 className="nav-section-title">
                   <ThemeIcon light="folderLight.png" dark="folderDark.png" alt="templates" className="section-icon" location="sidebar" />
                   templates
                 </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.templates ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
+                <span className="nav-folder-toggle" aria-hidden="true">
+                  {expandedSections.templates ? '−' : '+'}
+                </span>
               </div>
               {expandedSections.templates && (
                 <div className="nav-subsection">
@@ -405,18 +415,26 @@ function App() {
             )}
 
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('simulation')}>
+              <div
+                className="nav-section-header"
+                onClick={() => toggleSection('simulation')}
+                role="button"
+                tabIndex={0}
+                aria-expanded={!!expandedSections.simulation}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSection('simulation');
+                  }
+                }}
+              >
                 <h3 className="nav-section-title">
                   <ThemeIcon light="cfd_gear_white.png" dark="cfd_gear_white.png" alt="simulation" className="section-icon" location="sidebar" />
                   {t('simulation')}
                 </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.simulation ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
+                <span className="nav-folder-toggle" aria-hidden="true">
+                  {expandedSections.simulation ? '−' : '+'}
+                </span>
               </div>
               {expandedSections.simulation && (
                 <div className="nav-subsection">
@@ -440,47 +458,39 @@ function App() {
 
             {!simpleMode && (
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('database')}>
-                <h3 className="nav-section-title">
-                  <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="database" className="section-icon database-icon" location="sidebar" />
-                  {language === 'pt' ? 'banco de dados' : 'database'}
-                </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.database ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
-              </div>
-              {expandedSections.database && (
-                <div className="nav-subsection">
-                  <button
-                    className={`nav-item ${activeTab === 'database' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('database')}
-                  >
-                    <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="banco de dados" className="nav-icon database-icon" />
-                    <span className="nav-label">{language === 'pt' ? 'banco de dados' : 'database'}</span>
-                  </button>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`nav-item nav-item-root nav-item-folder-face ${activeTab === 'database' ? 'active' : ''}`}
+                onClick={() => navigateToTab('database')}
+              >
+                <ThemeIcon light="database-01-svgrepo-com.svg" dark="database-01-svgrepo-com.svg" alt="database" className="nav-icon database-icon" location="sidebar" />
+                <span className="nav-label">{language === 'pt' ? 'banco de dados' : 'database'}</span>
+              </button>
             </div>
             )}
 
             {!simpleMode && (
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('analysis')}>
+              <div
+                className="nav-section-header"
+                onClick={() => toggleSection('analysis')}
+                role="button"
+                tabIndex={0}
+                aria-expanded={!!expandedSections.analysis}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSection('analysis');
+                  }
+                }}
+              >
                 <h3 className="nav-section-title">
                   <ThemeIcon light="analiseLight.png" dark="analiseLight.png" alt="analysis" className="section-icon" location="sidebar" />
                   {language === 'pt' ? 'análises' : 'analysis'}
                 </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.analysis ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
+                <span className="nav-folder-toggle" aria-hidden="true">
+                  {expandedSections.analysis ? '−' : '+'}
+                </span>
               </div>
               {expandedSections.analysis && (
                 <div className="nav-subsection">
@@ -504,18 +514,26 @@ function App() {
             )}
 
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('results')}>
+              <div
+                className="nav-section-header"
+                onClick={() => toggleSection('results')}
+                role="button"
+                tabIndex={0}
+                aria-expanded={!!expandedSections.results}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSection('results');
+                  }
+                }}
+              >
                 <h3 className="nav-section-title">
                   <ThemeIcon light="cfd_gear_white.png" dark="cfd_gear_white.png" alt="results" className="section-icon" location="sidebar" />
                   {t('results')}
                 </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.results ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
+                <span className="nav-folder-toggle" aria-hidden="true">
+                  {expandedSections.results ? '−' : '+'}
+                </span>
               </div>
               {expandedSections.results && (
                 <div className="nav-subsection">
@@ -546,58 +564,26 @@ function App() {
 
             {!simpleMode && (
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('profile')}>
-                <h3 className="nav-section-title">
-                  <ThemeIcon light="profileLight.png" dark="profileLight.png" alt="profile" className="section-icon" location="sidebar" />
-                  {language === 'pt' ? 'perfil' : 'profile'}
-                </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.profile ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
-              </div>
-              {expandedSections.profile && (
-                <div className="nav-subsection">
-                  <button
-                    className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('profile')}
-                  >
-                    <ThemeIcon light="profileLight.png" dark="profileLight.png" alt="perfil" className="nav-icon" />
-                    <span className="nav-label">{language === 'pt' ? 'perfil' : 'profile'}</span>
-                  </button>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`nav-item nav-item-root nav-item-folder-face ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => navigateToTab('profile')}
+              >
+                <ThemeIcon light="profileLight.png" dark="profileLight.png" alt="profile" className="nav-icon" location="sidebar" />
+                <span className="nav-label">{language === 'pt' ? 'perfil' : 'profile'}</span>
+              </button>
             </div>
             )}
 
             <div className="nav-section">
-              <div className="nav-section-header" onClick={() => toggleSection('settings')}>
-                <h3 className="nav-section-title">
-                  <ThemeIcon light="settingsLight.png" dark="settingsLight.png" alt="settings" className="section-icon" location="sidebar" />
-                  settings
-                </h3>
-                <ThemeIcon 
-                  light="triangle_white_outline.png" 
-                  dark="triangle_white_outline.png" 
-                  alt="toggle" 
-                  className={`nav-arrow ${expandedSections.settings ? 'expanded' : ''}`} 
-                  location="sidebar"
-                />
-              </div>
-              {expandedSections.settings && (
-                <div className="nav-subsection">
-                  <button
-                    className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('settings')}
-                  >
-                    <ThemeIcon light="settingsLight.png" dark="settingsLight.png" alt="settings" className="nav-icon" />
-                    <span className="nav-label">{t('configuracoes')}</span>
-                  </button>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`nav-item nav-item-root nav-item-folder-face ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => navigateToTab('settings')}
+              >
+                <ThemeIcon light="settingsLight.png" dark="settingsLight.png" alt="settings" className="nav-icon" location="sidebar" />
+                <span className="nav-label">{t('configuracoes')}</span>
+              </button>
             </div>
           </nav>
         </aside>
@@ -736,7 +722,7 @@ function App() {
                 </a>
               </div>
               <p className="academic-info">
-              <strong>{language === 'pt' ? 'TCC2' : 'final project'}</strong><br />
+              <strong>{language === 'pt' ? 'trabalho de conclusão de curso' : 'final project'}</strong><br />
                 {language === 'pt' ? 'ciência da computação' : 'computer science'}<br />
                 {language === 'pt' ? 'engenharia química' : 'chemical engineering'}
               </p>
@@ -871,7 +857,7 @@ function App() {
             <h4>{language === 'pt' ? 'créditos' : 'credits'}</h4>
             <p className="credits-text">
               {language === 'pt'
-                ? 'projeto de tcc desenvolvido na pucrs / escola politécnica, em colaboração com o laboratório lope.'
+                ? 'projeto de trabalho de conclusão de curso desenvolvido na pucrs / escola politécnica, em colaboração com o laboratório lope.'
                 : 'final project developed at pucrs / school of engineering, in collaboration with lope laboratory.'}
             </p>
             <div className="footer-credits-detail">
@@ -881,11 +867,14 @@ function App() {
                     <strong>aluno:</strong> Bernardo Klein Heitz
                   </p>
                   <p>
-                    <strong>orientador</strong> — trabalho de conclusão de curso (ciência da computação): Marco Aurélio Mangan
+                    <strong>orientador</strong> — trabalho de conclusão de curso (ciência da computação): prof. Marco Aurélio Mangan
+                  </p>
+                  <p>
+                    <strong>orientadora</strong> — iniciação científica voluntária: prof. Soraia Raupp Musse
                   </p>
                   <p>
                     <strong>orientadores</strong> — bolsa de iniciação científica lope:<br />
-                    Professor Rubem Mário Vargas<br />
+                    prof. Rubem Mário Vargas<br />
                     Doutorando Henrique Martins Tavares
                   </p>
                 </>
