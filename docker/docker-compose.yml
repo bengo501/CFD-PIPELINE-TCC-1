@@ -72,6 +72,7 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
       MODELING_PROFILE: ${MODELING_PROFILE:-blender}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-1}
     volumes:
       - ..:/workspace
     depends_on:

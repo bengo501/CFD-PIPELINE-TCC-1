@@ -13,6 +13,7 @@ sys.path.insert(0, str(project_root))
 
 from backend.app.api import routes
 from backend.app.database.connection import DatabaseConnection
+from backend.app.database.seed_demo import seed_demo_data_if_needed
 
 # criar app fastapi
 app = FastAPI(
@@ -65,6 +66,7 @@ async def on_startup():
     (para sqlite; em producao usar alembic para migrations)
     """
     DatabaseConnection.create_tables()
+    seed_demo_data_if_needed()
 
 # rota raiz
 @app.get("/")
