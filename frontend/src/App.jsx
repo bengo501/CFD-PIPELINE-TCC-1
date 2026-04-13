@@ -13,6 +13,7 @@ import ResultsList from './components/ResultsList'
 import TemplateEditor from './components/TemplateEditor'
 import ProfilePage from './components/ProfilePage'
 import ReportsPage from './components/ReportsPage'
+import DatabasePage from './components/DatabasePage'
 import SavedTemplatesPage from './components/SavedTemplatesPage'
 import ThemeIcon from './components/ThemeIcon'
 import { HelpModal, DocsModal, CreditsModal } from './components/WizardHelpers'
@@ -536,20 +537,7 @@ function App() {
 
           {activeTab === 'templates-saved' && <SavedTemplatesPage />}
 
-          {activeTab === 'database' && (
-            <div className="tab-content">
-              <div className="page-container">
-                <div className="wip-content">
-                  <ThemeIcon light="wipLogoLight.png" dark="wipLogoDark.png" alt="work in progress" className="wip-large-logo" />
-                  <h1 className="wip-title">{language === 'pt' ? 'banco de dados' : 'database'}</h1>
-                </div>
-                <p>{language === 'pt' ? 'gerencie o banco de dados do sistema' : 'manage system database'}</p>
-                <div className="info-message">
-                  {language === 'pt' ? 'funcionalidade em desenvolvimento' : 'feature under development'}
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'database' && <DatabasePage />}
 
           {activeTab === 'reports' && <ReportsPage />}
 
