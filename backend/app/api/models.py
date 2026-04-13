@@ -2,7 +2,7 @@
 modelos pydantic para validação de dados
 """
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Literal
 from enum import Enum
 from datetime import datetime
 
@@ -162,4 +162,181 @@ class FileListResponse(BaseModel):
     """lista de arquivos"""
     files: List[FileInfo]
     total: int
+
+
+# painel banco de dados (frontend)
+class DatabasePanelCounts(BaseModel):
+    beds: int
+    simulations: int
+    results: int
+    bed_templates: int
+
+
+class DatabasePanelEventOut(BaseModel):
+    id: int
+    event_type: str
+    detail: Optional[str] = None
+    created_at: str
+
+
+class DatabasePanelResponse(BaseModel):
+    connected: bool
+    backend: str
+    database_display: str
+    counts: DatabasePanelCounts
+    integrations: Dict[str, str] = Field(default_factory=dict)
+    recent_events: List[DatabasePanelEventOut] = Field(default_factory=list)
+    checked_at: str
+    error: Optional[str] = None
+
+
+class AdminPanelEventCreate(BaseModel):
+    event_type: Literal["backup_request", "connection_test"]
+    detail: Optional[str] = Field(None, max_length=2000)
+
+
+# relatórios (página web)
+class ReportCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=500)
+    body: str = ""
+    status: Literal["draft", "planned", "published"] = "draft"
+
+
+class ReportUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=500)
+    body: Optional[str] = None
+    status: Optional[Literal["draft", "planned", "published"]] = None
+
+
+class ReportSummary(BaseModel):
+    id: int
+    title: str
+    status: str
+    created_at: str
+    updated_at: str
+    attachment_count: int
+
+
+class ReportAttachmentOut(BaseModel):
+    id: int
+    kind: str
+    ref_id: Optional[str] = None
+    label: Optional[str] = None
+    note: Optional[str] = None
+    created_at: str
+    display_ref: str
+
+
+class ReportDetail(BaseModel):
+    id: int
+    title: str
+    body: str
+    status: str
+    created_at: str
+    updated_at: str
+    attachments: List[ReportAttachmentOut]
+
+
+class ReportAttachmentCreate(BaseModel):
+    kind: Literal["simulation", "template", "result", "data_note"]
+    ref_id: Optional[str] = Field(None, max_length=64)
+    label: Optional[str] = Field(None, max_length=500)
+    note: Optional[str] = None
+
+
+class ReportCatalogSimulation(BaseModel):
+    id: int
+    name: str
+    status: str
+
+
+class ReportCatalogTemplate(BaseModel):
+    id: str
+    name: str
+    tag: str = "bed"
+
+
+class ReportCatalogResponse(BaseModel):
+    simulations: List[ReportCatalogSimulation]
+    templates: List[ReportCatalogTemplate]
+
+
+class ReportMetaResultItem(BaseModel):
+    id: int
+    name: str
+    result_type: str
+    value: Optional[float] = None
+    unit: Optional[str] = None
+
+
+# perfil (singleton na base de dados)
+class UserProfileResponse(BaseModel):
+    id: int
+    display_name: str
+    email: str
+    organization: str
+    role: str
+    bio: Optional[str] = None
+    preferred_language: str
+    created_at: str
+    updated_at: str
+
+
+class UserProfileUpdate(BaseModel):
+    display_name: Optional[str] = Field(None, max_length=200)
+    email: Optional[str] = Field(None, max_length=255)
+    organization: Optional[str] = Field(None, max_length=300)
+    role: Optional[Literal["researcher", "engineer", "student", "other"]] = None
+    bio: Optional[str] = None
+    preferred_language: Optional[Literal["pt", "en"]] = None
+
+
+class DatabaseUiOptions(BaseModel):
+    notes: str = ""
+    client_timeout_sec: int = Field(30, ge=5, le=600)
+
+
+class OpenFoamDefaults(BaseModel):
+    solver: str = "simpleFoam"
+    max_iterations: int = Field(1000, ge=1, le=100000)
+    turbulence_model: str = "kEpsilon"
+    convergence: float = Field(1e-6, gt=0)
+
+
+class ModelingOptions(BaseModel):
+    profile: Literal["blender", "python"] = "blender"
+    notes: str = ""
+
+
+class CfdOtherNotes(BaseModel):
+    notes: str = ""
+
+
+class AppSettingsResponse(BaseModel):
+    id: int
+    theme_mode: str
+    language: str
+    jobs_poll_interval_sec: int
+    show_advanced_hints: bool
+    simple_mode: bool = False
+    dev_mode: bool = False
+    database_ui: DatabaseUiOptions
+    openfoam_defaults: OpenFoamDefaults
+    modeling: ModelingOptions
+    cfd_other: CfdOtherNotes
+    created_at: str
+    updated_at: str
+
+
+class AppSettingsUpdate(BaseModel):
+    theme_mode: Optional[Literal["light", "dark", "system"]] = None
+    language: Optional[Literal["pt", "en"]] = None
+    jobs_poll_interval_sec: Optional[int] = Field(None, ge=3, le=120)
+    show_advanced_hints: Optional[bool] = None
+    simple_mode: Optional[bool] = None
+    dev_mode: Optional[bool] = None
+    database_ui: Optional[DatabaseUiOptions] = None
+    openfoam_defaults: Optional[OpenFoamDefaults] = None
+    modeling: Optional[ModelingOptions] = None
+    cfd_other: Optional[CfdOtherNotes] = None
 

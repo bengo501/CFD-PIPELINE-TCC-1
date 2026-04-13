@@ -5,7 +5,7 @@ const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
   // carregar idioma do localStorage ou usar português como padrão
-  const [language, setLanguage] = useState(() => {
+  const [language, setLanguageState] = useState(() => {
     return localStorage.getItem('language') || 'pt';
   });
 
@@ -18,11 +18,17 @@ export const LanguageProvider = ({ children }) => {
   }, [language]);
 
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'pt' ? 'en' : 'pt');
+    setLanguageState((prev) => (prev === 'pt' ? 'en' : 'pt'));
+  };
+
+  const setLanguage = (lang) => {
+    if (lang === 'pt' || lang === 'en') {
+      setLanguageState(lang);
+    }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
+    <LanguageContext.Provider value={{ language, toggleLanguage, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

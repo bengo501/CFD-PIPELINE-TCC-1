@@ -1,0 +1,61 @@
+.dev-mode-panel {
+  margin: 0 0 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 180, 255, 0.35);
+  background: rgba(30, 60, 90, 0.25);
+  font-size: 0.85rem;
+}
+
+.dev-mode-panel-toggle {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.dev-mode-chevron {
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+.dev-mode-panel-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .dev-mode-panel-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dev-mode-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.dev-mode-col ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.dev-mode-col li {
+  margin-bottom: 0.25rem;
+}
+
+.dev-mode-col code {
+  font-size: 0.8rem;
+  word-break: break-all;
+}

@@ -123,5 +123,92 @@ export const duplicateTemplate = async (templateId) => {
   return response.data;
 };
 
+// painel banco de dados (admin_panel_events + contagens)
+export const getDatabasePanel = async () => {
+  const response = await api.get('/api/database/panel');
+  return response.data;
+};
+
+export const postDatabasePanelEvent = async (eventType, detail = null) => {
+  const response = await api.post('/api/database/events', {
+    event_type: eventType,
+    detail,
+  });
+  return response.data;
+};
+
+// relatórios (tabelas reports + report_attachments)
+export const listReports = async () => {
+  const response = await api.get('/api/reports');
+  return response.data;
+};
+
+export const getReport = async (reportId) => {
+  const response = await api.get(`/api/reports/${reportId}`);
+  return response.data;
+};
+
+export const createReport = async (payload) => {
+  const response = await api.post('/api/reports', payload);
+  return response.data;
+};
+
+export const updateReport = async (reportId, payload) => {
+  const response = await api.patch(`/api/reports/${reportId}`, payload);
+  return response.data;
+};
+
+export const deleteReport = async (reportId) => {
+  await api.delete(`/api/reports/${reportId}`);
+};
+
+export const reportsCatalog = async () => {
+  const response = await api.get('/api/reports/meta/catalog');
+  return response.data;
+};
+
+export const reportsResultsForSimulation = async (simulationId) => {
+  const response = await api.get('/api/reports/meta/results', {
+    params: { simulation_id: simulationId },
+  });
+  return response.data;
+};
+
+export const addReportAttachment = async (reportId, payload) => {
+  const response = await api.post(`/api/reports/${reportId}/attachments`, payload);
+  return response.data;
+};
+
+export const removeReportAttachment = async (reportId, attachmentId) => {
+  await api.delete(`/api/reports/${reportId}/attachments/${attachmentId}`);
+};
+
+// perfil singleton (user_profiles id=1)
+export const getProfile = async () => {
+  const response = await api.get('/api/profile');
+  return response.data;
+};
+
+export const patchProfile = async (payload) => {
+  const response = await api.patch('/api/profile', payload);
+  return response.data;
+};
+
+export const getSettings = async () => {
+  const response = await api.get('/api/settings');
+  return response.data;
+};
+
+export const patchSettings = async (payload) => {
+  const response = await api.patch('/api/settings', payload);
+  return response.data;
+};
+
+/** encerra o processo do backend (requer ALLOW_DEV_SHUTDOWN=1 no servidor) */
+export const postAdminDevShutdown = async () => {
+  const response = await api.post('/api/admin/dev/shutdown');
+  return response.data;
+};
+
 export default api;
 

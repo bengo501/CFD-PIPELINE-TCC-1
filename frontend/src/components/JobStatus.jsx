@@ -13,10 +13,9 @@ function JobStatus({ currentJob }) {
 
   useEffect(() => {
     loadJobs()
-    
-    // atualizar a cada 2 segundos
-    const interval = setInterval(loadJobs, 2000)
-    
+    const sec = parseInt(localStorage.getItem('jobsPollIntervalSec'), 10)
+    const pollSec = Number.isFinite(sec) && sec >= 3 && sec <= 120 ? sec : 5
+    const interval = setInterval(loadJobs, pollSec * 1000)
     return () => clearInterval(interval)
   }, [])
 

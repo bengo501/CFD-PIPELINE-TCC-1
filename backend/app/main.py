@@ -57,6 +57,18 @@ app.include_router(routes_cfd.router, prefix="/api")
 app.include_router(routes_casos.router, prefix="/api")
 app.include_router(routes_templates.router, prefix="/api")
 
+from backend.app.api import routes_reports
+app.include_router(routes_reports.router, prefix="/api")
+
+from backend.app.api import routes_profile
+app.include_router(routes_profile.router, prefix="/api")
+
+from backend.app.api import routes_settings
+app.include_router(routes_settings.router, prefix="/api")
+
+from backend.app.api import routes_admin
+app.include_router(routes_admin.router, prefix="/api")
+
 
 # eventos de ciclo de vida
 @app.on_event("startup")

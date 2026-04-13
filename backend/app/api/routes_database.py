@@ -1,13 +1,22 @@
 """
 rotas da api rest integradas com postgresql
 """
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, Depends, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pathlib import Path
 
-from backend.app.database.connection import get_db
+from backend.app.database.connection import get_db, DATABASE_URL
 from backend.app.database import crud, schemas, models
+from backend.app.api.models import (
+    AdminPanelEventCreate,
+    DatabasePanelCounts,
+    DatabasePanelEventOut,
+    DatabasePanelResponse,
+)
 from backend.app.services.results_service import ResultsService
 
 router = APIRouter()
@@ -493,5 +502,116 @@ async def get_overview_stats(db: Session = Depends(get_db)):
         "total_results": total_results,
         "simulations_by_status": simulations_by_status,
         "recent_simulations": [schemas.SimulationResponse.from_orm(s) for s in recent_simulations]
+    }
+
+
+def _describe_database_url(url: str) -> tuple[str, str]:
+    u = (url or "").lower()
+    if "sqlite" in u:
+        return "sqlite", "sqlite · ficheiro local"
+    if "postgres" in u:
+        return "postgresql", "postgresql · servidor"
+    return "other", "motor sql (ver DATABASE_URL)"
+
+
+def _dt_iso(v) -> str:
+    if v is None:
+        return ""
+    if hasattr(v, "isoformat"):
+        return v.isoformat()
+    return str(v)
+
+
+@router.get(
+    "/database/panel",
+    response_model=DatabasePanelResponse,
+    tags=["database", "admin"],
+)
+async def get_database_panel(db: Session = Depends(get_db)):
+    """
+    dados agregados para a página "banco de dados" no frontend:
+    motor sql (sem expor credenciais), contagens de tabelas e últimos eventos do painel.
+    """
+    backend, display = _describe_database_url(DATABASE_URL)
+    now = datetime.now(timezone.utc).isoformat()
+    integrations = {
+        "redis": "não integrado à api",
+        "object_storage": "não integrado à api",
+    }
+
+    try:
+        beds = db.query(func.count(models.Bed.id)).scalar() or 0
+        sims = db.query(func.count(models.Simulation.id)).scalar() or 0
+        res = db.query(func.count(models.Result.id)).scalar() or 0
+        tmpl = db.query(func.count(models.BedTemplate.id)).scalar() or 0
+
+        ev_rows = (
+            db.query(models.AdminPanelEvent)
+            .order_by(models.AdminPanelEvent.created_at.desc())
+            .limit(20)
+            .all()
+        )
+        events = [
+            DatabasePanelEventOut(
+                id=e.id,
+                event_type=e.event_type,
+                detail=e.detail,
+                created_at=_dt_iso(e.created_at),
+            )
+            for e in ev_rows
+        ]
+
+        return DatabasePanelResponse(
+            connected=True,
+            backend=backend,
+            database_display=display,
+            counts=DatabasePanelCounts(
+                beds=beds,
+                simulations=sims,
+                results=res,
+                bed_templates=tmpl,
+            ),
+            integrations=integrations,
+            recent_events=events,
+            checked_at=now,
+            error=None,
+        )
+    except Exception as e:
+        return DatabasePanelResponse(
+            connected=False,
+            backend=backend,
+            database_display=display,
+            counts=DatabasePanelCounts(
+                beds=0,
+                simulations=0,
+                results=0,
+                bed_templates=0,
+            ),
+            integrations=integrations,
+            recent_events=[],
+            checked_at=now,
+            error=str(e),
+        )
+
+
+@router.post("/database/events", tags=["database", "admin"])
+async def log_database_panel_event(
+    body: AdminPanelEventCreate,
+    db: Session = Depends(get_db),
+):
+    """
+    regista um pedido do painel (backup manual ou teste de ligação) na tabela admin_panel_events.
+    """
+    row = models.AdminPanelEvent(
+        event_type=body.event_type,
+        detail=body.detail,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {
+        "id": row.id,
+        "event_type": row.event_type,
+        "created_at": _dt_iso(row.created_at),
     }
 

@@ -178,6 +178,113 @@ class BedTemplate(Base):
         return f"<BedTemplate(id={self.id}, name='{self.name}')>"
 
 
+class AdminPanelEvent(Base):
+    """
+    eventos registados a partir do painel "banco de dados" no frontend
+    (ex.: pedido de backup, teste de ligação).
+    """
+    __tablename__ = "admin_panel_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    event_type = Column(String(64), nullable=False, index=True)
+    detail = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self):
+        return f"<AdminPanelEvent(id={self.id}, type='{self.event_type}')>"
+
+
+class Report(Base):
+    """
+    relatório técnico criado pelo utilizador (texto + anexos a entidades do pipeline).
+    """
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    title = Column(String(500), nullable=False)
+    body = Column(Text, nullable=False, default="")
+    status = Column(String(32), nullable=False, default="draft")
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    attachments = relationship(
+        "ReportAttachment",
+        back_populates="report",
+        cascade="all, delete-orphan",
+        order_by="ReportAttachment.id",
+    )
+
+    def __repr__(self):
+        return f"<Report(id={self.id}, title='{self.title[:40]}...')>"
+
+
+class ReportAttachment(Base):
+    """
+    referência a simulação, template .bed, resultado numérico ou nota de dados livres.
+    """
+    __tablename__ = "report_attachments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    report_id = Column(
+        Integer,
+        ForeignKey("reports.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    kind = Column(String(32), nullable=False)
+    ref_id = Column(String(64), nullable=True)
+    label = Column(String(500), nullable=True)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    report = relationship("Report", back_populates="attachments")
+
+    def __repr__(self):
+        return f"<ReportAttachment(id={self.id}, kind='{self.kind}')>"
+
+
+class UserProfile(Base):
+    """
+    perfil da aplicação web (uma única linha id=1 — sem autenticação multi-utilizador).
+    """
+    __tablename__ = "user_profiles"
+
+    id = Column(Integer, primary_key=True)
+    display_name = Column(String(200), nullable=False, default="")
+    email = Column(String(255), nullable=False, default="")
+    organization = Column(String(300), nullable=False, default="")
+    role = Column(String(64), nullable=False, default="researcher")
+    bio = Column(Text, nullable=True)
+    preferred_language = Column(String(8), nullable=False, default="pt")
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<UserProfile(id={self.id}, name='{self.display_name[:30]}')>"
+
+
+class AppSettings(Base):
+    """
+    preferências globais da aplicação web (singleton id=1).
+    """
+    __tablename__ = "app_settings"
+
+    id = Column(Integer, primary_key=True)
+    theme_mode = Column(String(16), nullable=False, default="system")
+    language = Column(String(8), nullable=False, default="pt")
+    jobs_poll_interval_sec = Column(Integer, nullable=False, default=5)
+    show_advanced_hints = Column(Boolean, nullable=False, default=False)
+    options_json = Column(JSON, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<AppSettings(theme_mode={self.theme_mode}, lang={self.language})>"
+
+
 # indices adicionais para performance
 from sqlalchemy import Index
 

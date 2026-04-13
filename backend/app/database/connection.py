@@ -58,7 +58,26 @@ class DatabaseConnection:
             em producao, usar alembic para migrations
         """
         Base.metadata.create_all(bind=engine)
+        DatabaseConnection._ensure_sqlite_app_settings_options()
         print("[OK] tabelas criadas no banco de dados")
+
+    @staticmethod
+    def _ensure_sqlite_app_settings_options():
+        """adiciona coluna options_json em bases sqlite antigas sem migration formal."""
+        url = str(DATABASE_URL or "")
+        if not url.startswith("sqlite"):
+            return
+        from sqlalchemy import inspect, text
+
+        insp = inspect(engine)
+        if "app_settings" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("app_settings")}
+        if "options_json" in cols:
+            return
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE app_settings ADD COLUMN options_json TEXT"))
+        print("[OK] coluna app_settings.options_json adicionada (sqlite)")
     
     @staticmethod
     def drop_tables():

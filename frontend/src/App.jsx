@@ -1,29 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Dashboard from './components/Dashboard'
 import SimulationHistory from './components/SimulationHistory'
 import ComparisonPage from './components/ComparisonPage'
-import BedForm from './components/BedForm'
 import BedWizard from './components/BedWizard'
 import CFDSimulation from './components/CFDSimulation'
-import PipelineCompleto from './components/PipelineCompleto'
 import CasosCFD from './components/CasosCFD'
 import JobStatus from './components/JobStatus'
-import ModelViewer from './components/ModelViewer'
 import ResultsList from './components/ResultsList'
 import TemplateEditor from './components/TemplateEditor'
 import ProfilePage from './components/ProfilePage'
 import ReportsPage from './components/ReportsPage'
 import DatabasePage from './components/DatabasePage'
 import SavedTemplatesPage from './components/SavedTemplatesPage'
+import SettingsPage from './components/SettingsPage'
+import DevModePanel from './components/DevModePanel'
 import ThemeIcon from './components/ThemeIcon'
 import { HelpModal, DocsModal, CreditsModal } from './components/WizardHelpers'
-import { getSystemStatus } from './services/api'
+import { getSystemStatus, getSettings } from './services/api'
+import api from './services/api'
 import { useLanguage } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
+import { useAppUi } from './context/AppUiContext'
+
+const SIMPLE_MODE_TABS = new Set([
+  'dashboard',
+  'wizard',
+  'cfd',
+  'casos',
+  'jobs',
+  'results',
+  'history',
+  'settings',
+])
 
 function App() {
-  const { language, toggleLanguage, t } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { language, toggleLanguage, t, setLanguage } = useLanguage();
+  const { theme, toggleTheme, setThemeMode } = useTheme();
+  const { simpleMode, devMode, applySettingsFromApi, setSimpleMode, setDevMode } = useAppUi();
   const [activeTab, setActiveTab] = useState('dashboard') // dashboard, create, wizard, pipeline, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [currentJob, setCurrentJob] = useState(null)
@@ -33,6 +46,53 @@ function App() {
   const [showDocs, setShowDocs] = useState(false)
   const [showCredits, setShowCredits] = useState(false)
   const [expandedSections, setExpandedSections] = useState({})
+  const mainContentRef = useRef(null)
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    const el = mainContentRef.current
+    if (el) {
+      el.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }
+  }, [activeTab])
+
+  useEffect(() => {
+    let cancelled = false;
+    getSettings()
+      .then((s) => {
+        if (cancelled) return;
+        applySettingsFromApi(s);
+        const tm =
+          s.theme_mode === 'dark' || s.theme_mode === 'light' || s.theme_mode === 'system'
+            ? s.theme_mode
+            : 'system';
+        setThemeMode(tm);
+        setLanguage(s.language === 'en' ? 'en' : 'pt');
+        const j = Number(s.jobs_poll_interval_sec);
+        if (Number.isFinite(j) && j >= 3 && j <= 120) {
+          localStorage.setItem('jobsPollIntervalSec', String(j));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [applySettingsFromApi, setLanguage, setThemeMode]);
+
+  useEffect(() => {
+    if (!simpleMode) return;
+    if (!SIMPLE_MODE_TABS.has(activeTab)) {
+      setExpandedSections((prev) => {
+        const next = {};
+        Object.keys(prev).forEach((k) => {
+          next[k] = false;
+        });
+        next.dashboard = true;
+        return next;
+      });
+      setActiveTab('dashboard');
+    }
+  }, [simpleMode, activeTab]);
 
   useEffect(() => {
     // verificar status do sistema ao carregar
@@ -72,9 +132,59 @@ function App() {
     }
   }
 
+  const handleLogout = useCallback(() => {
+    sessionStorage.clear();
+    ['app_simple_mode', 'app_dev_mode', 'jobsPollIntervalSec', 'theme', 'themeMode', 'language'].forEach((k) =>
+      localStorage.removeItem(k)
+    );
+    setSimpleMode(false);
+    setDevMode(false);
+    setThemeMode('system');
+    setLanguage('pt');
+    api.defaults.timeout = 30000;
+    setExpandedSections((prev) => {
+      const next = {};
+      Object.keys(prev).forEach((k) => {
+        next[k] = false;
+      });
+      next.dashboard = true;
+      return next;
+    });
+    setActiveTab('dashboard');
+  }, [setDevMode, setLanguage, setSimpleMode, setThemeMode]);
+
+  const navigateToTab = (tab) => {
+    const sectionByTab = {
+      dashboard: 'dashboard',
+      wizard: 'create',
+      templates: 'templates',
+      'templates-saved': 'templates',
+      cfd: 'simulation',
+      casos: 'simulation',
+      database: 'database',
+      comparisons: 'analysis',
+      reports: 'analysis',
+      jobs: 'results',
+      results: 'results',
+      history: 'results',
+      profile: 'profile',
+      settings: 'settings',
+    }
+    const sec = sectionByTab[tab]
+    setExpandedSections((prev) => {
+      const next = {}
+      Object.keys(prev).forEach((k) => {
+        next[k] = false
+      })
+      if (sec) next[sec] = true
+      return next
+    })
+    setActiveTab(tab)
+  }
+
   const handleJobCreated = (job) => {
     setCurrentJob(job)
-    setActiveTab('jobs')
+    navigateToTab('jobs')
   }
 
   const goToCreationMode = () => {
@@ -258,6 +368,7 @@ function App() {
               )}
             </div>
 
+            {!simpleMode && (
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('templates')}>
                 <h3 className="nav-section-title">
@@ -291,6 +402,7 @@ function App() {
                 </div>
               )}
             </div>
+            )}
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('simulation')}>
@@ -326,6 +438,7 @@ function App() {
               )}
             </div>
 
+            {!simpleMode && (
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('database')}>
                 <h3 className="nav-section-title">
@@ -352,7 +465,9 @@ function App() {
                 </div>
               )}
             </div>
+            )}
 
+            {!simpleMode && (
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('analysis')}>
                 <h3 className="nav-section-title">
@@ -386,6 +501,7 @@ function App() {
                 </div>
               )}
             </div>
+            )}
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('results')}>
@@ -428,6 +544,7 @@ function App() {
               )}
             </div>
 
+            {!simpleMode && (
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('profile')}>
                 <h3 className="nav-section-title">
@@ -454,6 +571,7 @@ function App() {
                 </div>
               )}
             </div>
+            )}
 
             <div className="nav-section">
               <div className="nav-section-header" onClick={() => toggleSection('settings')}>
@@ -485,7 +603,8 @@ function App() {
         </aside>
 
         {/* conteúdo principal */}
-        <main className="main-content">
+        <main className="main-content" ref={mainContentRef}>
+          {devMode && <DevModePanel activeTab={activeTab} />}
           {activeTab === 'wizard' && (
             <div className="tab-content">
               <BedWizard />
@@ -550,32 +669,7 @@ function App() {
           {activeTab === 'profile' && <ProfilePage />}
 
           {activeTab === 'settings' && (
-            <div className="tab-content">
-              <div className="settings-container">
-                <h2>{t('systemSettings')}</h2>
-                <div className="development-notice">
-                  <p>esta página está em desenvolvimento</p>
-                </div>
-                <div className="settings-grid">
-                  <div className="setting-card">
-                    <h3>{t('theme')}</h3>
-                    <p>{t('themeDesc')}</p>
-                  </div>
-                  <div className="setting-card">
-                    <h3>{t('language')}</h3>
-                    <p>{t('languageDesc')}</p>
-                  </div>
-                  <div className="setting-card">
-                    <h3>{t('database')}</h3>
-                    <p>{t('databaseDesc')}</p>
-                  </div>
-                  <div className="setting-card">
-                    <h3>{t('simulations')}</h3>
-                    <p>{t('simulationsDesc')}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SettingsPage navigateTab={navigateToTab} onLogout={handleLogout} />
           )}
         </main>
       </div>
@@ -801,11 +895,14 @@ function App() {
                     <strong>student:</strong> Bernardo Klein Heitz
                   </p>
                   <p>
-                    <strong>advisor</strong> — final project (computer science): Marco Aurélio Mangan
+                    <strong>advisor</strong> — final project (computer science): prof. Marco Aurélio Mangan
+                  </p>
+                  <p>
+                    <strong>advisor</strong> — voluntary scientific initiation: prof. Soraia Raupp Musse
                   </p>
                   <p>
                     <strong>advisors</strong> — lope scientific initiation scholarship:<br />
-                    Professor Rubem Mário Vargas<br />
+                    prof. Rubem Mário Vargas<br />
                     doctoral researcher Henrique Martins Tavares
                   </p>
                 </>

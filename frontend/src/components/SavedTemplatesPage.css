@@ -7,16 +7,7 @@
 }
 
 .saved-templates-layout {
-  display: grid;
-  grid-template-columns: 1fr minmax(240px, 300px);
-  gap: 1.75rem;
-  align-items: start;
-}
-
-@media (max-width: 800px) {
-  .saved-templates-layout {
-    grid-template-columns: 1fr;
-  }
+  display: block;
 }
 
 .saved-templates-mockup-card {

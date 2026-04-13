@@ -1,35 +1,68 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
-export function ThemeProvider({ children }) {
-  // verificar preferência salva ou usar preferência do sistema
-  const getInitialTheme = () => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme;
-    }
-    // verificar preferência do sistema
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
-  };
+function getSystemTheme() {
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+  return 'light';
+}
 
-  const [theme, setTheme] = useState(getInitialTheme);
+function readInitialThemeMode() {
+  const m = localStorage.getItem('themeMode');
+  if (m === 'light' || m === 'dark' || m === 'system') return m;
+  const legacy = localStorage.getItem('theme');
+  if (legacy === 'light' || legacy === 'dark') return legacy;
+  return 'system';
+}
+
+function resolveEffective(mode) {
+  if (mode === 'light') return 'light';
+  if (mode === 'dark') return 'dark';
+  return getSystemTheme();
+}
+
+export function ThemeProvider({ children }) {
+  const [themeMode, setThemeModeState] = useState(readInitialThemeMode);
+  const [theme, setTheme] = useState(() => resolveEffective(readInitialThemeMode()));
 
   useEffect(() => {
-    // aplicar tema ao document
+    const eff = resolveEffective(themeMode);
+    setTheme(eff);
+    if (themeMode !== 'system') return undefined;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => setTheme(mq.matches ? 'dark' : 'light');
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [themeMode]);
+
+  useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
-  }, [theme]);
+    localStorage.setItem('themeMode', themeMode);
+  }, [theme, themeMode]);
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  const setThemeMode = useCallback((mode) => {
+    if (mode === 'light' || mode === 'dark' || mode === 'system') {
+      setThemeModeState(mode);
+    }
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemeModeState((prev) => {
+      if (prev === 'light') return 'dark';
+      if (prev === 'dark') return 'light';
+      return getSystemTheme() === 'dark' ? 'light' : 'dark';
+    });
+  }, []);
+
+  const isDarkMode = theme === 'dark';
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, themeMode, setThemeMode, toggleTheme, isDarkMode }}
+    >
       {children}
     </ThemeContext.Provider>
   );

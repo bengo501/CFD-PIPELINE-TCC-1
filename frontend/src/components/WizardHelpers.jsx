@@ -160,14 +160,16 @@ export const CreditsModal = ({ show, onClose }) => {
               {pt ? (
                 <ul>
                   <li><strong>aluno:</strong> Bernardo Klein Heitz</li>
-                  <li><strong>orientador</strong> — trabalho de conclusão de curso (ciência da computação): Marco Aurélio Mangan</li>
-                  <li><strong>orientadores</strong> — bolsa de iniciação científica lope: Professor Rubem Mário Vargas; Doutorando Henrique Martins Tavares</li>
+                  <li><strong>orientador</strong> — trabalho de conclusão de curso (ciência da computação): prof. Marco Aurélio Mangan</li>
+                  <li><strong>orientadora</strong> — iniciação científica voluntária: prof. Soraia Raupp Musse</li>
+                  <li><strong>orientadores</strong> — bolsa de iniciação científica lope: prof. Rubem Mário Vargas; Doutorando Henrique Martins Tavares</li>
                 </ul>
               ) : (
                 <ul>
                   <li><strong>student:</strong> Bernardo Klein Heitz</li>
-                  <li><strong>advisor</strong> — final project (computer science): Marco Aurélio Mangan</li>
-                  <li><strong>advisors</strong> — lope scientific initiation scholarship: Professor Rubem Mário Vargas; doctoral researcher Henrique Martins Tavares</li>
+                  <li><strong>advisor</strong> — final project (computer science): prof. Marco Aurélio Mangan</li>
+                  <li><strong>advisor</strong> — voluntary scientific initiation: prof. Soraia Raupp Musse</li>
+                  <li><strong>advisors</strong> — lope scientific initiation scholarship: prof. Rubem Mário Vargas; doctoral researcher Henrique Martins Tavares</li>
                 </ul>
               )}
             </section>

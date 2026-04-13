@@ -17,6 +17,10 @@ https://github.com/bengo501/CFD-PIPELINE-TCC-1/milestones
 - **imagem backend**: construída a partir da **raiz do repo** (`docker build -f docker/Dockerfile ..`). variável de build **`WITH_BLENDER=0`** gera imagem sem blender (perfil **python modeling**); com **`1`** inclui blender.
 - **perfis de modelagem**: `MODELING_PROFILE=blender` (default) ou `MODELING_PROFILE=python` — ver [`docs/tcc2/PERFIS_MODELAGEM.md`](docs/tcc2/PERFIS_MODELAGEM.md). documentação para a monografia em [`docs/tcc2/`](docs/tcc2/).
 - **github template**: checklist em [`docs/tcc2/USO_COMO_TEMPLATE.md`](docs/tcc2/USO_COMO_TEMPLATE.md).
+- **painel «banco de dados»** na interface web (contagens sql + registo de pedidos): [`docs/DATABASE_PAGE.md`](docs/DATABASE_PAGE.md).
+- **relatórios** (texto + anexos a simulações/templates/resultados): [`docs/REPORTS_PAGE.md`](docs/REPORTS_PAGE.md).
+- **perfil** (singleton `user_profiles`, preferência de idioma): [`docs/PROFILE_PAGE.md`](docs/PROFILE_PAGE.md).
+- **configurações** (`app_settings`, `options_json`, modo simples/dev, openfoam/modelagem, swagger, shutdown dev): [`docs/SETTINGS_PAGE.md`](docs/SETTINGS_PAGE.md).
 
 ## sobre o projeto
 

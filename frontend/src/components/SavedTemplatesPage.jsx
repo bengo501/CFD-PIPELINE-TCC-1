@@ -291,20 +291,6 @@ export default function SavedTemplatesPage() {
               </button>
             </div>
           </section>
-
-          <aside
-            className="saved-templates-info-panel"
-            aria-label={pt ? 'informação de persistência' : 'persistence info'}
-          >
-            <h3 className="saved-templates-info-title">
-              {pt ? 'persistência' : 'persistence'}
-            </h3>
-            <p className="saved-templates-info-note">
-              {pt
-                ? 'cada registo corresponde a uma linha na tabela bed_templates (sqlite por defeito). sem backend em execução, a lista não carrega.'
-                : 'each entry is a row in the bed_templates table (sqlite by default). without a running backend, the list cannot load.'}
-            </p>
-          </aside>
         </div>
       </div>
     </div>
