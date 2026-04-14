@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAppUi } from '../context/AppUiContext';
-import { getSettings, patchSettings, postAdminDevShutdown } from '../services/api';
+import { getSettings, patchSettings, postAdminDevShutdown, getApiBase } from '../services/api';
 import BackendConnectionError from './BackendConnectionError';
 import './SettingsPage.css';
 
@@ -17,10 +17,7 @@ function isConnectionError(err) {
 }
 
 function apiBaseUrl() {
-  const b =
-    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
-    'http://localhost:8000';
-  return String(b).replace(/\/$/, '');
+  return String(getApiBase()).replace(/\/$/, '');
 }
 
 /**

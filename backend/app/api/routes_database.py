@@ -460,7 +460,7 @@ async def get_bed_summary(bed_id: int, db: Session = Depends(get_db)):
     ).first()
     
     return {
-        "bed": schemas.BedResponse.from_orm(bed),
+        "bed": schemas.BedResponse.model_validate(bed),
         "simulations_count": sum(status_counts.values()),
         "simulations_by_status": status_counts,
         "average_metrics": {
@@ -502,7 +502,7 @@ async def get_overview_stats(db: Session = Depends(get_db)):
         "total_simulations": total_simulations,
         "total_results": total_results,
         "simulations_by_status": simulations_by_status,
-        "recent_simulations": [schemas.SimulationResponse.from_orm(s) for s in recent_simulations]
+        "recent_simulations": [schemas.SimulationResponse.model_validate(s) for s in recent_simulations]
     }
 
 

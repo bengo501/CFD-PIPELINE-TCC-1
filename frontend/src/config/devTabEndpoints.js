@@ -62,12 +62,12 @@ export const TAB_DEV_INFO = {
   history: {
     api: [
       'GET /api/simulations/recent',
-      'GET /api/database/simulations',
+      'GET /api/simulations',
     ],
     persistence: ['simulations', 'beds', 'results'],
   },
   comparisons: {
-    api: ['GET /api/database/simulations', 'GET /api/results/simulation/{id}'],
+    api: ['GET /api/simulations', 'GET /api/results/simulation/{id}'],
     persistence: ['simulations', 'results'],
   },
   templates: {

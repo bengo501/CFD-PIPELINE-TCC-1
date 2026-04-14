@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { compileBed, generateModel } from '../services/api'
+import { compileBed, generateModel, parseApiError } from '../services/api'
 import { useTheme } from '../context/ThemeContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useTranslation } from '../i18n/translations'
@@ -63,7 +63,7 @@ function BedForm({ onJobCreated }) {
 
     } catch (err) {
       console.error('erro:', err)
-      setError(err.response?.data?.detail || err.message || 'erro desconhecido')
+      setError(parseApiError(err) || err.message || 'erro desconhecido')
     } finally {
       setLoading(false)
     }

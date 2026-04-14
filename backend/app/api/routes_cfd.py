@@ -1,7 +1,7 @@
 # estado cfd em memoria e subprocess setup openfoam
 # complementa routes simulation com ids uuid proprios e fila simples
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Dict
 from pathlib import Path
 import subprocess
@@ -32,6 +32,35 @@ class CFDStatus(BaseModel):
     completed_at: Optional[str] = None
     case_dir: Optional[str] = None
     error: Optional[str] = None
+
+
+class RunFromWizardBody(BaseModel):
+    """corpo json igual ao enviado pelo frontend wizard e cfdsimulation"""
+
+    fileName: str = Field(..., description="nome base do ficheiro bed no wizard")
+    runSimulation: bool = True
+
+
+class CreateCaseBody(BaseModel):
+    blend_file: str
+    json_file: str
+    case_name: str
+
+
+class CreateCaseJsonOnlyBody(BaseModel):
+    json_file: str
+    case_name: str
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+
+def _resolve_repo_path(project_root: Path, path_str: str) -> Path:
+    p = Path(path_str)
+    if p.is_absolute():
+        return p
+    return (project_root / p).resolve()
 
 
 @router.post("/cfd/create")
@@ -240,46 +269,40 @@ async def run_cfd_simulation(
 @router.post("/cfd/run-from-wizard")
 async def run_cfd_from_wizard(
     background_tasks: BackgroundTasks,
-    fileName: str,
-    runSimulation: bool = True
+    body: RunFromWizardBody,
 ):
     """
     executar cfd a partir de arquivo gerado pelo wizard
     busca automaticamente os arquivos .bed.json e .blend
     """
     try:
-        project_root = Path(__file__).parent.parent.parent.parent
-        
-        # obter nome base do arquivo (sem extensao)
-        file_base = fileName.replace('.bed', '')
-        
-        # buscar arquivos
+        project_root = _project_root()
+
+        file_base = body.fileName.replace(".bed", "")
+
         bed_json = project_root / "generated" / "configs" / f"{file_base}.bed.json"
         blend_file = project_root / "generated" / "3d" / "output" / f"{file_base}.blend"
-        
-        # verificar se existem
+
         if not bed_json.exists():
             raise HTTPException(
                 status_code=404,
-                detail=f"arquivo json nao encontrado. compile o .bed primeiro"
+                detail="arquivo json nao encontrado. compile o .bed primeiro",
             )
-        
+
         if not blend_file.exists():
             raise HTTPException(
                 status_code=404,
-                detail=f"modelo 3d nao encontrado. gere o modelo no blender primeiro"
+                detail="modelo 3d nao encontrado. gere o modelo no blender primeiro",
             )
-        
-        # criar requisicao cfd
+
         request = CFDRequest(
             bed_json_path=str(bed_json.relative_to(project_root)),
             blend_file_path=str(blend_file.relative_to(project_root)),
-            run_simulation=runSimulation
+            run_simulation=body.runSimulation,
         )
-        
-        # criar simulacao
+
         return await create_cfd_case(request, background_tasks)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -288,39 +311,36 @@ async def run_cfd_from_wizard(
 # novos endpoints para modos específicos
 @router.post("/cfd/create-case", tags=["cfd"])
 async def create_case_only(
-    blend_file: str,
-    json_file: str,
-    case_name: str,
-    background_tasks: BackgroundTasks
+    body: CreateCaseBody,
+    background_tasks: BackgroundTasks,
 ):
     """
     criar caso CFD a partir de arquivo blend existente
     """
     try:
-        # validar arquivos
-        blend_path = Path(blend_file)
-        json_path = Path(json_file)
-        
+        project_root = _project_root()
+        blend_path = _resolve_repo_path(project_root, body.blend_file)
+        json_path = _resolve_repo_path(project_root, body.json_file)
+
         if not blend_path.exists():
             raise HTTPException(status_code=404, detail="arquivo blend não encontrado")
-        
+
         if not json_path.exists():
             raise HTTPException(status_code=404, detail="arquivo json não encontrado")
-        
-        # criar caso CFD
-        case_dir = Path("generated/cfd") / case_name
+
+        case_dir = project_root / "generated" / "cfd" / body.case_name
         case_dir.mkdir(parents=True, exist_ok=True)
-        
-        # configurar caso CFD
+
         await _setup_cfd_case(blend_path, json_path, case_dir)
-        
+
+        rel_case = str(case_dir.relative_to(project_root))
         return {
             "success": True,
             "message": "caso CFD criado com sucesso",
-            "case_dir": str(case_dir),
-            "case_name": case_name
+            "case_dir": rel_case,
+            "case_name": body.case_name,
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -328,34 +348,32 @@ async def create_case_only(
 
 @router.post("/cfd/create-case-only", tags=["cfd"])
 async def create_case_from_json_only(
-    json_file: str,
-    case_name: str,
-    background_tasks: BackgroundTasks
+    body: CreateCaseJsonOnlyBody,
+    background_tasks: BackgroundTasks,
 ):
     """
     criar caso CFD apenas a partir de arquivo json (sem modelo 3D)
     """
     try:
-        # validar arquivo json
-        json_path = Path(json_file)
-        
+        project_root = _project_root()
+        json_path = _resolve_repo_path(project_root, body.json_file)
+
         if not json_path.exists():
             raise HTTPException(status_code=404, detail="arquivo json não encontrado")
-        
-        # criar caso CFD
-        case_dir = Path("generated/cfd") / case_name
+
+        case_dir = project_root / "generated" / "cfd" / body.case_name
         case_dir.mkdir(parents=True, exist_ok=True)
-        
-        # configurar caso CFD sem modelo 3D
+
         await _setup_cfd_case_from_json(json_path, case_dir)
-        
+
+        rel_case = str(case_dir.relative_to(project_root))
         return {
             "success": True,
             "message": "caso CFD criado com sucesso",
-            "case_dir": str(case_dir),
-            "case_name": case_name
+            "case_dir": rel_case,
+            "case_name": body.case_name,
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:

@@ -4,7 +4,19 @@ import { HelpModal, DocsModal } from './WizardHelpers';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
 import { useLanguage } from '../context/LanguageContext';
-import { getWizardCliInstructions, launchWizardCliTerminal } from '../services/api';
+import {
+  getWizardCliInstructions,
+  launchWizardCliTerminal,
+  postBedWizard,
+  generateModel,
+  postPipelineFullSimulation,
+  getBedTemplateDefault,
+  postBedProcess,
+  pollJobUntilDone,
+  postCfdCreateCase,
+  postCfdCreateCaseOnly,
+  parseApiError,
+} from '../services/api';
 import '../styles/BedWizard.css';
 
 const BedWizard = () => {
@@ -193,88 +205,46 @@ const BedWizard = () => {
   const handleSubmit = async () => {
     try {
       setWizardConnectionError(null);
-      // preparar dados para envio
       const bedData = {
         mode: mode,
         fileName: fileName,
         params: params
       };
 
-      // enviar para API backend
-      const response = await fetch('http://localhost:8000/api/bed/wizard', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bedData)
-      });
+      const result = await postBedWizard(bedData);
+      alert(`sucesso! arquivo ${fileName} criado\nJSON gerado: ${result.json_file}`);
 
-      if (response.ok) {
-        const result = await response.json();
-        alert(`sucesso! arquivo ${fileName} criado\nJSON gerado: ${result.json_file}`);
-        
-        // se modo blender, perguntar se quer gerar modelo
-        if (mode === 'blender' || mode === 'blender_interactive') {
-          if (confirm('deseja gerar o modelo 3D agora?')) {
-            // chamar endpoint de geração
-            const genResponse = await fetch('http://localhost:8000/api/model/generate', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ 
-                json_file: result.json_file,
-                open_blender: mode === 'blender_interactive'
-              })
-            });
-            
-            if (genResponse.ok) {
-              alert('modelo 3D gerado com sucesso!');
-            }
-          }
+      if (mode === 'blender' || mode === 'blender_interactive') {
+        if (confirm('deseja gerar o modelo 3D agora?')) {
+          await generateModel(result.json_file, mode === 'blender_interactive');
+          alert('geração do modelo 3D iniciada (acompanhe em jobs)');
         }
-        
-        // se modo pipeline completo, executar pipeline end-to-end
-        if (mode === 'pipeline_completo') {
-          if (confirm('deseja executar o pipeline completo agora? (modelo 3d + simulação cfd)')) {
-            // chamar endpoint do pipeline completo
-            const pipelineResponse = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                bed: params.bed,
-                lids: params.lids,
-                particles: params.particles,
-                packing: params.packing,
-                export: params.export,
-                cfd: includeCFD ? {
-                  solver: 'simpleFoam',
-                  turbulence: 'kEpsilon',
-                  convergence: 1e-6,
-                  max_iterations: 1000
-                } : null
-              })
-            });
-            
-            if (pipelineResponse.ok) {
-              const pipelineResult = await pipelineResponse.json();
-              alert(`pipeline completo iniciado!\njob_id: ${pipelineResult.job_id}\nmonitore o progresso na seção 'jobs'`);
-            } else {
-              alert('erro ao iniciar pipeline completo');
-            }
-          }
-        }
-        
-        // resetar wizard
-        setStep(0);
-        setMode(null);
-      } else {
-        alert('erro ao criar arquivo .bed');
       }
+
+      if (mode === 'pipeline_completo') {
+        if (confirm('deseja executar o pipeline completo agora? (modelo 3d + simulação cfd)')) {
+          const pipelineResult = await postPipelineFullSimulation({
+            bed: params.bed,
+            lids: params.lids,
+            particles: params.particles,
+            packing: params.packing,
+            export: params.export,
+            cfd: includeCFD ? {
+              solver: 'simpleFoam',
+              turbulence: 'kEpsilon',
+              convergence: 1e-6,
+              max_iterations: 1000
+            } : null
+          });
+          alert(`pipeline completo iniciado!\njob_id: ${pipelineResult.job_id}\nmonitore o progresso na seção 'jobs'`);
+        }
+      }
+
+      setStep(0);
+      setMode(null);
     } catch (error) {
       console.error('erro:', error);
+      alert(parseApiError(error) || 'erro ao criar arquivo .bed');
       setWizardConnectionError(t('backendConnectionError'));
     }
   };
@@ -869,17 +839,13 @@ const BedWizard = () => {
   const loadDefaultBedTemplate = async () => {
     try {
       setWizardConnectionError(null);
-      const response = await fetch('http://localhost:8000/api/bed/template/default');
-      if (response.ok) {
-        const data = await response.json();
-        setBedFileContent(data.content);
-        setBedFileName('template_padrao.bed');
-        setUploadedFile(null);
-      } else {
-        alert('erro ao carregar template padrão');
-      }
+      const data = await getBedTemplateDefault();
+      setBedFileContent(data.content);
+      setBedFileName('template_padrao.bed');
+      setUploadedFile(null);
     } catch (error) {
       console.error('erro:', error);
+      alert(parseApiError(error) || 'erro ao carregar template padrão');
       setWizardConnectionError(t('backendConnectionError'));
     }
   };
@@ -893,131 +859,59 @@ const BedWizard = () => {
 
     try {
       setWizardConnectionError(null);
-      const response = await fetch('http://localhost:8000/api/bed/process', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: bedFileContent,
-          filename: bedFileName || 'leito_custom.bed'
-        }),
+      const result = await postBedProcess({
+        content: bedFileContent,
+        filename: bedFileName || 'leito_custom.bed'
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        
-        // se modo blender interativo, gerar modelo
-        if (mode === 'blender_interactive') {
-          const genResponse = await fetch('http://localhost:8000/api/model/generate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              json_file: result.json_file,
-              open_blender: true
-            })
-          });
-          
-          if (genResponse.ok) {
-            alert('modelo 3D gerado com sucesso!');
-          }
-        }
-        
-        // se modo pipeline blender + cfd, gerar modelo e criar caso CFD
-        if (mode === 'pipeline_blender_cfd') {
-          const genResponse = await fetch('http://localhost:8000/api/model/generate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              json_file: result.json_file,
-              open_blender: false
-            })
-          });
-          
-          if (genResponse.ok) {
-            const genResult = await genResponse.json();
-            
-            // criar caso CFD
-            const cfdResponse = await fetch('http://localhost:8000/api/cfd/create-case', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                blend_file: genResult.blend_file,
-                json_file: result.json_file,
-                case_name: `leito_${Date.now()}`
-              })
-            });
-            
-            if (cfdResponse.ok) {
-              const cfdResult = await cfdResponse.json();
-              alert(`pipeline blender + CFD concluído!\nmodelo: ${genResult.blend_file}\ncaso CFD: ${cfdResult.case_dir}`);
-            } else {
-              alert('erro ao criar caso CFD');
-            }
-          } else {
-            alert('erro ao gerar modelo 3D');
-          }
-        }
-        
-        // se modo apenas caso CFD, criar caso CFD sem gerar modelo
-        if (mode === 'cfd_only') {
-          const cfdResponse = await fetch('http://localhost:8000/api/cfd/create-case-only', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              json_file: result.json_file,
-              case_name: `leito_${Date.now()}`
-            })
-          });
-          
-          if (cfdResponse.ok) {
-            const cfdResult = await cfdResponse.json();
-            alert(`caso CFD criado com sucesso!\ncaso: ${cfdResult.case_dir}`);
-          } else {
-            alert('erro ao criar caso CFD');
-          }
-        }
-        
-        // se modo pipeline completo, executar pipeline
-        if (mode === 'pipeline_completo') {
-          const pipelineResponse = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              bed_file: result.bed_file,
-              json_file: result.json_file
-            })
-          });
-          
-          if (pipelineResponse.ok) {
-            const pipelineResult = await pipelineResponse.json();
-            alert(`pipeline completo iniciado!\njob_id: ${pipelineResult.job_id}`);
-          }
-        }
-        
-        // resetar wizard
-        setStep(0);
-        setMode(null);
-        setShowBedFileOptions(false);
-        setBedFileContent('');
-        setBedFileName('');
-        setUploadedFile(null);
-        
-      } else {
-        alert('erro ao processar arquivo .bed');
+      if (mode === 'blender_interactive') {
+        await generateModel(result.json_file, true);
+        alert('geração do modelo 3D iniciada (blender pode abrir no servidor)');
       }
+
+      if (mode === 'pipeline_blender_cfd') {
+        const genStart = await generateModel(result.json_file, false);
+        const jobFinal = await pollJobUntilDone(genStart.job_id);
+        const blendRel =
+          jobFinal.metadata?.blend_file ||
+          jobFinal.metadata?.geometry_file ||
+          (jobFinal.output_files && jobFinal.output_files[0]);
+        if (!blendRel) {
+          throw new Error('job de modelo não devolveu caminho blend/stl');
+        }
+        const cfdResult = await postCfdCreateCase({
+          blend_file: blendRel,
+          json_file: result.json_file,
+          case_name: `leito_${Date.now()}`
+        });
+        alert(`pipeline blender + CFD concluído!\nmodelo: ${blendRel}\ncaso CFD: ${cfdResult.case_dir}`);
+      }
+
+      if (mode === 'cfd_only') {
+        const cfdResult = await postCfdCreateCaseOnly({
+          json_file: result.json_file,
+          case_name: `leito_${Date.now()}`
+        });
+        alert(`caso CFD criado com sucesso!\ncaso: ${cfdResult.case_dir}`);
+      }
+
+      if (mode === 'pipeline_completo') {
+        const pipelineResult = await postPipelineFullSimulation({
+          json_file: result.json_file,
+          bed_file: result.bed_file || ''
+        });
+        alert(`pipeline completo iniciado!\njob_id: ${pipelineResult.job_id}`);
+      }
+
+      setStep(0);
+      setMode(null);
+      setShowBedFileOptions(false);
+      setBedFileContent('');
+      setBedFileName('');
+      setUploadedFile(null);
     } catch (error) {
       console.error('erro:', error);
+      alert(parseApiError(error) || 'erro ao processar arquivo .bed');
       setWizardConnectionError(t('backendConnectionError'));
     }
   };

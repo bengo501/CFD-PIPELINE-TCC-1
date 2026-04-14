@@ -4,6 +4,13 @@ import { useTheme } from '../context/ThemeContext'
 import ThemeIcon from './ThemeIcon'
 import BackendConnectionError from './BackendConnectionError'
 import '../styles/TemplateEditor.css'
+import {
+  getBedTemplateDefault,
+  listTemplates,
+  saveTemplate,
+  getTemplate,
+  deleteTemplate,
+} from '../services/api'
 
 function TemplateEditor() {
   const { language, t } = useLanguage()
@@ -23,11 +30,8 @@ function TemplateEditor() {
   const loadDefaultTemplate = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://localhost:8000/api/bed/template/default')
-      if (response.ok) {
-        const data = await response.json()
-        setBedContent(data.content)
-      }
+      const data = await getBedTemplateDefault()
+      setBedContent(data.content)
     } catch (error) {
       console.error('erro ao carregar template padrão:', error)
       setConnectionError(t('backendConnectionError'))
@@ -38,11 +42,8 @@ function TemplateEditor() {
 
   const loadSavedTemplates = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/templates/list')
-      if (response.ok) {
-        const data = await response.json()
-        setSavedTemplates(Array.isArray(data) ? data : data.templates || [])
-      }
+      const data = await listTemplates()
+      setSavedTemplates(Array.isArray(data) ? data : data.templates || [])
     } catch (error) {
       console.error('erro ao carregar templates salvos:', error)
       setConnectionError(t('backendConnectionError'))
@@ -89,18 +90,12 @@ function TemplateEditor() {
     if (templateName) {
       try {
         setConnectionError(null)
-        const response = await fetch('http://localhost:8000/api/templates/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: templateName,
-            content: bedContent
-          })
+        await saveTemplate({
+          name: templateName,
+          content: bedContent
         })
-        if (response.ok) {
-          alert('template salvo com sucesso!')
-          loadSavedTemplates()
-        }
+        alert('template salvo com sucesso!')
+        loadSavedTemplates()
       } catch (error) {
         console.error('erro ao salvar template:', error)
         setConnectionError(t('backendConnectionError'))
@@ -111,12 +106,9 @@ function TemplateEditor() {
   const handleLoadTemplate = async (templateId) => {
     try {
       setConnectionError(null)
-      const response = await fetch(`http://localhost:8000/api/templates/${templateId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setBedContent(data.content)
-        setShowTemplateManager(false)
-      }
+      const data = await getTemplate(templateId)
+      setBedContent(data.content)
+      setShowTemplateManager(false)
     } catch (error) {
       console.error('erro ao carregar template:', error)
       setConnectionError(t('backendConnectionError'))
@@ -127,13 +119,9 @@ function TemplateEditor() {
     if (confirm('tem certeza que deseja excluir este template?')) {
       try {
         setConnectionError(null)
-        const response = await fetch(`http://localhost:8000/api/templates/${templateId}`, {
-          method: 'DELETE'
-        })
-        if (response.ok) {
-          alert('template excluído com sucesso!')
-          loadSavedTemplates()
-        }
+        await deleteTemplate(templateId)
+        alert('template excluído com sucesso!')
+        loadSavedTemplates()
       } catch (error) {
         console.error('erro ao excluir template:', error)
         setConnectionError(t('backendConnectionError'))

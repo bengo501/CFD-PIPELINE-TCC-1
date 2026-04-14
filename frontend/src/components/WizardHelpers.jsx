@@ -1,5 +1,6 @@
 // componentes auxiliares para o wizard
 import { useLanguage } from '../context/LanguageContext';
+import { getApiBase } from '../services/api';
 
 export const HelpModal = ({ show, onClose, section, paramHelp }) => {
   if (!show) return null;
@@ -115,7 +116,7 @@ export const DocsModal = ({ show, onClose }) => {
             <section>
               <h3>links úteis</h3>
               <ul>
-                <li><a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
+                <li><a href={`${String(getApiBase()).replace(/\/$/, '')}/docs`} target="_blank" rel="noopener noreferrer">
                   documentação da api
                 </a></li>
                 <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">

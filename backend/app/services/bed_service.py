@@ -38,6 +38,8 @@ class BedService:
         returns:
             dict com caminhos dos arquivos gerados e opcionalmente bed_id
         """
+        parameters = self._normalize_parameters_for_generation(parameters)
+
         # gerar nome de arquivo se não fornecido
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -65,17 +67,20 @@ class BedService:
             try:
                 from backend.app.database import crud, schemas
                 
+                p_bed = parameters.get("bed") or {}
+                p_part = parameters.get("particles") or {}
+                p_pack = parameters.get("packing") or {}
                 bed_data = schemas.BedCreate(
                     name=filename,
                     description=f"leito gerado automaticamente em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                    diameter=parameters.get('bed', {}).get('diameter', 0.05) if isinstance(parameters.get('bed'), dict) else parameters.get('diameter', 0.05),
-                    height=parameters.get('bed', {}).get('height', 0.1) if isinstance(parameters.get('bed'), dict) else parameters.get('height', 0.1),
-                    wall_thickness=parameters.get('bed', {}).get('wall_thickness', 0.002) if isinstance(parameters.get('bed'), dict) else parameters.get('wall_thickness', 0.002),
-                    particle_count=parameters.get('particles', {}).get('particle_count', 100) if isinstance(parameters.get('particles'), dict) else parameters.get('particle_count', 100),
-                    particle_diameter=parameters.get('particles', {}).get('particle_diameter', 0.005) if isinstance(parameters.get('particles'), dict) else parameters.get('particle_diameter', 0.005),
-                    particle_kind=parameters.get('particles', {}).get('particle_type', 'sphere') if isinstance(parameters.get('particles'), dict) else parameters.get('particle_type', 'sphere'),
-                    packing_method=parameters.get('packing', {}).get('packing_method', 'rigid_body') if isinstance(parameters.get('packing'), dict) else parameters.get('packing_method', 'rigid_body'),
-                    porosity=parameters.get('particles', {}).get('target_porosity') if isinstance(parameters.get('particles'), dict) else parameters.get('porosity'),
+                    diameter=p_bed.get("diameter", 0.05),
+                    height=p_bed.get("height", 0.1),
+                    wall_thickness=p_bed.get("wall_thickness", 0.002),
+                    particle_count=int(p_part.get("count", 100)),
+                    particle_diameter=p_part.get("diameter", 0.005),
+                    particle_kind=p_part.get("kind", "sphere"),
+                    packing_method=p_pack.get("method", "rigid_body"),
+                    porosity=p_part.get("target_porosity"),
                     bed_file_path=result["bed_file"],
                     json_file_path=result["json_file"],
                     parameters_json=parameters,
@@ -93,6 +98,60 @@ class BedService:
                 # Não adiciona bed_id ao resultado, mas continua normalmente
         
         return result
+
+    def _normalize_parameters_for_generation(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """converte BedParameters plano (api compile) na estrutura aninhada do template .bed"""
+        if not isinstance(params, dict):
+            return {}
+        out = dict(params)
+        bed = out.get("bed")
+        if isinstance(bed, dict) and bed:
+            return out
+        if "diameter" not in out and "particle_count" not in out:
+            return out
+
+        out["bed"] = {
+            "diameter": out.get("diameter", 0.05),
+            "height": out.get("height", 0.1),
+            "wall_thickness": out.get("wall_thickness", 0.002),
+            "clearance": out.get("clearance", 0.01),
+            "material": out.get("material", "steel"),
+            "roughness": out.get("roughness", 0.0),
+        }
+        out["lids"] = {
+            "top_type": out.get("lid_top", "flat"),
+            "bottom_type": out.get("lid_bottom", "flat"),
+            "top_thickness": out.get("lid_thickness", 0.003),
+            "bottom_thickness": out.get("lid_thickness", 0.003),
+            "seal_clearance": out.get("seal_clearance", 0.001),
+        }
+        out["particles"] = {
+            "kind": out.get("particle_type", "sphere"),
+            "diameter": out.get("particle_diameter", 0.005),
+            "count": out.get("particle_count", 100),
+            "target_porosity": out.get("target_porosity", 0.4),
+            "density": out.get("density", 2500.0),
+            "mass": out.get("mass", 0.0),
+            "restitution": out.get("restitution", 0.3),
+            "friction": out.get("friction", 0.5),
+            "rolling_friction": out.get("rolling_friction", 0.1),
+            "linear_damping": out.get("linear_damping", 0.1),
+            "angular_damping": out.get("angular_damping", 0.1),
+            "seed": out.get("seed", 42),
+        }
+        out["packing"] = {
+            "method": out.get("packing_method", "rigid_body"),
+            "gravity": out.get("gravity", -9.81),
+            "substeps": out.get("substeps", 10),
+            "iterations": out.get("iterations", 10),
+            "damping": out.get("damping", 0.1),
+            "rest_velocity": out.get("rest_velocity", 0.01),
+            "max_time": out.get("max_time", 5.0),
+            "collision_margin": out.get("collision_margin", 0.001),
+        }
+        if not isinstance(out.get("export"), dict):
+            out["export"] = {}
+        return out
     
     def _generate_bed_content(self, params: Dict[str, Any]) -> str:
         """gera conteúdo do arquivo .bed"""

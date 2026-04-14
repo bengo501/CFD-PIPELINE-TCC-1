@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import ThemeIcon from './ThemeIcon';
 import '../styles/PipelineCompleto.css';
+import {
+  getJobStatus,
+  postBedWizard,
+  generateModel,
+  postCfdRunFromWizard,
+  getCfdStatus,
+  parseApiError,
+} from '../services/api';
 
 /**
  * pipeline completo web - replica bed_wizard.py
@@ -29,12 +37,7 @@ const PipelineCompleto = () => {
     new Promise((resolve, reject) => {
       const poll = async () => {
         try {
-          const res = await fetch(`http://localhost:8000/api/job/${jobId}`);
-          if (!res.ok) {
-            reject(new Error('job de modelo 3d não encontrado'));
-            return;
-          }
-          const job = await res.json();
+          const job = await getJobStatus(jobId);
           if (job.status === 'completed') {
             resolve(job);
             return;
@@ -64,17 +67,7 @@ const PipelineCompleto = () => {
       setProgresso(10);
       adicionarLog('compilando arquivo .bed com antlr...', 'info');
 
-      const respostaCompilacao = await fetch('http://localhost:8000/api/bed/wizard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parametros)
-      });
-
-      if (!respostaCompilacao.ok) {
-        throw new Error('erro na compilação do arquivo .bed');
-      }
-
-      const dadosCompilacao = await respostaCompilacao.json();
+      const dadosCompilacao = await postBedWizard(parametros);
       adicionarLog(`arquivo .bed compilado: ${dadosCompilacao.bed_file}`, 'success');
       adicionarLog(`arquivo .json gerado: ${dadosCompilacao.json_file}`, 'success');
       setProgresso(25);
@@ -84,20 +77,7 @@ const PipelineCompleto = () => {
       adicionarLog('gerando modelo 3d no blender (com física)...', 'info');
       adicionarLog('executando animação de queda das partículas (20s)...', 'info');
 
-      const respostaBlender = await fetch('http://localhost:8000/api/model/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          json_file: dadosCompilacao.json_file,
-          open_blender: false
-        })
-      });
-
-      if (!respostaBlender.ok) {
-        throw new Error('erro na geração do modelo 3d');
-      }
-
-      const jobInicio = await respostaBlender.json();
+      const jobInicio = await generateModel(dadosCompilacao.json_file, false);
       const jobId = jobInicio.job_id;
       if (!jobId) {
         throw new Error('api não devolveu job_id para o modelo 3d');
@@ -118,20 +98,10 @@ const PipelineCompleto = () => {
         setEtapaAtual('cfd');
         adicionarLog('criando caso openfoam...', 'info');
 
-        const respostaCFD = await fetch('http://localhost:8000/api/cfd/run-from-wizard', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: parametros.fileName,
-            runSimulation: true
-          })
+        const dadosCFD = await postCfdRunFromWizard({
+          fileName: parametros.fileName,
+          runSimulation: true
         });
-
-        if (!respostaCFD.ok) {
-          throw new Error('erro ao criar caso cfd');
-        }
-
-        const dadosCFD = await respostaCFD.json();
         adicionarLog(`caso cfd criado: ${dadosCFD.simulation_id}`, 'success');
         setProgresso(75);
 
@@ -144,8 +114,7 @@ const PipelineCompleto = () => {
         const monitorarSimulacao = async () => {
           const intervalo = setInterval(async () => {
             try {
-              const respostaStatus = await fetch(`http://localhost:8000/api/cfd/status/${dadosCFD.simulation_id}`);
-              const status = await respostaStatus.json();
+              const status = await getCfdStatus(dadosCFD.simulation_id);
 
               setProgresso(status.progress);
 
@@ -187,8 +156,9 @@ const PipelineCompleto = () => {
         });
       }
     } catch (err) {
-      setErro(err.message);
-      adicionarLog(`erro: ${err.message}`, 'error');
+      const msg = parseApiError(err) || err.message || 'erro';
+      setErro(msg);
+      adicionarLog(`erro: ${msg}`, 'error');
       setEtapaAtual('erro');
     }
   };

@@ -2,21 +2,34 @@
 // cada export e uma funcao fina que escolhe metodo url e parametros e devolve response data
 import axios from 'axios';
 
-// guarda o host e prefixo da api
-// tenta ler vite env vite api url se existir senao usa localhost porta 8000
-const apiBase =
-  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
-  'http://localhost:8000';
+export function getApiBase() {
+  return (
+    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
+    'http://localhost:8000'
+  );
+}
 
-// fabrica uma instancia axios com base url timeout e cabecalho json padrao
-// timeout 30000 significa 30 segundos ate falhar por rede lenta
 const api = axios.create({
-  baseURL: apiBase,
+  baseURL: getApiBase(),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
 });
+
+export function parseApiError(err) {
+  if (err == null) return 'erro desconhecido';
+  const data = err.response?.data;
+  if (data == null) return err.message || 'erro de rede';
+  const d = data.detail;
+  if (typeof d === 'string') return d;
+  if (Array.isArray(d)) {
+    return d
+      .map((x) => (typeof x === 'object' && x.msg ? x.msg : JSON.stringify(x)))
+      .join('; ');
+  }
+  return err.message || 'erro';
+}
 
 // envia objeto parameters no corpo e espera caminhos dos ficheiros bed e json gerados
 export const compileBed = async (parameters) => {
@@ -51,6 +64,20 @@ export const getJobStatus = async (jobId) => {
   return response.data;
 };
 
+export async function pollJobUntilDone(jobId, options = {}) {
+  const intervalMs = options.intervalMs ?? 2000;
+  const onUpdate = options.onUpdate;
+  for (;;) {
+    const job = await getJobStatus(jobId);
+    if (onUpdate) onUpdate(job);
+    if (job.status === 'completed') return job;
+    if (job.status === 'failed') {
+      throw new Error(job.error_message || 'job falhou');
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+
 // lista jobs com filtros opcionais de estado e tipo
 export const listJobs = async (status = null, jobType = null) => {
   const params = {};
@@ -69,7 +96,7 @@ export const listFiles = async (fileType) => {
 
 // devolve url absoluta para o browser fazer download direto sem axios blob
 export const downloadFile = (fileType, filename) => {
-  return `${apiBase}/api/files/download/${fileType}/${filename}`;
+  return `${getApiBase()}/api/files/download/${fileType}/${filename}`;
 };
 
 // estado geral da api e flags de servicos externos
@@ -249,6 +276,105 @@ export const getWizardCliInstructions = async () => {
 export const launchWizardCliTerminal = async () => {
   const response = await api.post('/api/wizard/launch-cli-terminal');
   return response.data;
+};
+
+export const postBedWizard = async (body) => {
+  const r = await api.post('/api/bed/wizard', body);
+  return r.data;
+};
+
+export const postBedProcess = async (body) => {
+  const r = await api.post('/api/bed/process', body);
+  return r.data;
+};
+
+export const getBedTemplateDefault = async () => {
+  const r = await api.get('/api/bed/template/default');
+  return r.data;
+};
+
+export const postPipelineFullSimulation = async (body, query = {}) => {
+  const r = await api.post('/api/pipeline/full-simulation', body, { params: query });
+  return r.data;
+};
+
+export const getPipelineJob = async (jobId) => {
+  const r = await api.get(`/api/pipeline/job/${jobId}`);
+  return r.data;
+};
+
+export async function pollPipelineJobUntilDone(jobId, options = {}) {
+  const intervalMs = options.intervalMs ?? 2000;
+  const onUpdate = options.onUpdate;
+  for (;;) {
+    const job = await getPipelineJob(jobId);
+    if (onUpdate) onUpdate(job);
+    if (job.status === 'completed') return job;
+    if (job.status === 'failed') {
+      throw new Error(job.error_message || 'pipeline falhou');
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+
+export const postCfdRunFromWizard = async (body) => {
+  const r = await api.post('/api/cfd/run-from-wizard', body);
+  return r.data;
+};
+
+export const postCfdCreateCase = async (body) => {
+  const r = await api.post('/api/cfd/create-case', body);
+  return r.data;
+};
+
+export const postCfdCreateCaseOnly = async (body) => {
+  const r = await api.post('/api/cfd/create-case-only', body);
+  return r.data;
+};
+
+export const postCfdCreate = async (body) => {
+  const r = await api.post('/api/cfd/create', body);
+  return r.data;
+};
+
+export const getCfdList = async () => {
+  const r = await api.get('/api/cfd/list');
+  return r.data;
+};
+
+export const getCfdStatus = async (simulationId) => {
+  const r = await api.get(`/api/cfd/status/${simulationId}`);
+  return r.data;
+};
+
+export const deleteCfdSimulation = async (simulationId) => {
+  const r = await api.delete(`/api/cfd/${simulationId}`);
+  return r.data;
+};
+
+export const getCasosList = async () => {
+  const r = await api.get('/api/casos/list');
+  return r.data;
+};
+
+export const getCasoDetalhes = async (nomeCaso) => {
+  const r = await api.get(`/api/casos/${encodeURIComponent(nomeCaso)}/detalhes`);
+  return r.data;
+};
+
+export const deleteCaso = async (nomeCaso) => {
+  const r = await api.delete(`/api/casos/${encodeURIComponent(nomeCaso)}`);
+  return r.data;
+};
+
+export const updateTemplate = async (templateId, payload) => {
+  const r = await api.put(`/api/templates/${templateId}`, {
+    name: payload.name,
+    content: payload.content,
+    tag: payload.tag ?? 'bed',
+    source: payload.source ?? 'editor',
+  });
+  return r.data;
 };
 
 export default api;

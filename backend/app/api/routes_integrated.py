@@ -1,7 +1,8 @@
 # pipeline end to end grava bed corre blender openfoam e jobs longos
 # este modulo cria jobs na mesma estrutura pydantic usada em routes
 # funde armazenamento em memoria com routes para listagem unificada
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query, Request
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -222,7 +223,7 @@ async def get_pipeline_job(job_id: str):
 
 @router.post("/pipeline/full-simulation", response_model=JobResponse, tags=["pipeline"])
 async def execute_full_pipeline_with_simulation(
-    parameters: BedParametersNested,
+    request: Request,
     background_tasks: BackgroundTasks,
     modeling_profile: str | None = Query(
         None,
@@ -233,18 +234,41 @@ async def execute_full_pipeline_with_simulation(
     """
     pipeline completo end-to-end com execucao da simulacao cfd no wsl
     
-    este endpoint executa todas as etapas:
-    1. compila parametros para .bed e .bed.json
-    2. salva leito no banco de dados postgresql
-    3. gera modelo 3d no blender com fisica
-    4. cria caso openfoam completo
-    5. executa simulacao cfd no wsl/ubuntu
-    
-    retorna job_id para acompanhamento do progresso
-    
-    tempo estimado: 10-45 minutos
+    aceita tres formatos de corpo json:
+    - BedParametersNested (chave bed com dict) como no wizard
+    - BedParameters plano (diametro particle_count etc) como no pipelinecompletofull
+    - artefactos existentes: json_file e opcional bed_file sem chave bed (apos upload)
     """
-    # criar job
+    try:
+        raw = await request.json()
+    except Exception:
+        raise HTTPException(status_code=422, detail="corpo json invalido")
+
+    if not isinstance(raw, dict):
+        raise HTTPException(status_code=422, detail="corpo deve ser um objeto json")
+
+    if (
+        isinstance(raw.get("json_file"), str)
+        and raw["json_file"].strip()
+        and not raw.get("bed")
+    ):
+        params_dict = {
+            "json_file": raw["json_file"].strip(),
+            "bed_file": (raw.get("bed_file") or "").strip(),
+            "_skip_compile": True,
+        }
+    elif isinstance(raw.get("bed"), dict):
+        try:
+            params_dict = BedParametersNested.model_validate(raw).model_dump()
+        except ValidationError as e:
+            raise HTTPException(status_code=422, detail=e.errors())
+    else:
+        try:
+            flat = BedParameters.model_validate(raw)
+            params_dict = bed_service._normalize_parameters_for_generation(flat.model_dump())
+        except ValidationError as e:
+            raise HTTPException(status_code=422, detail=e.errors())
+
     job_id = str(uuid.uuid4())
     job = Job(
         job_id=job_id,
@@ -257,19 +281,18 @@ async def execute_full_pipeline_with_simulation(
         logs=[],
         metadata={}
     )
-    
+
     jobs_store_integrated[job_id] = job
-    
-    # executar pipeline em background
+
     background_tasks.add_task(
         _execute_full_pipeline_with_simulation,
         job_id,
-        parameters.model_dump(),
+        params_dict,
         db,
         jobs_store_integrated,
         modeling_profile,
     )
-    
+
     return JobResponse(
         job_id=job_id,
         status=job.status,
@@ -296,19 +319,36 @@ async def _execute_full_pipeline_with_simulation(
     job = jobs_store[job_id]
     
     try:
+        parameters = dict(parameters)
+        skip_compile = bool(parameters.pop("_skip_compile", False))
+
         # ===== etapa 1: compilar .bed (0-15%) =====
         job.status = JobStatus.RUNNING
         job.progress = 0
         job.logs.append(f"[{datetime.now()}] iniciando pipeline completo")
-        job.logs.append(f"[{datetime.now()}] etapa 1/4: compilando arquivo .bed")
         job.updated_at = datetime.now()
-        
-        result = await bed_service.compile_bed(
-            parameters=parameters,
-            save_to_db=True,
-            db_session=db_session
-        )
-        
+
+        if skip_compile:
+            json_file = parameters["json_file"]
+            bed_file = parameters.get("bed_file") or ""
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            json_path = project_root / json_file
+            if not json_path.exists():
+                raise FileNotFoundError(f"json nao encontrado: {json_path}")
+            job.logs.append(f"[{datetime.now()}] etapa 1/4: usando json existente (sem recompilar)")
+            result = {
+                "bed_file": bed_file,
+                "json_file": json_file,
+                "bed_id": None,
+            }
+        else:
+            job.logs.append(f"[{datetime.now()}] etapa 1/4: compilando arquivo .bed")
+            result = await bed_service.compile_bed(
+                parameters=parameters,
+                save_to_db=True,
+                db_session=db_session
+            )
+
         bed_file = result["bed_file"]
         json_file = result["json_file"]
         

@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
 import '../styles/PipelineCompletoFull.css';
+import { postPipelineFullSimulation, getPipelineJob, parseApiError } from '../services/api';
 
 /**
  * pipeline completo end-to-end com execucao cfd
@@ -51,19 +52,15 @@ const PipelineCompletoFull = () => {
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/pipeline/job/${jobId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setJobData(data);
+        const data = await getPipelineJob(jobId);
+        setJobData(data);
 
-          // verificar se concluiu ou falhou
-          if (data.status === 'completed') {
-            setEtapaAtual('concluido');
-            clearInterval(interval);
-          } else if (data.status === 'failed') {
-            setEtapaAtual('erro');
-            clearInterval(interval);
-          }
+        if (data.status === 'completed') {
+          setEtapaAtual('concluido');
+          clearInterval(interval);
+        } else if (data.status === 'failed') {
+          setEtapaAtual('erro');
+          clearInterval(interval);
         }
       } catch (error) {
         console.error('erro ao monitorar job:', error);
@@ -83,30 +80,18 @@ const PipelineCompletoFull = () => {
     setJobId(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/pipeline/full-simulation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parametros)
-      });
-
-      if (!response.ok) {
-        setEtapaAtual('erro');
-        setJobData({
-          error_message:
-            language === 'pt'
-              ? 'falha ao iniciar o pipeline (resposta inválida do servidor)'
-              : 'failed to start pipeline (invalid server response)',
-          logs: []
-        });
-        return;
-      }
-
-      const data = await response.json();
+      const data = await postPipelineFullSimulation(parametros);
       setJobId(data.job_id);
     } catch (error) {
       console.error('erro ao iniciar pipeline:', error);
-      setConnectionError(t('backendConnectionError'));
       setEtapaAtual('erro');
+      setJobData({
+        error_message: parseApiError(error) || (language === 'pt'
+          ? 'falha ao iniciar o pipeline'
+          : 'failed to start pipeline'),
+        logs: []
+      });
+      setConnectionError(t('backendConnectionError'));
     }
   };
 

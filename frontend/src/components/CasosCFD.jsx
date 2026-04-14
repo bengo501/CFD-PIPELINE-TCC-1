@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import '../styles/CasosCFD.css';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
+import { getCasosList, getCasoDetalhes, deleteCaso } from '../services/api';
 
 const CasosCFD = () => {
   const [casos, setCasos] = useState([]);
@@ -19,14 +20,8 @@ const CasosCFD = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/api/casos/list');
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCasos(data.casos);
-      } else {
-        setError('erro ao carregar casos');
-      }
+      const data = await getCasosList();
+      setCasos(data.casos);
     } catch (err) {
       setError('erro de conexão com o backend');
       console.error('erro:', err);
@@ -37,12 +32,8 @@ const CasosCFD = () => {
 
   const obterDetalhes = async (nomeCaso) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/casos/${nomeCaso}/detalhes`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCasoSelecionado(data);
-      }
+      const data = await getCasoDetalhes(nomeCaso);
+      setCasoSelecionado(data);
     } catch (err) {
       console.error('erro ao obter detalhes:', err);
     }
@@ -54,17 +45,10 @@ const CasosCFD = () => {
     }
     
     try {
-      const response = await fetch(`http://localhost:8000/api/casos/${nomeCaso}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        alert('caso deletado com sucesso!');
-        carregarCasos();
-        setCasoSelecionado(null);
-      } else {
-        alert('erro ao deletar caso');
-      }
+      await deleteCaso(nomeCaso);
+      alert('caso deletado com sucesso!');
+      carregarCasos();
+      setCasoSelecionado(null);
     } catch (err) {
       alert('erro de conexão');
       console.error('erro:', err);

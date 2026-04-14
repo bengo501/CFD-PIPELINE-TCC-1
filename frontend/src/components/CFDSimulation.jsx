@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import '../styles/CFDSimulation.css';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
+import {
+  getCfdList,
+  postCfdRunFromWizard,
+  deleteCfdSimulation,
+  parseApiError,
+} from '../services/api';
 
 const CFDSimulation = ({ bedFileName }) => {
   const [simulations, setSimulations] = useState([]);
@@ -13,12 +19,9 @@ const CFDSimulation = ({ bedFileName }) => {
   // carregar lista de simulacoes
   const loadSimulations = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/cfd/list');
-      if (response.ok) {
-        const data = await response.json();
-        setSimulations(data.simulations);
-        setConnectionError(null);
-      }
+      const data = await getCfdList();
+      setSimulations(data.simulations);
+      setConnectionError(null);
     } catch (err) {
       console.error('erro ao carregar simulacoes:', err);
       setConnectionError('erro de conexão com o backend');
@@ -32,27 +35,14 @@ const CFDSimulation = ({ bedFileName }) => {
     setConnectionError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/cfd/run-from-wizard', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName: bedFileName,
-          runSimulation: runSim
-        }),
+      const data = await postCfdRunFromWizard({
+        fileName: bedFileName,
+        runSimulation: runSim
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        alert(`simulacao iniciada! id: ${data.simulation_id}`);
-        loadSimulations();
-      } else {
-        const errBody = await response.json().catch(() => ({}));
-        setApiError(errBody.detail || 'erro ao iniciar simulação');
-      }
+      alert(`simulacao iniciada! id: ${data.simulation_id}`);
+      loadSimulations();
     } catch (err) {
-      setConnectionError('erro de conexão com o backend');
+      setApiError(parseApiError(err) || 'erro ao iniciar simulação');
       console.error('erro:', err);
     } finally {
       setLoading(false);
@@ -62,13 +52,8 @@ const CFDSimulation = ({ bedFileName }) => {
   // deletar simulacao
   const deleteSimulation = async (simId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/cfd/${simId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        loadSimulations();
-      }
+      await deleteCfdSimulation(simId);
+      loadSimulations();
     } catch (err) {
       console.error('erro ao deletar:', err);
     }
