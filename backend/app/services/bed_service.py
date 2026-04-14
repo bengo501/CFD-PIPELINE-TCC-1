@@ -2,6 +2,7 @@
 # traduz dict flat ou aninhado em sintaxe dsl e chama compilador externo
 import subprocess
 import sys
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -18,6 +19,39 @@ class BedService:
     def check_availability(self) -> bool:
         # true se o script python do compilador existir no disco
         return self.compiler_script.exists()
+
+    def _merge_packing_into_compiled_json(
+        self, json_file: str, parameters: Dict[str, Any]
+    ) -> None:
+        # o compilador antlr gera json so com chaves que existem na gramatica bed
+        # campos novos como gap random_seed strict_validation ficam no dict python apos normalizar
+        # esta funcao reescreve o json final juntando essas chaves em packing
+        # o blender le o arquivo ja mesclado quando o backend chama generate model
+        jp = Path(json_file)
+        if not jp.is_file():
+            alt = self.output_dir / jp.name
+            if alt.is_file():
+                jp = alt
+            else:
+                return
+        try:
+            data = json.loads(jp.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return
+        extra = parameters.get("packing")
+        if not isinstance(extra, dict):
+            return
+        if "packing" not in data or not isinstance(data["packing"], dict):
+            data["packing"] = {}
+        for k, v in extra.items():
+            if v is not None:
+                data["packing"][k] = v
+        try:
+            jp.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        except OSError:
+            pass
     
     async def compile_bed(
         self,
@@ -56,7 +90,10 @@ class BedService:
         
         # compilar usando script existente
         json_file = await self._run_compiler(str(bed_file))
-        
+
+        # garante que o arquivo consumido pelo script blender tenha packing completo
+        self._merge_packing_into_compiled_json(json_file, parameters)
+
         result = {
             "bed_file": str(bed_file.relative_to(self.project_root)),
             "json_file": str(Path(json_file).relative_to(self.project_root))
@@ -139,7 +176,7 @@ class BedService:
             "angular_damping": out.get("angular_damping", 0.1),
             "seed": out.get("seed", 42),
         }
-        out["packing"] = {
+        p_pack = {
             "method": out.get("packing_method", "rigid_body"),
             "gravity": out.get("gravity", -9.81),
             "substeps": out.get("substeps", 10),
@@ -148,7 +185,15 @@ class BedService:
             "rest_velocity": out.get("rest_velocity", 0.01),
             "max_time": out.get("max_time", 5.0),
             "collision_margin": out.get("collision_margin", 0.001),
+            "gap": out.get("packing_gap", 0.0),
+            "max_placement_attempts": out.get("max_placement_attempts", 500_000),
+            "strict_validation": out.get("strict_validation", True),
         }
+        if out.get("packing_random_seed") is not None:
+            p_pack["random_seed"] = out["packing_random_seed"]
+        if out.get("hex_step_x") is not None:
+            p_pack["step_x"] = out["hex_step_x"]
+        out["packing"] = p_pack
         if not isinstance(out.get("export"), dict):
             out["export"] = {}
         return out

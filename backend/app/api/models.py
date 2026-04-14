@@ -38,10 +38,38 @@ class BedParameters(BaseModel):
     particle_diameter: float = Field(..., description="diâmetro da partícula (m)", ge=0.001, le=0.1)
     
     # empacotamento
-    packing_method: str = Field("rigid_body", description="método de empacotamento")
+    # estes campos alimentam bed service e depois o json usado pelo blender
+    # rigid body mantem simulacao antiga
+    # spherical packing e hexagonal 3d usam o pacote packed bed science no script leito extracao
+    packing_method: str = Field(
+        "rigid_body",
+        description=(
+            "método: rigid_body (física blender), spherical_packing ou hexagonal_3d "
+            "(posições determinísticas no script leito_extracao)"
+        ),
+    )
     gravity: float = Field(-9.81, description="gravidade (m/s²)")
     friction: float = Field(0.5, description="coeficiente de atrito")
     substeps: int = Field(10, description="substeps da simulação física")
+    packing_gap: float = Field(
+        0.0,
+        description="folga mínima entre superfícies das esferas (m); modos científicos",
+    )
+    packing_random_seed: Optional[int] = Field(
+        None, description="seed opcional para spherical_packing"
+    )
+    max_placement_attempts: int = Field(
+        500_000,
+        description="tentativas máximas de colocação aleatória (spherical_packing)",
+    )
+    strict_validation: bool = Field(
+        True,
+        description="se true, falha no blender se validação geométrica ou contagem",
+    )
+    hex_step_x: Optional[float] = Field(
+        None,
+        description="passo opcional da grade hexagonal (m); padrão 2*r+gap",
+    )
     
     # cfd (opcional)
     cfd_regime: Optional[str] = Field("laminar", description="regime do fluido")
