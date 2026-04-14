@@ -21,6 +21,7 @@ https://github.com/bengo501/CFD-PIPELINE-TCC-1/milestones
 - **relatórios** (texto + anexos a simulações/templates/resultados): [`docs/REPORTS_PAGE.md`](docs/REPORTS_PAGE.md).
 - **perfil** (singleton `user_profiles`, preferência de idioma): [`docs/PROFILE_PAGE.md`](docs/PROFILE_PAGE.md).
 - **configurações** (`app_settings`, `options_json`, modo simples/dev, openfoam/modelagem, swagger, shutdown dev): [`docs/SETTINGS_PAGE.md`](docs/SETTINGS_PAGE.md).
+- **modelo de dados** (mapeamento frontend/backend, entidades sql, fixture json de teste): [`docs/MODELO_DE_DADOS.md`](docs/MODELO_DE_DADOS.md).
 
 ## sobre o projeto
 

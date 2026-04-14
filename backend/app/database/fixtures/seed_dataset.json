@@ -1,0 +1,310 @@
+{
+  "_meta": {
+    "description": "fixture fictício coerente para testes e documentação; não é carregado automaticamente pela api",
+    "version": "1.0"
+  },
+  "beds": [
+    {
+      "id": 101,
+      "name": "leito piloto laboratório norte",
+      "description": "configuração de referência para validação de porosidade",
+      "diameter": 0.08,
+      "height": 0.25,
+      "wall_thickness": 0.004,
+      "particle_count": 800,
+      "particle_diameter": 0.008,
+      "particle_kind": "sphere",
+      "packing_method": "rigid_body",
+      "porosity": 0.41,
+      "bed_file_path": "generated/configs/piloto_norte.bed",
+      "json_file_path": "generated/configs/piloto_norte.bed.json",
+      "blend_file_path": "generated/models/piloto_norte.blend",
+      "stl_file_path": "generated/models/piloto_norte.stl",
+      "parameters_json": {
+        "bed": { "diameter": 0.08, "height": 0.25, "material": "steel" },
+        "note": "valores alinhados com orm Bed"
+      },
+      "created_by": "fixture_seed",
+      "created_at": "2026-03-10T14:00:00+00:00",
+      "updated_at": "2026-03-11T09:30:00+00:00"
+    },
+    {
+      "id": 102,
+      "name": "leito ensaio comparativo b",
+      "description": "segundo leito para comparação de regime turbulento",
+      "diameter": 0.06,
+      "height": 0.2,
+      "wall_thickness": 0.003,
+      "particle_count": 450,
+      "particle_diameter": 0.006,
+      "particle_kind": "sphere",
+      "packing_method": "random",
+      "porosity": 0.38,
+      "bed_file_path": "generated/configs/ensaio_b.bed",
+      "json_file_path": "generated/configs/ensaio_b.bed.json",
+      "blend_file_path": null,
+      "stl_file_path": null,
+      "parameters_json": null,
+      "created_by": "fixture_seed",
+      "created_at": "2026-03-15T10:15:00+00:00",
+      "updated_at": null
+    }
+  ],
+  "simulations": [
+    {
+      "id": 201,
+      "bed_id": 101,
+      "name": "corrida laminar março — v_in0,12 m/s",
+      "description": "linha de base para relatório trimestral",
+      "regime": "laminar",
+      "inlet_velocity": 0.12,
+      "fluid_density": 998.2,
+      "fluid_viscosity": 0.001002,
+      "mesh_cells_count": 512000,
+      "mesh_quality": "good",
+      "solver": "simpleFoam",
+      "max_iterations": 2000,
+      "convergence_criteria": 0.0001,
+      "status": "completed",
+      "progress": 100,
+      "case_directory": "generated/cfd/piloto_norte_case",
+      "log_file_path": "generated/cfd/piloto_norte_case/log.simpleFoam",
+      "pressure_drop": 1156.4,
+      "average_velocity": 0.095,
+      "reynolds_number": 210.0,
+      "started_at": "2026-03-18T08:00:00+00:00",
+      "completed_at": "2026-03-18T08:22:00+00:00",
+      "execution_time": 1320.5,
+      "parameters_json": { "notes": "malha snappy convergiu em 18 iterações simple" },
+      "created_by": "fixture_seed",
+      "created_at": "2026-03-18T07:55:00+00:00",
+      "updated_at": "2026-03-18T08:22:00+00:00"
+    },
+    {
+      "id": 202,
+      "bed_id": 101,
+      "name": "varredura turbulenta — rascunho",
+      "description": "corrida ainda em fila de cluster",
+      "regime": "turbulent",
+      "inlet_velocity": 0.35,
+      "fluid_density": 998.2,
+      "fluid_viscosity": 0.001002,
+      "mesh_cells_count": null,
+      "mesh_quality": null,
+      "solver": "simpleFoam",
+      "max_iterations": 3000,
+      "convergence_criteria": 0.0001,
+      "status": "running",
+      "progress": 34,
+      "case_directory": null,
+      "log_file_path": null,
+      "pressure_drop": null,
+      "average_velocity": null,
+      "reynolds_number": null,
+      "started_at": "2026-04-12T16:00:00+00:00",
+      "completed_at": null,
+      "execution_time": null,
+      "parameters_json": null,
+      "created_by": "fixture_seed",
+      "created_at": "2026-04-12T15:58:00+00:00",
+      "updated_at": "2026-04-12T16:05:00+00:00"
+    },
+    {
+      "id": 203,
+      "bed_id": 102,
+      "name": "ensaio b — malha grosseira",
+      "description": "falha numérica esperada para treino de ui",
+      "regime": "turbulent",
+      "inlet_velocity": 0.5,
+      "fluid_density": 1000.0,
+      "fluid_viscosity": 0.001,
+      "mesh_cells_count": 120000,
+      "mesh_quality": "poor",
+      "solver": "simpleFoam",
+      "max_iterations": 1500,
+      "convergence_criteria": 0.0001,
+      "status": "failed",
+      "progress": 61,
+      "case_directory": "generated/cfd/ensaio_b_fail",
+      "log_file_path": "generated/cfd/ensaio_b_fail/log.simpleFoam",
+      "pressure_drop": null,
+      "average_velocity": null,
+      "reynolds_number": null,
+      "started_at": "2026-04-01T11:00:00+00:00",
+      "completed_at": "2026-04-01T11:18:00+00:00",
+      "execution_time": null,
+      "parameters_json": { "error_summary": "divergência após 612 iterações" },
+      "created_by": "fixture_seed",
+      "created_at": "2026-04-01T10:55:00+00:00",
+      "updated_at": "2026-04-01T11:18:00+00:00"
+    }
+  ],
+  "results": [
+    {
+      "id": 301,
+      "simulation_id": 201,
+      "result_type": "metric",
+      "name": "queda_pressao_total_pa",
+      "value": 1156.4,
+      "unit": "Pa",
+      "data_json": null,
+      "file_path": null,
+      "file_type": null,
+      "timestep": null,
+      "created_at": "2026-03-18T08:21:00+00:00"
+    },
+    {
+      "id": 302,
+      "simulation_id": 201,
+      "result_type": "metric",
+      "name": "reynolds_medio",
+      "value": 210.0,
+      "unit": "",
+      "data_json": null,
+      "file_path": null,
+      "file_type": null,
+      "timestep": null,
+      "created_at": "2026-03-18T08:21:05+00:00"
+    },
+    {
+      "id": 303,
+      "simulation_id": 201,
+      "result_type": "visualization",
+      "name": "campo_velocidade_t500",
+      "value": null,
+      "unit": null,
+      "data_json": { "field": "U", "time": "500" },
+      "file_path": "generated/cfd/piloto_norte_case/500/U",
+      "file_type": "openfoam",
+      "timestep": 500,
+      "created_at": "2026-03-18T08:22:00+00:00"
+    }
+  ],
+  "bed_templates": [
+    {
+      "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "name": "preset cilindro 5 cm",
+      "content": "bed {\n    diameter = 0.05 m;\n    height = 0.1 m;\n    wall_thickness = 0.002 m;\n    clearance = 0.01 m;\n    material = \"steel\";\n}\n",
+      "tag": "bed",
+      "source": "editor",
+      "created_at": "2026-02-01T12:00:00+00:00",
+      "updated_at": "2026-02-20T08:00:00+00:00"
+    },
+    {
+      "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "name": "importado — leito ensaio",
+      "content": "// template mínimo para testes\nbed { diameter = 0.06 m; height = 0.15 m; wall_thickness = 0.003 m; clearance = 0.008 m; material = \"steel\"; }\n",
+      "tag": "preset",
+      "source": "import",
+      "created_at": "2026-03-05T09:00:00+00:00",
+      "updated_at": "2026-03-05T09:00:00+00:00"
+    }
+  ],
+  "reports": [
+    {
+      "id": 401,
+      "title": "relatório interno — validação piloto norte",
+      "body": "resumo executivo: a queda de pressão medida alinha-se com a literatura para leitos porosos comparáveis. anexos: simulação 201 e métricas principais.",
+      "status": "published",
+      "created_at": "2026-03-20T10:00:00+00:00",
+      "updated_at": "2026-03-22T14:30:00+00:00"
+    },
+    {
+      "id": 402,
+      "title": "notas ensaio b (rascunho)",
+      "body": "a recriar malha antes de nova tentativa.",
+      "status": "draft",
+      "created_at": "2026-04-02T09:00:00+00:00",
+      "updated_at": "2026-04-02T09:00:00+00:00"
+    }
+  ],
+  "report_attachments": [
+    {
+      "id": 501,
+      "report_id": 401,
+      "kind": "simulation",
+      "ref_id": "201",
+      "label": "corrida laminar março",
+      "note": null,
+      "created_at": "2026-03-20T10:05:00+00:00"
+    },
+    {
+      "id": 502,
+      "report_id": 401,
+      "kind": "result",
+      "ref_id": "301",
+      "label": "queda de pressão consolidada",
+      "note": null,
+      "created_at": "2026-03-20T10:06:00+00:00"
+    },
+    {
+      "id": 503,
+      "report_id": 401,
+      "kind": "template",
+      "ref_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "label": "geometria base 5 cm",
+      "note": null,
+      "created_at": "2026-03-20T10:07:00+00:00"
+    },
+    {
+      "id": 504,
+      "report_id": 402,
+      "kind": "data_note",
+      "ref_id": null,
+      "label": null,
+      "note": "verificar qualidade malha antes de submeter ao orientador",
+      "created_at": "2026-04-02T09:10:00+00:00"
+    }
+  ],
+  "user_profiles": [
+    {
+      "id": 1,
+      "display_name": "Serjo ramos",
+      "email": "serjo.ramon@instituto.demo",
+      "organization": "laboratório de fluidodinâmica aplicada",
+      "role": "researcher",
+      "bio": "foco em leitos empacotados e openfoam.",
+      "preferred_language": "pt",
+      "created_at": "2026-01-10T08:00:00+00:00",
+      "updated_at": "2026-04-10T11:00:00+00:00"
+    }
+  ],
+  "app_settings": [
+    {
+      "id": 1,
+      "theme_mode": "system",
+      "language": "pt",
+      "jobs_poll_interval_sec": 8,
+      "show_advanced_hints": true,
+      "options_json": {
+        "simple_mode": false,
+        "dev_mode": false,
+        "database": { "notes": "postgres local docker", "client_timeout_sec": 45 },
+        "openfoam": {
+          "solver": "simpleFoam",
+          "max_iterations": 2000,
+          "turbulence_model": "kEpsilon",
+          "convergence": 1e-06
+        },
+        "modeling": { "profile": "blender", "notes": "perfil default fixture" },
+        "cfd_other": { "notes": "wsl2 ubuntu para allrun" }
+      },
+      "created_at": "2026-01-10T08:00:00+00:00",
+      "updated_at": "2026-04-10T11:00:00+00:00"
+    }
+  ],
+  "admin_panel_events": [
+    {
+      "id": 1,
+      "event_type": "connection_test",
+      "detail": "teste manual a partir da página banco de dados",
+      "created_at": "2026-04-08T15:20:00+00:00"
+    },
+    {
+      "id": 2,
+      "event_type": "backup_request",
+      "detail": "pedido de exportação sql — ambiente dev",
+      "created_at": "2026-04-09T09:00:00+00:00"
+    }
+  ]
+}
