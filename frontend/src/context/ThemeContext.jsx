@@ -1,8 +1,10 @@
+// tema claro escuro ou segue preferencia do sistema operativo
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
 function getSystemTheme() {
+  // media query padrao do css para dark mode
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     return 'dark';
   }
@@ -10,6 +12,7 @@ function getSystemTheme() {
 }
 
 function readInitialThemeMode() {
+  // compativel com chave antiga theme
   const m = localStorage.getItem('themeMode');
   if (m === 'light' || m === 'dark' || m === 'system') return m;
   const legacy = localStorage.getItem('theme');
@@ -18,6 +21,7 @@ function readInitialThemeMode() {
 }
 
 function resolveEffective(mode) {
+  // system calcula light ou dark em tempo real
   if (mode === 'light') return 'light';
   if (mode === 'dark') return 'dark';
   return getSystemTheme();

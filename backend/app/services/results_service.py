@@ -1,11 +1,4 @@
-"""
-serviço para ingestão de resultados de simulações openfoam.
-
-lê generated/cfd/NOME_CASO/results.json e atualiza:
-- tabela Simulation (metricas principais e metadados)
-- tabela Result (linhas detalhadas por metrica/campo)
-"""
-
+# le results json no disco e atualiza linhas simulation e result na base
 from __future__ import annotations
 
 from datetime import datetime, timezone

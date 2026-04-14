@@ -1,8 +1,4 @@
-"""
-configurações globais da app (singleton app_settings id=1).
-ao alterar idioma, sincroniza user_profiles.preferred_language (id=1) se existir.
-campos extra (modo simples, dev, openfoam, modelagem) ficam em options_json.
-"""
+# patch no singleton app_settings e merge profundo em options_json
 from __future__ import annotations
 
 import json

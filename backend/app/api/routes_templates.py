@@ -1,6 +1,4 @@
-"""
-rotas para gerenciamento de templates salvos (persistência em sqlite/postgresql)
-"""
+# crud bed_templates texto guardado pelo editor
 from datetime import datetime, timezone
 from typing import List
 import uuid

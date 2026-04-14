@@ -1,21 +1,21 @@
-"""
-backend fastapi para pipeline cfd
-"""
+# ponto de entrada fastapi do pipeline cfd
+# expoe rotas http monta estaticos e liga routers
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import sys
 
-# adicionar raiz do projeto ao path
+# pasta raiz do repositorio tres niveis acima deste ficheiro
 project_root = Path(__file__).parent.parent.parent
+# permite imports tipo backend app a partir da raiz
 sys.path.insert(0, str(project_root))
 
 from backend.app.api import routes
 from backend.app.database.connection import DatabaseConnection
 from backend.app.database.seed_demo import seed_demo_data_if_needed
 
-# criar app fastapi
+# instancia principal da api documentacao em docs e redoc
 app = FastAPI(
     title="CFD Pipeline API",
     description="api rest para gerenciar pipeline de simulações cfd de leitos empacotados",
@@ -24,7 +24,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# configurar cors (desenvolvimento)
+# cors permite browser em localhost3000 ou 5173 chamar a api
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5173"],  # vite usa 5173
@@ -33,24 +33,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# montar pasta de arquivos estáticos
+# pasta onde ficam artefactos gerados servidos tambem em url files
 output_dir = project_root / "generated"
 output_dir.mkdir(exist_ok=True)
 
 app.mount("/files", StaticFiles(directory=str(output_dir)), name="files")
 
-# incluir rotas
+# rotas genericas compilacao modelo jobs ficheiros
 app.include_router(routes.router, prefix="/api")
 
-# incluir rotas do banco de dados
+# crud sql beds simulations results dashboard
 from backend.app.api import routes_database
 app.include_router(routes_database.router, prefix="/api")
 
-# incluir rotas integradas (pipeline completo)
+# pipeline assincrono completo
 from backend.app.api import routes_integrated
 app.include_router(routes_integrated.router, prefix="/api")
 
-# incluir rotas do wizard web
+# wizard web cfd casos templates
 from backend.app.api import routes_wizard, routes_cfd, routes_casos, routes_templates
 app.include_router(routes_wizard.router, prefix="/api")
 app.include_router(routes_cfd.router, prefix="/api")
@@ -70,20 +70,17 @@ from backend.app.api import routes_admin
 app.include_router(routes_admin.router, prefix="/api")
 
 
-# eventos de ciclo de vida
 @app.on_event("startup")
 async def on_startup():
-    """
-    criar tabelas do banco automaticamente em desenvolvimento
-    (para sqlite; em producao usar alembic para migrations)
-    """
+    # ao arrancar cria tabelas se faltarem
     DatabaseConnection.create_tables()
+    # opcionalmente insere linhas demo conforme env
     seed_demo_data_if_needed()
 
-# rota raiz
+
 @app.get("/")
 async def root():
-    """endpoint raiz"""
+    # resposta minima para saber que o servico esta de pe
     return {
         "message": "cfd pipeline api",
         "version": "0.1.0",
@@ -91,12 +88,12 @@ async def root():
         "status": "running"
     }
 
-# rota de health check
+
 @app.get("/health")
 async def health():
-    """verifica saúde do serviço"""
+    # testa ligacao ao motor sql para o painel de estado
     db_status = DatabaseConnection.check_connection()
-    
+
     return {
         "status": "healthy" if db_status else "degraded",
         "services": {
@@ -109,6 +106,7 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
+    # modo reload util em desenvolvimento local
     uvicorn.run(
         "backend.app.main:app",
         host="0.0.0.0",
@@ -116,4 +114,3 @@ if __name__ == "__main__":
         reload=True,  # hot reload em desenvolvimento
         log_level="info"
     )
-

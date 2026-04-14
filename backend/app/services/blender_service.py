@@ -1,6 +1,4 @@
-"""
-serviço para geração de modelos 3d no blender
-"""
+# corre blender ou script python conforme MODELING_PROFILE para gerar geometria
 import subprocess
 import sys
 from pathlib import Path
@@ -11,8 +9,7 @@ from backend.app.api.models import JobStatus
 from backend.app import config as app_config
 
 class BlenderService:
-    """gerencia geração de modelos 3d no blender"""
-    
+    # prepara caminhos de saida tipicos generated 3d output
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.scripts_dir = self.project_root / "scripts" / "blender_scripts"

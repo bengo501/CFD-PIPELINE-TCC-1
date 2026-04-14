@@ -1,27 +1,25 @@
-"""
-modelos pydantic para validação de dados
-"""
+# tipos pydantic partilhados entre routers pedidos e respostas json
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List, Literal
 from enum import Enum
 from datetime import datetime
 
-# enums
+# valores permitidos para campo status de Job
 class JobStatus(str, Enum):
     QUEUED = "queued"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
 
+# categorias de trabalho em background
 class JobType(str, Enum):
     COMPILE = "compile"
     GENERATE_MODEL = "generate_model"
     SIMULATION = "simulation"
     FULL_PIPELINE = "full_pipeline"
 
-# modelos de parâmetros do leito
+# corpo flat para endpoint compile sem nesting wizard
 class BedParameters(BaseModel):
-    """parâmetros do leito empacotado"""
     # geometria do leito
     diameter: float = Field(..., description="diâmetro do leito (m)", ge=0.01, le=1.0)
     height: float = Field(..., description="altura do leito (m)", ge=0.01, le=2.0)

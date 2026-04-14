@@ -1,6 +1,4 @@
-"""
-perfil de utilizador singleton (id=1) — sem sistema de login nesta versão.
-"""
+# get patch na linha user_profiles id fixo sem login
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends

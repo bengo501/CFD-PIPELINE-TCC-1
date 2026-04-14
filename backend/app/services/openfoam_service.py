@@ -1,6 +1,4 @@
-"""
-serviço para criação de simulações openfoam
-"""
+# lanca subprocessos para montar caso openfoam e opcionalmente correr solver
 import subprocess
 import sys
 import json

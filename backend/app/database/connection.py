@@ -1,4 +1,4 @@
-# gerenciamento de conexao com postgresql
+# motor sql engine sessoes e helper de arranque
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -6,64 +6,53 @@ from typing import Generator
 import os
 from dotenv import load_dotenv
 
-# carregar variaveis de ambiente
+# carrega ficheiro env se existir
 load_dotenv()
 
-# configuracao do banco de dados
-# padrao de desenvolvimento: sqlite local (dispensa driver postgres)
+# url completa do banco sqlite local por defeito
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "sqlite:///./cfd_pipeline.db"
 )
 
-# criar engine do sqlalchemy
+# engine e a fabrica de ligacoes ao banco
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,  # verificar conexao antes de usar
-    pool_size=10,        # tamanho do pool
-    max_overflow=20,     # conexoes extras permitidas
-    echo=False           # nao mostrar queries sql (usar True para debug)
+    pool_pre_ping=True,  # testa ligacao antes de cada uso do pool
+    pool_size=10,        # ligacoes mantidas abertas
+    max_overflow=20,     # ligacoes extra temporarias
+    echo=False           # True imprime sql no log
 )
 
-# criar session maker
+# factory que produz objetos Session
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# base para models
+# classe base declarative para subclasses em models
 Base = declarative_base()
 
 
 class DatabaseConnection:
-    """gerenciador de conexao com banco de dados"""
-    
+    # metodos estaticos para arranque e teste
     @staticmethod
     def get_session() -> Session:
-        """
-        obter sessao do banco de dados
-        
-        retorna:
-            Session: sessao do sqlalchemy
-        """
+        # devolve uma sessao nova quem chama deve fechar ou usar contexto
         return SessionLocal()
-    
+
     @staticmethod
     def create_tables():
-        """
-        criar todas as tabelas no banco de dados
-        
-        nota:
-            em producao, usar alembic para migrations
-        """
+        # cria todas as tabelas definidas em models que herdam Base
         Base.metadata.create_all(bind=engine)
+        # sqlite antigo pode nao ter coluna options_json
         DatabaseConnection._ensure_sqlite_app_settings_options()
         print("[OK] tabelas criadas no banco de dados")
 
     @staticmethod
     def _ensure_sqlite_app_settings_options():
-        """adiciona coluna options_json em bases sqlite antigas sem migration formal."""
+        # migracao leve so sqlite adiciona coluna se faltar
         url = str(DATABASE_URL or "")
         if not url.startswith("sqlite"):
             return
@@ -78,26 +67,16 @@ class DatabaseConnection:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE app_settings ADD COLUMN options_json TEXT"))
         print("[OK] coluna app_settings.options_json adicionada (sqlite)")
-    
+
     @staticmethod
     def drop_tables():
-        """
-        remover todas as tabelas (cuidado!)
-        
-        nota:
-            usar apenas em desenvolvimento
-        """
+        # apaga todas as tabelas so para dev
         Base.metadata.drop_all(bind=engine)
         print("[OK] tabelas removidas do banco de dados")
-    
+
     @staticmethod
     def check_connection() -> bool:
-        """
-        verificar se conexao com banco funciona
-        
-        retorna:
-            bool: True se conectado, False caso contrario
-        """
+        # select simples para ver se o banco responde
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
@@ -108,20 +87,9 @@ class DatabaseConnection:
 
 
 def get_db() -> Generator[Session, None, None]:
-    """
-    dependency para obter sessao do banco de dados
-    
-    uso em fastapi:
-        @app.get("/endpoint")
-        def endpoint(db: Session = Depends(get_db)):
-            ...
-    
-    yields:
-        Session: sessao do banco de dados
-    """
+    # dependencia fastapi abre sessao por pedido e fecha no fim
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-

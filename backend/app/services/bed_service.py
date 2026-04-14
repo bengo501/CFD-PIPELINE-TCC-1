@@ -1,6 +1,4 @@
-"""
-serviço para compilação de arquivos .bed
-"""
+# gera texto bed corre subprocesso antlr e opcional grava linha na base
 import subprocess
 import sys
 from pathlib import Path
@@ -8,16 +6,15 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class BedService:
-    """gerencia compilação de arquivos .bed"""
-    
+    # encapsula caminhos fixos do repo para dsl e pasta output
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.dsl_dir = self.project_root / "dsl"
         self.compiler_script = self.dsl_dir / "compiler" / "bed_compiler_antlr_standalone.py"
         self.output_dir = self.project_root / "output"
-        
+
     def check_availability(self) -> bool:
-        """verifica se compilador está disponível"""
+        # true se o script python do compilador existir no disco
         return self.compiler_script.exists()
     
     async def compile_bed(

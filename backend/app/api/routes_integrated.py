@@ -1,6 +1,4 @@
-"""
-rotas integradas que combinam compilacao, geracao 3d, simulacao e banco de dados
-"""
+# pipeline end to end grava bed corre blender openfoam e jobs longos
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional

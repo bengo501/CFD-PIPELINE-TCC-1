@@ -1,7 +1,4 @@
-"""
-rotas da api para listar e gerenciar casos cfd existentes
-"""
-
+# inspeciona pastas generated cfd e apaga caso no disco
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from typing import List, Dict, Optional

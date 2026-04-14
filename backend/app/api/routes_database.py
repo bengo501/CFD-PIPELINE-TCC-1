@@ -1,6 +1,4 @@
-"""
-rotas da api rest integradas com postgresql
-"""
+# crud sql resumos dashboard painel e ingestao de resultados
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Depends, Query

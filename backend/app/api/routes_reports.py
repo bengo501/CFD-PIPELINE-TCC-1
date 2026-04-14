@@ -1,6 +1,4 @@
-"""
-rotas para relatórios técnicos (texto + anexos a simulações, templates, resultados, notas).
-"""
+# relatorios com anexos fracos a simulacao template ou result
 from datetime import datetime, timezone
 from typing import List
 

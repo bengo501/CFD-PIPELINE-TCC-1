@@ -1,6 +1,4 @@
-"""
-rotas da api rest
-"""
+# router principal compilacao modelo 3d simulacao jobs e listagens de ficheiros
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from typing import List
@@ -21,10 +19,10 @@ from backend.app.utils.file_manager import FileManager
 
 router = APIRouter()
 
-# armazenamento em memória de jobs (futuro: banco de dados)
+# dicionario global em memoria job_id para objeto job pydantic
 jobs_store: dict[str, Job] = {}
 
-# serviços
+# instancias unicas dos servicos de dominio
 bed_service = BedService()
 blender_service = BlenderService()
 openfoam_service = OpenFOAMService()
@@ -34,9 +32,7 @@ file_manager = FileManager()
 
 @router.post("/bed/compile", response_model=CompileResponse, tags=["bed"])
 async def compile_bed(request: CompileRequest):
-    """
-    compila parâmetros para arquivo .bed e .bed.json
-    """
+    # recebe bedparameters e devolve paths relativos bed e json
     try:
         result = await bed_service.compile_bed(
             parameters=request.parameters.model_dump(),

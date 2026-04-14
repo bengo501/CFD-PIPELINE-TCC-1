@@ -1,168 +1,143 @@
-# modelos do banco de dados (sqlalchemy orm)
+# classes sqlalchemy uma tabela por classe
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, JSON, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .connection import Base
 
 
+# leito empacotado geometria particulas e caminhos de ficheiros gerados
 class Bed(Base):
-    """
-    modelo para leitos empacotados
-    
-    representa configuracoes de leitos gerados pela dsl
-    """
     __tablename__ = "beds"
-    
-    # campos principais
+
+    # chave surrogate e nome unico logico
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    
-    # parametros geometricos
+
+    # dimensoes fisicas em metros
     diameter = Column(Float, nullable=False)  # metros
     height = Column(Float, nullable=False)    # metros
     wall_thickness = Column(Float, nullable=False)  # metros
-    
-    # parametros de particulas
+
+    # quantidade e tipo de particulas
     particle_count = Column(Integer, nullable=False)
     particle_diameter = Column(Float, nullable=False)  # metros
-    particle_kind = Column(String(50), nullable=False)  # sphere, cylinder, etc
-    
-    # parametros de empacotamento
-    packing_method = Column(String(50), nullable=False)  # rigid_body, random, etc
-    porosity = Column(Float, nullable=True)  # porosidade calculada
-    
-    # arquivos gerados
-    bed_file_path = Column(String(500), nullable=True)      # caminho .bed
-    json_file_path = Column(String(500), nullable=True)     # caminho .bed.json
-    blend_file_path = Column(String(500), nullable=True)    # caminho .blend
-    stl_file_path = Column(String(500), nullable=True)      # caminho .stl
-    
-    # parametros completos em json
+    particle_kind = Column(String(50), nullable=False)  # sphere cylinder etc
+
+    # como se empacotou e porosidade estimada
+    packing_method = Column(String(50), nullable=False)  # rigid_body random etc
+    porosity = Column(Float, nullable=True)  # fraccao vazia
+
+    # caminhos relativos aos artefactos no disco
+    bed_file_path = Column(String(500), nullable=True)      # caminho bed
+    json_file_path = Column(String(500), nullable=True)     # caminho bed json
+    blend_file_path = Column(String(500), nullable=True)    # caminho blend
+    stl_file_path = Column(String(500), nullable=True)      # caminho stl
+
+    # copia completa dos parametros de entrada em json
     parameters_json = Column(JSON, nullable=True)
-    
-    # metadados
+
+    # auditoria quem criou e quando
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    created_by = Column(String(100), nullable=True)  # usuario que criou
-    
-    # relacionamentos
+    created_by = Column(String(100), nullable=True)  # origem api ou utilizador
+
+    # apagar leito apaga simulacoes filhas em cascade
     simulations = relationship("Simulation", back_populates="bed", cascade="all, delete-orphan")
-    
+
     def __repr__(self):
         return f"<Bed(id={self.id}, name='{self.name}', diameter={self.diameter}m, height={self.height}m)>"
 
 
+# uma corrida cfd ligada a um leito com estado e metricas agregadas
 class Simulation(Base):
-    """
-    modelo para simulacoes cfd
-    
-    representa simulacoes openfoam executadas
-    """
     __tablename__ = "simulations"
-    
-    # campos principais
+
     id = Column(Integer, primary_key=True, index=True)
+    # fk obrigatoria para beds
     bed_id = Column(Integer, ForeignKey("beds.id"), nullable=False, index=True)
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    
-    # parametros cfd
-    regime = Column(String(50), nullable=False)  # laminar, turbulent
-    inlet_velocity = Column(Float, nullable=False)  # m/s
-    fluid_density = Column(Float, nullable=False)   # kg/m³
-    fluid_viscosity = Column(Float, nullable=False) # Pa·s
-    
-    # configuracao de malha
+
+    # propriedades do fluido e regime
+    regime = Column(String(50), nullable=False)  # laminar turbulent
+    inlet_velocity = Column(Float, nullable=False)  # m s
+    fluid_density = Column(Float, nullable=False)   # kg m3
+    fluid_viscosity = Column(Float, nullable=False) # Pa s
+
+    # qualidade e tamanho da malha
     mesh_cells_count = Column(Integer, nullable=True)
-    mesh_quality = Column(String(50), nullable=True)  # good, acceptable, poor
-    
-    # configuracao solver
+    mesh_quality = Column(String(50), nullable=True)  # good acceptable poor
+
+    # controlo numerico do solver openfoam
     solver = Column(String(50), nullable=False, default="simpleFoam")
     max_iterations = Column(Integer, nullable=False, default=1000)
     convergence_criteria = Column(Float, nullable=False, default=1e-4)
-    
-    # status da simulacao
-    status = Column(String(50), nullable=False, default="pending")  
-    # pending, running, completed, failed
-    
-    progress = Column(Integer, default=0)  # 0-100%
-    
-    # arquivos e diretorios
+
+    # maquina de estados da corrida
+    status = Column(String(50), nullable=False, default="pending")
+    # pending running completed failed
+
+    progress = Column(Integer, default=0)  # zero a cem por cento
+
+    # pasta do caso e log principal
     case_directory = Column(String(500), nullable=True)
     log_file_path = Column(String(500), nullable=True)
-    
-    # resultados principais (calculados apos simulacao)
+
+    # escalares resumo pos processamento
     pressure_drop = Column(Float, nullable=True)  # Pa
-    average_velocity = Column(Float, nullable=True)  # m/s
+    average_velocity = Column(Float, nullable=True)  # m s
     reynolds_number = Column(Float, nullable=True)
-    
-    # tempos de execucao
+
+    # tempos reais de execucao
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     execution_time = Column(Float, nullable=True)  # segundos
-    
-    # parametros completos em json
+
     parameters_json = Column(JSON, nullable=True)
-    
-    # metadados
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_by = Column(String(100), nullable=True)
-    
-    # relacionamentos
+
     bed = relationship("Bed", back_populates="simulations")
     results = relationship("Result", back_populates="simulation", cascade="all, delete-orphan")
-    
+
     def __repr__(self):
         return f"<Simulation(id={self.id}, name='{self.name}', status='{self.status}')>"
 
 
+# linha de detalhe metrica campo ou ficheiro associado a uma simulacao
 class Result(Base):
-    """
-    modelo para resultados detalhados de simulacoes
-    
-    armazena campos, metricas e pos-processamento
-    """
     __tablename__ = "results"
-    
-    # campos principais
+
     id = Column(Integer, primary_key=True, index=True)
     simulation_id = Column(Integer, ForeignKey("simulations.id"), nullable=False, index=True)
-    
-    # tipo de resultado
-    result_type = Column(String(50), nullable=False, index=True)  
-    # field, metric, validation, visualization
-    
-    # nome do campo ou metrica
+
+    result_type = Column(String(50), nullable=False, index=True)
+    # field metric validation visualization
+
     name = Column(String(255), nullable=False)
-    
-    # valor (para metricas escalares)
+
     value = Column(Float, nullable=True)
     unit = Column(String(50), nullable=True)
-    
-    # dados completos (para campos vetoriais, arrays, etc)
+
     data_json = Column(JSON, nullable=True)
-    
-    # arquivo associado
+
     file_path = Column(String(500), nullable=True)
-    file_type = Column(String(50), nullable=True)  # vtk, csv, png, etc
-    
-    # metadados
-    timestep = Column(Integer, nullable=True)  # para resultados transientes
+    file_type = Column(String(50), nullable=True)  # vtk csv png etc
+
+    timestep = Column(Integer, nullable=True)  # passo temporal se aplicavel
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # relacionamentos
+
     simulation = relationship("Simulation", back_populates="results")
-    
+
     def __repr__(self):
         return f"<Result(id={self.id}, type='{self.result_type}', name='{self.name}')>"
 
 
+# texto bed guardado na base para reuso no editor
 class BedTemplate(Base):
-    """
-    template .bed persistido (biblioteca do editor / templates salvos)
-    """
     __tablename__ = "bed_templates"
 
     id = Column(String(36), primary_key=True, index=True)
@@ -178,11 +153,8 @@ class BedTemplate(Base):
         return f"<BedTemplate(id={self.id}, name='{self.name}')>"
 
 
+# registo de accoes feitas na pagina administrativa da base
 class AdminPanelEvent(Base):
-    """
-    eventos registados a partir do painel "banco de dados" no frontend
-    (ex.: pedido de backup, teste de ligação).
-    """
     __tablename__ = "admin_panel_events"
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
@@ -194,10 +166,8 @@ class AdminPanelEvent(Base):
         return f"<AdminPanelEvent(id={self.id}, type='{self.event_type}')>"
 
 
+# relatorio de utilizador com titulo corpo e estado editorial
 class Report(Base):
-    """
-    relatório técnico criado pelo utilizador (texto + anexos a entidades do pipeline).
-    """
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
@@ -219,10 +189,8 @@ class Report(Base):
         return f"<Report(id={self.id}, title='{self.title[:40]}...')>"
 
 
+# ligacao fraca por strings ref_id a simulacao template resultado ou nota
 class ReportAttachment(Base):
-    """
-    referência a simulação, template .bed, resultado numérico ou nota de dados livres.
-    """
     __tablename__ = "report_attachments"
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
@@ -244,10 +212,8 @@ class ReportAttachment(Base):
         return f"<ReportAttachment(id={self.id}, kind='{self.kind}')>"
 
 
+# uma linha de perfil local sem sistema de login multi conta
 class UserProfile(Base):
-    """
-    perfil da aplicação web (uma única linha id=1 — sem autenticação multi-utilizador).
-    """
     __tablename__ = "user_profiles"
 
     id = Column(Integer, primary_key=True)
@@ -265,10 +231,8 @@ class UserProfile(Base):
         return f"<UserProfile(id={self.id}, name='{self.display_name[:30]}')>"
 
 
+# preferencias globais da ui e json extra options_json
 class AppSettings(Base):
-    """
-    preferências globais da aplicação web (singleton id=1).
-    """
     __tablename__ = "app_settings"
 
     id = Column(Integer, primary_key=True)
@@ -285,10 +249,9 @@ class AppSettings(Base):
         return f"<AppSettings(theme_mode={self.theme_mode}, lang={self.language})>"
 
 
-# indices adicionais para performance
 from sqlalchemy import Index
 
-# indices compostos para queries comuns
+# indice composto acelera filtros por leito e estado
 Index('ix_simulations_bed_status', Simulation.bed_id, Simulation.status)
+# indice composto acelera listar resultados por simulacao e tipo
 Index('ix_results_simulation_type', Result.simulation_id, Result.result_type)
-

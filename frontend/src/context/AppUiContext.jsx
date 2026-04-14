@@ -1,3 +1,4 @@
+// modo simples modo dev e timeout axios vindos do servidor
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import api from '../services/api';
 
@@ -24,6 +25,7 @@ export function AppUiProvider({ children }) {
   }, []);
 
   const applySettingsFromApi = useCallback((s) => {
+    // hidrata estado local apos GET settings
     if (!s || typeof s !== 'object') return;
     if (typeof s.simple_mode === 'boolean') {
       setSimpleMode(s.simple_mode);

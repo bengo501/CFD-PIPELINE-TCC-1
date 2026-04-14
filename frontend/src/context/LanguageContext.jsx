@@ -1,27 +1,30 @@
+// estado global pt en sincroniza html lang e localstorage
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from '../i18n/translations';
 
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  // carregar idioma do localStorage ou usar português como padrão
+  // valor inicial vem do browser ou pt
   const [language, setLanguageState] = useState(() => {
     return localStorage.getItem('language') || 'pt';
   });
 
   const { t } = useTranslation(language);
 
-  // salvar preferência no localStorage
+  // cada mudanca persiste e atualiza atributo lang da pagina
   useEffect(() => {
     localStorage.setItem('language', language);
     document.documentElement.lang = language;
   }, [language]);
 
   const toggleLanguage = () => {
+    // alterna entre as duas linguas suportadas
     setLanguageState((prev) => (prev === 'pt' ? 'en' : 'pt'));
   };
 
   const setLanguage = (lang) => {
+    // ignora codigos desconhecidos
     if (lang === 'pt' || lang === 'en') {
       setLanguageState(lang);
     }

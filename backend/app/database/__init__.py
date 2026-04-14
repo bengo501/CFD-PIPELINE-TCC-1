@@ -1,4 +1,4 @@
-# inicializacao do modulo database
+# reexporta classes usadas noutros modulos da app
 from .connection import DatabaseConnection, get_db
 from .models import Base, Bed, Simulation, Result
 
@@ -10,4 +10,3 @@ __all__ = [
     'Simulation',
     'Result'
 ]
-

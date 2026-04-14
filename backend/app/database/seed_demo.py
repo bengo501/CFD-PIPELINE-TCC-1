@@ -1,8 +1,4 @@
-"""
-dados de demonstracao para desenvolvimento: leito + simulacoes variadas
-para o dashboard e listagens do frontend. controlado por SEED_DEMO_DATA
-e idempotente (nao duplica se ja existir seed com created_by=demo_seed).
-"""
+# insere leito e simulacoes demo se env permitir e base ainda vazia de demo
 from __future__ import annotations
 
 import os
@@ -11,11 +7,14 @@ from datetime import datetime, timezone, timedelta
 from backend.app.database import crud, models, schemas
 from backend.app.database.connection import DATABASE_URL, DatabaseConnection
 
+# nome fixo para nao duplicar corrida seed
 BED_SEED_NAME = "leito demonstracao (seed)"
+# marca linhas criadas por este modulo
 CREATED_BY = "demo_seed"
 
 
 def _truthy_env(name: str) -> bool | None:
+    # le env como sim nao ou None se ausente
     raw = os.getenv(name)
     if raw is None:
         return None

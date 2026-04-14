@@ -1,4 +1,4 @@
-# schemas pydantic para validacao de dados
+# schemas pydantic espelham colunas sql para entrada e saida http segura
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime

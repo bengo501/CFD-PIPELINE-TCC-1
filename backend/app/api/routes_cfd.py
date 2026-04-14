@@ -1,7 +1,4 @@
-"""
-rotas da api para simulacoes cfd openfoam
-"""
-
+# estado cfd em memoria e subprocess setup openfoam
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional, Dict

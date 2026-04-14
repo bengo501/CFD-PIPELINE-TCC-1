@@ -1,10 +1,12 @@
-// cliente http para api backend
+// cliente axios partilhado para todas as chamadas rest
 import axios from 'axios';
 
+// url base vem de vite env ou fallback localhost8000
 const apiBase =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
   'http://localhost:8000';
 
+// instancia unica com json e timeout 30s
 const api = axios.create({
   baseURL: apiBase,
   timeout: 30000,
@@ -13,13 +15,13 @@ const api = axios.create({
   }
 });
 
-// bed compiler
+// envia parametros flat e recebe caminhos bed json
 export const compileBed = async (parameters) => {
   const response = await api.post('/api/bed/compile', { parameters });
   return response.data;
 };
 
-// gerar modelo 3d
+// inicia job blender devolve job_id para polling
 export const generateModel = async (jsonFile, openBlender = false) => {
   const response = await api.post('/api/model/generate', {
     json_file: jsonFile,
@@ -151,7 +153,7 @@ export const postDatabasePanelEvent = async (eventType, detail = null) => {
   return response.data;
 };
 
-// relatórios (tabelas reports + report_attachments)
+// relatorios tabelas reports e report_attachments
 export const listReports = async () => {
   const response = await api.get('/api/reports');
   return response.data;
@@ -218,18 +220,19 @@ export const patchSettings = async (payload) => {
   return response.data;
 };
 
-/** encerra o processo do backend (requer ALLOW_DEV_SHUTDOWN=1 no servidor) */
+// mata processo backend so se env allow dev shutdown
 export const postAdminDevShutdown = async () => {
   const response = await api.post('/api/admin/dev/shutdown');
   return response.data;
 };
 
-/** instruções e lançamento do bed wizard no terminal (cli) */
+// texto de ajuda para correr wizard no terminal
 export const getWizardCliInstructions = async () => {
   const response = await api.get('/api/wizard/cli-instructions');
   return response.data;
 };
 
+// pede ao backend abrir janela de terminal com o cli
 export const launchWizardCliTerminal = async () => {
   const response = await api.post('/api/wizard/launch-cli-terminal');
   return response.data;

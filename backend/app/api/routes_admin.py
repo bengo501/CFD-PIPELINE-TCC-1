@@ -1,7 +1,4 @@
-"""
-rotas administrativas apenas para desenvolvimento (encerrar o processo do servidor).
-protegidas por variável de ambiente ALLOW_DEV_SHUTDOWN.
-"""
+# rotas so para desenvolvimento exemplo matar o processo uvicorn
 import os
 import threading
 import time
@@ -12,16 +9,14 @@ router = APIRouter()
 
 
 def _shutdown_allowed() -> bool:
+    # le env allow dev shutdown valores truthy classicos
     v = os.getenv("ALLOW_DEV_SHUTDOWN", "").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 
 @router.post("/admin/dev/shutdown", tags=["admin"])
 async def dev_shutdown():
-    """
-    encerra o processo python do uvicorn após uma breve pausa.
-    o reinício real depende de systemd, docker compose, script manual, etc.
-    """
+    # dispara thread que chama os exit apos pequeno atraso
     if not _shutdown_allowed():
         raise HTTPException(
             status_code=403,
@@ -34,4 +29,3 @@ async def dev_shutdown():
 
     threading.Thread(target=_delayed_exit, daemon=True).start()
     return {"ok": True, "detail": "servidor a encerrar"}
-

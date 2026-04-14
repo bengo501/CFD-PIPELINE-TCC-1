@@ -1,7 +1,4 @@
-"""
-rotas da api para o bed wizard (interface web)
-"""
-
+# gera bed a partir do wizard compila template e ajuda cli local
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
