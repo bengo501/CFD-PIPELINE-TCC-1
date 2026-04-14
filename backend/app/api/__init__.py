@@ -1,1 +1,2 @@
-# pacote de routers e modelos pydantic da api
+# agrupa routers fastapi e modelos pydantic expostos em http
+# outros modulos fazem from backend app api import routes

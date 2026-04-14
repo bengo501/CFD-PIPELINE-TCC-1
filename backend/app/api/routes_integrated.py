@@ -1,4 +1,6 @@
 # pipeline end to end grava bed corre blender openfoam e jobs longos
+# este modulo cria jobs na mesma estrutura pydantic usada em routes
+# funde armazenamento em memoria com routes para listagem unificada
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional

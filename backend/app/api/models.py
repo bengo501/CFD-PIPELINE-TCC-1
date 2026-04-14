@@ -1,4 +1,5 @@
 # tipos pydantic partilhados entre routers pedidos e respostas json
+# enums string garantem valores estaveis no openapi e no frontend
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List, Literal
 from enum import Enum
@@ -19,6 +20,7 @@ class JobType(str, Enum):
     FULL_PIPELINE = "full_pipeline"
 
 # corpo flat para endpoint compile sem nesting wizard
+# field com ge le valida intervalos fisicos simples antes de tocar no disco
 class BedParameters(BaseModel):
     # geometria do leito
     diameter: float = Field(..., description="diâmetro do leito (m)", ge=0.01, le=1.0)
@@ -89,6 +91,7 @@ class SimulationRequest(BaseModel):
     )
 
 # modelos de job (tarefa assíncrona)
+# progress inteiro 0 a 100 para barras na ui
 class Job(BaseModel):
     """tarefa assíncrona"""
     job_id: str

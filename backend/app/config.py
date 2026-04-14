@@ -1,6 +1,6 @@
-# le variaveis de ambiente para escolher como gerar geometria 3d
+# le variaveis de ambiente que alteram comportamento sem recompilar codigo
 import os
 
-# blender usa rigid body dentro do blender
-# python gera malha procedural sem gui blender
+# perfil de modelacao escolhe entre motor blender com gui headless ou script python puro
+# strip remove espacos e lower normaliza para comparacoes seguras mais abaixo
 MODELING_PROFILE = os.getenv("MODELING_PROFILE", "blender").strip().lower()

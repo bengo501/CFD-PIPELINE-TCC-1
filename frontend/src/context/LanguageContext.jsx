@@ -1,30 +1,33 @@
-// estado global pt en sincroniza html lang e localstorage
+// contexto de idioma pt en com persistencia e funcao t de traducao
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from '../i18n/translations';
 
+// sem valor default forcando uso dentro do provider
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  // valor inicial vem do browser ou pt
+  // estado string codigo lingua atual
+  // inicializa de local storage ou cai em pt
   const [language, setLanguageState] = useState(() => {
     return localStorage.getItem('language') || 'pt';
   });
 
+  // hook de traducao recebe codigo e devolve mapa t
   const { t } = useTranslation(language);
 
-  // cada mudanca persiste e atualiza atributo lang da pagina
+  // efeito sincroniza storage e atributo lang acessivel a leitores de ecra e seo
   useEffect(() => {
     localStorage.setItem('language', language);
     document.documentElement.lang = language;
   }, [language]);
 
   const toggleLanguage = () => {
-    // alterna entre as duas linguas suportadas
+    // alternancia simples entre duas linguas suportadas pelo bundle
     setLanguageState((prev) => (prev === 'pt' ? 'en' : 'pt'));
   };
 
   const setLanguage = (lang) => {
-    // ignora codigos desconhecidos
+    // filtra codigos desconhecidos para nao quebrar o hook de i18n
     if (lang === 'pt' || lang === 'en') {
       setLanguageState(lang);
     }

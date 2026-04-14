@@ -1,4 +1,4 @@
-# router principal compilacao modelo 3d simulacao jobs e listagens de ficheiros
+# router central do pipeline expoe compilacao geometria jobs e downloads
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from typing import List
@@ -19,20 +19,19 @@ from backend.app.utils.file_manager import FileManager
 
 router = APIRouter()
 
-# dicionario global em memoria job_id para objeto job pydantic
+# memoria volatil partilhada entre pedidos para estado de jobs simples
 jobs_store: dict[str, Job] = {}
 
-# instancias unicas dos servicos de dominio
+# servicos stateless reutilizaveis em varios endpoints
 bed_service = BedService()
 blender_service = BlenderService()
 openfoam_service = OpenFOAMService()
 file_manager = FileManager()
 
-# ==================== ENDPOINTS BED COMPILER ====================
-
 @router.post("/bed/compile", response_model=CompileResponse, tags=["bed"])
 async def compile_bed(request: CompileRequest):
-    # recebe bedparameters e devolve paths relativos bed e json
+    # passo um valida pydantic automaticamente
+    # passo dois delega geracao de ficheiros ao bed service
     try:
         result = await bed_service.compile_bed(
             parameters=request.parameters.model_dump(),
@@ -62,14 +61,12 @@ async def validate_bed(filename: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"erro de validação: {str(e)}")
 
-# ==================== ENDPOINTS BLENDER ====================
-
 @router.post("/model/generate", response_model=JobResponse, tags=["model"])
 async def generate_model(request: GenerateModelRequest, background_tasks: BackgroundTasks):
     """
     gera modelo 3d no blender (assíncrono)
     """
-    # criar job
+    # uuid garante id unico sem coordenacao entre workers
     job_id = str(uuid.uuid4())
     job = Job(
         job_id=job_id,
@@ -82,7 +79,7 @@ async def generate_model(request: GenerateModelRequest, background_tasks: Backgr
     
     jobs_store[job_id] = job
     
-    # adicionar tarefa em background
+    # background tasks corre depois da resposta http devolver 202 implicitamente aqui e 200 com body
     background_tasks.add_task(
         blender_service.generate_model,
         job_id=job_id,
@@ -106,14 +103,11 @@ async def list_models():
     files = file_manager.list_files("models", [".blend", ".stl"])
     return FileListResponse(files=files, total=len(files))
 
-# ==================== ENDPOINTS OPENFOAM ====================
-
 @router.post("/simulation/create", response_model=JobResponse, tags=["simulation"])
 async def create_simulation(request: SimulationRequest, background_tasks: BackgroundTasks):
     """
     cria caso openfoam (assíncrono)
     """
-    # criar job
     job_id = str(uuid.uuid4())
     job = Job(
         job_id=job_id,
@@ -130,7 +124,6 @@ async def create_simulation(request: SimulationRequest, background_tasks: Backgr
     
     jobs_store[job_id] = job
     
-    # adicionar tarefa em background
     background_tasks.add_task(
         openfoam_service.create_case,
         job_id=job_id,
@@ -154,8 +147,6 @@ async def list_simulations():
     files = file_manager.list_directories("cfd")
     return FileListResponse(files=files, total=len(files))
 
-# ==================== ENDPOINTS DE JOBS ====================
-
 @router.get("/job/{job_id}", response_model=Job, tags=["jobs"])
 async def get_job(job_id: str):
     """
@@ -172,10 +163,9 @@ async def list_jobs(status: str = None, job_type: str = None):
     lista jobs com filtros opcionais
     inclui jobs regulares e jobs do pipeline completo
     """
-    # importar jobs do pipeline completo
     from backend.app.api.routes_integrated import jobs_store_integrated
     
-    # combinar jobs de ambos os armazenamentos
+    # concatena listas mantendo referencia aos mesmos objetos job em memoria
     all_jobs = list(jobs_store.values()) + list(jobs_store_integrated.values())
     
     if status:
@@ -184,12 +174,10 @@ async def list_jobs(status: str = None, job_type: str = None):
     if job_type:
         all_jobs = [j for j in all_jobs if j.job_type == job_type]
     
-    # ordenar por data de criação (mais recente primeiro)
+    # ordenacao por created at decrescente melhora ux em paineis
     all_jobs.sort(key=lambda x: x.created_at, reverse=True)
     
     return all_jobs
-
-# ==================== ENDPOINTS DE ARQUIVOS ====================
 
 @router.get("/files/{file_type}", response_model=FileListResponse, tags=["files"])
 async def list_files(file_type: str):
@@ -237,8 +225,6 @@ async def download_file(file_type: str, filename: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao baixar arquivo: {str(e)}")
 
-# ==================== ENDPOINT DE STATUS ====================
-
 @router.get("/status", tags=["system"])
 async def get_system_status():
     """
@@ -259,4 +245,3 @@ async def get_system_status():
             "failed": len([j for j in jobs_store.values() if j.status == JobStatus.FAILED])
         }
     }
-

@@ -1,4 +1,6 @@
-# crud sql resumos dashboard painel e ingestao de resultados
+# router grande que cobre entidades sql beds simulations results
+# tambem agrega consultas para dashboard e painel admin da base
+# depende de crud para sql e de results service para ler json em disco
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Depends, Query
@@ -28,6 +30,7 @@ async def create_bed(bed: schemas.BedCreate, db: Session = Depends(get_db)):
     """
     criar novo leito no banco de dados
     """
+    # nome e chave humana entao rejeitamos duplicado cedo
     # verificar se ja existe leito com esse nome
     existing = crud.BedCRUD.get_by_name(db, bed.name)
     if existing:

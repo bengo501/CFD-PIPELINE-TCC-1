@@ -1,4 +1,4 @@
-# rotas so para desenvolvimento exemplo matar o processo uvicorn
+# endpoints perigosos protegidos por env so para desenvolvimento local
 import os
 import threading
 import time
@@ -9,14 +9,14 @@ router = APIRouter()
 
 
 def _shutdown_allowed() -> bool:
-    # le env allow dev shutdown valores truthy classicos
+    # normaliza texto env para comparar com lista branca de valores true
     v = os.getenv("ALLOW_DEV_SHUTDOWN", "").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 
 @router.post("/admin/dev/shutdown", tags=["admin"])
 async def dev_shutdown():
-    # dispara thread que chama os exit apos pequeno atraso
+    # responde ja e encerra processo numa thread daemon para nao bloquear o worker atual
     if not _shutdown_allowed():
         raise HTTPException(
             status_code=403,
@@ -24,6 +24,7 @@ async def dev_shutdown():
         )
 
     def _delayed_exit():
+        # pequeno sleep permite o cliente receber o json de ok
         time.sleep(0.4)
         os._exit(0)
 

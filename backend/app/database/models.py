@@ -1,4 +1,5 @@
 # classes sqlalchemy uma tabela por classe
+# relacionamentos usam cascade para apagar filhos quando apaga pai
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, JSON, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

@@ -1,4 +1,4 @@
-# le e lista ficheiros sob generated para endpoints de inventario
+# abstrai listagens sobre a pasta generated para os endpoints de inventario
 from pathlib import Path
 from typing import List
 from datetime import datetime
@@ -7,14 +7,15 @@ from backend.app.api.models import FileInfo
 
 
 class FileManager:
-    # caminhos relativos ao project_root e pasta generated
+    # guarda raiz do repo e caminhos derivados uma vez por instancia
     def __init__(self):
+        # sobe quatro niveis de utils ate à pasta do repositorio
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.output_dir = self.project_root / "generated"
         self.dsl_dir = self.project_root / "dsl"
 
     def list_files(self, directory: str, extensions: List[str]) -> List[FileInfo]:
-        # directory e subpasta de generated ou raiz se for ponto
+        # ponto significa usar diretamente generated sem subpasta extra
         if directory == ".":
             base_dir = self.output_dir
         else:
@@ -25,8 +26,10 @@ class FileManager:
 
         files = []
 
+        # rglob visita arvore completa a partir de base dir
         for file_path in base_dir.rglob("*"):
             if file_path.is_file():
+                # filtro por extensao vazio aceita tudo
                 if extensions and file_path.suffix not in extensions:
                     continue
 
@@ -40,12 +43,13 @@ class FileManager:
                     file_type=file_path.suffix[1:]
                 ))
 
+        # mais recente primeiro ajuda o frontend a mostrar topo util
         files.sort(key=lambda x: x.created_at, reverse=True)
 
         return files
 
     def list_directories(self, directory: str) -> List[FileInfo]:
-        # cada entrada e uma pasta size e soma de todos os ficheiros dentro
+        # cada pasta vira um FileInfo sintetico com size somado recursivo
         base_dir = self.output_dir / directory
 
         if not base_dir.exists():
@@ -57,6 +61,7 @@ class FileManager:
             if dir_path.is_dir():
                 stat = dir_path.stat()
 
+                # soma bytes de todos os ficheiros internos recursivamente
                 total_size = sum(f.stat().st_size for f in dir_path.rglob("*") if f.is_file())
 
                 dirs.append(FileInfo(
@@ -72,7 +77,7 @@ class FileManager:
         return dirs
 
     def get_file_path(self, file_type: str, filename: str) -> Path:
-        # mapeia tipo logico para subpasta esperada do pipeline
+        # mapeamento alinha com convencoes do pipeline de pastas
         type_dirs = {
             "bed": self.output_dir / "configs",
             "json": self.output_dir / "configs",

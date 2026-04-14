@@ -1,12 +1,15 @@
-// cliente axios partilhado para todas as chamadas rest
+// modulo que centraliza o cliente http axios para falar com o backend fastapi
+// cada export e uma funcao fina que escolhe metodo url e parametros e devolve response data
 import axios from 'axios';
 
-// url base vem de vite env ou fallback localhost8000
+// guarda o host e prefixo da api
+// tenta ler vite env vite api url se existir senao usa localhost porta 8000
 const apiBase =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
   'http://localhost:8000';
 
-// instancia unica com json e timeout 30s
+// fabrica uma instancia axios com base url timeout e cabecalho json padrao
+// timeout 30000 significa 30 segundos ate falhar por rede lenta
 const api = axios.create({
   baseURL: apiBase,
   timeout: 30000,
@@ -15,13 +18,14 @@ const api = axios.create({
   }
 });
 
-// envia parametros flat e recebe caminhos bed json
+// envia objeto parameters no corpo e espera caminhos dos ficheiros bed e json gerados
 export const compileBed = async (parameters) => {
   const response = await api.post('/api/bed/compile', { parameters });
   return response.data;
 };
 
-// inicia job blender devolve job_id para polling
+// pede geracao de modelo 3d a partir do json
+// open blender quando true pode abrir gui no servidor se o backend permitir
 export const generateModel = async (jsonFile, openBlender = false) => {
   const response = await api.post('/api/model/generate', {
     json_file: jsonFile,
@@ -30,7 +34,8 @@ export const generateModel = async (jsonFile, openBlender = false) => {
   return response.data;
 };
 
-// criar simulação
+// cria caso de simulacao ligando json e blend
+// run simulation true pede execucao imediata no backend
 export const createSimulation = async (jsonFile, blendFile, runSimulation = false) => {
   const response = await api.post('/api/simulation/create', {
     json_file: jsonFile,
@@ -40,13 +45,13 @@ export const createSimulation = async (jsonFile, blendFile, runSimulation = fals
   return response.data;
 };
 
-// buscar status de job
+// le estado atual de um job por id uuid
 export const getJobStatus = async (jobId) => {
   const response = await api.get(`/api/job/${jobId}`);
   return response.data;
 };
 
-// listar jobs
+// lista jobs com filtros opcionais de estado e tipo
 export const listJobs = async (status = null, jobType = null) => {
   const params = {};
   if (status) params.status = status;
@@ -56,30 +61,30 @@ export const listJobs = async (status = null, jobType = null) => {
   return response.data;
 };
 
-// listar arquivos
+// inventario de ficheiros por tipo logico bed json blend stl simulations
 export const listFiles = async (fileType) => {
   const response = await api.get(`/api/files/${fileType}`);
   return response.data;
 };
 
-// download de arquivo
+// devolve url absoluta para o browser fazer download direto sem axios blob
 export const downloadFile = (fileType, filename) => {
   return `${apiBase}/api/files/download/${fileType}/${filename}`;
 };
 
-// status do sistema
+// estado geral da api e flags de servicos externos
 export const getSystemStatus = async () => {
   const response = await api.get('/api/status');
   return response.data;
 };
 
-// resumo de simulacoes para o dashboard
+// agregados para graficos do dashboard contagens medias etc
 export const getSimulationsSummary = async () => {
   const response = await api.get('/api/simulations/summary');
   return response.data;
 };
 
-// simulacoes recentes (para o dashboard)
+// lista curta ordenada por data para widgets recentes
 export const listRecentSimulations = async (limit = 8) => {
   const response = await api.get('/api/simulations/recent', {
     params: { limit }
@@ -87,7 +92,7 @@ export const listRecentSimulations = async (limit = 8) => {
   return response.data;
 };
 
-// lista paginada de simulacoes (sqlite/postgresql)
+// lista completa com paginacao e filtros bed id e status
 export const listSimulations = async ({
   page = 1,
   per_page = 100,
@@ -101,7 +106,7 @@ export const listSimulations = async ({
   return response.data;
 };
 
-// resultados de uma simulacao especifica
+// metricas e ficheiros associados a uma simulacao na base sql
 export const getSimulationResults = async (simulationId, resultType = null) => {
   const params = {};
   if (resultType) params.result_type = resultType;
@@ -109,17 +114,19 @@ export const getSimulationResults = async (simulationId, resultType = null) => {
   return response.data;
 };
 
-// templates .bed persistidos (bed_templates no sqlite/postgresql)
+// templates texto bed guardados na tabela bed templates
 export const listTemplates = async () => {
   const response = await api.get('/api/templates/list');
   return response.data;
 };
 
+// busca um template por id string uuid
 export const getTemplate = async (templateId) => {
   const response = await api.get(`/api/templates/${templateId}`);
   return response.data;
 };
 
+// grava nome conteudo tag e origem com defaults seguros
 export const saveTemplate = async (payload) => {
   const response = await api.post('/api/templates/save', {
     name: payload.name,
@@ -130,21 +137,24 @@ export const saveTemplate = async (payload) => {
   return response.data;
 };
 
+// apaga template sem corpo de resposta util
 export const deleteTemplate = async (templateId) => {
   await api.delete(`/api/templates/${templateId}`);
 };
 
+// cria copia no servidor com novo id
 export const duplicateTemplate = async (templateId) => {
   const response = await api.post(`/api/templates/${templateId}/duplicate`);
   return response.data;
 };
 
-// painel banco de dados (admin_panel_events + contagens)
+// painel admin mostra motor sql contagens e ultimos eventos
 export const getDatabasePanel = async () => {
   const response = await api.get('/api/database/panel');
   return response.data;
 };
 
+// regista clique de backup ou teste de ligacao no painel
 export const postDatabasePanelEvent = async (eventType, detail = null) => {
   const response = await api.post('/api/database/events', {
     event_type: eventType,
@@ -153,7 +163,7 @@ export const postDatabasePanelEvent = async (eventType, detail = null) => {
   return response.data;
 };
 
-// relatorios tabelas reports e report_attachments
+// crud simples de relatorios markdown ou texto livre
 export const listReports = async () => {
   const response = await api.get('/api/reports');
   return response.data;
@@ -178,11 +188,13 @@ export const deleteReport = async (reportId) => {
   await api.delete(`/api/reports/${reportId}`);
 };
 
+// meta para autocompletar anexos com simulacoes e templates existentes
 export const reportsCatalog = async () => {
   const response = await api.get('/api/reports/meta/catalog');
   return response.data;
 };
 
+// lista resultados possiveis para uma simulacao escolhida
 export const reportsResultsForSimulation = async (simulationId) => {
   const response = await api.get('/api/reports/meta/results', {
     params: { simulation_id: simulationId },
@@ -199,7 +211,7 @@ export const removeReportAttachment = async (reportId, attachmentId) => {
   await api.delete(`/api/reports/${reportId}/attachments/${attachmentId}`);
 };
 
-// perfil singleton (user_profiles id=1)
+// perfil unico local sem fluxo oauth completo
 export const getProfile = async () => {
   const response = await api.get('/api/profile');
   return response.data;
@@ -210,6 +222,7 @@ export const patchProfile = async (payload) => {
   return response.data;
 };
 
+// preferencias globais tema idioma timeouts openfoam
 export const getSettings = async () => {
   const response = await api.get('/api/settings');
   return response.data;
@@ -220,23 +233,22 @@ export const patchSettings = async (payload) => {
   return response.data;
 };
 
-// mata processo backend so se env allow dev shutdown
+// cuidado so funciona se o servidor tiver env allow dev shutdown
 export const postAdminDevShutdown = async () => {
   const response = await api.post('/api/admin/dev/shutdown');
   return response.data;
 };
 
-// texto de ajuda para correr wizard no terminal
+// texto explicando como correr o wizard no terminal do sistema
 export const getWizardCliInstructions = async () => {
   const response = await api.get('/api/wizard/cli-instructions');
   return response.data;
 };
 
-// pede ao backend abrir janela de terminal com o cli
+// pede ao sistema operativo abrir terminal com comando sugerido
 export const launchWizardCliTerminal = async () => {
   const response = await api.post('/api/wizard/launch-cli-terminal');
   return response.data;
 };
 
 export default api;
-

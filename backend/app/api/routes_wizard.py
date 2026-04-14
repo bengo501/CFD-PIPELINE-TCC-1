@@ -1,4 +1,5 @@
 # gera bed a partir do wizard compila template e ajuda cli local
+# tambem tenta abrir terminal do sistema com comandos uteis em dev
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional

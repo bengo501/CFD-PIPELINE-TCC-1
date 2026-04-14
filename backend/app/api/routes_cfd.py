@@ -1,4 +1,5 @@
 # estado cfd em memoria e subprocess setup openfoam
+# complementa routes simulation com ids uuid proprios e fila simples
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional, Dict

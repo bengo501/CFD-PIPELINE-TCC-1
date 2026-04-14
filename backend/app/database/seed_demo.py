@@ -1,4 +1,5 @@
 # insere leito e simulacoes demo se env permitir e base ainda vazia de demo
+# evita duplicar usando created_by e contagem de linhas demo
 from __future__ import annotations
 
 import os
@@ -14,7 +15,7 @@ CREATED_BY = "demo_seed"
 
 
 def _truthy_env(name: str) -> bool | None:
-    # le env como sim nao ou None se ausente
+    # normaliza texto para decidir se env e positivo negativo ou invalido
     raw = os.getenv(name)
     if raw is None:
         return None
@@ -28,6 +29,7 @@ def _truthy_env(name: str) -> bool | None:
 
 def seed_demo_enabled() -> bool:
     """ativa seed explicitamente; se nao definido, default so para sqlite local."""
+    # prioriza flag explicita senao heuristica por url sqlite
     explicit = _truthy_env("SEED_DEMO_DATA")
     if explicit is not None:
         return explicit
@@ -40,6 +42,7 @@ def seed_demo_data_if_needed() -> None:
 
     db = DatabaseConnection.get_session()
     try:
+        # contagem rapida evita repetir seed em cada restart
         n_demo = (
             db.query(models.Simulation)
             .filter(models.Simulation.created_by == CREATED_BY)
@@ -48,6 +51,7 @@ def seed_demo_data_if_needed() -> None:
         if n_demo > 0:
             return
 
+        # cria bed base uma vez e reutiliza bed id nas simulacoes seguintes
         bed = crud.BedCRUD.get_by_name(db, BED_SEED_NAME)
         if not bed:
             bed_in = schemas.BedCreate(
@@ -66,6 +70,7 @@ def seed_demo_data_if_needed() -> None:
             bed = crud.BedCRUD.create(db, bed_in)
 
         now = datetime.now(timezone.utc)
+        # cada tupla nome regime status dict com metricas e deltas temporais
         specs: list[tuple[str, str, str, dict]] = [
             (
                 "caso laminar referencia",
@@ -133,11 +138,13 @@ def seed_demo_data_if_needed() -> None:
         first_completed_id: int | None = None
 
         for name, regime, status, extra in specs:
+            # create insere defaults do schema depois update aplica campos de demo
             sim_in = schemas.SimulationCreate(
                 bed_id=bed.id,
                 name=name,
                 description="registro de demonstracao para interface",
                 regime=regime,
+                # velocidade maior em turbulent para diferenciar cenarios de demo
                 inlet_velocity=0.15 if regime == "laminar" else 0.45,
                 fluid_density=1000.0,
                 fluid_viscosity=1.0e-3,
@@ -169,6 +176,7 @@ def seed_demo_data_if_needed() -> None:
             rd = extra.get("run_delta")
             if sd is not None:
                 upd["started_at"] = now - sd
+            # completed at e started at mais duracao simulada quando fechado
             if status in ("completed", "failed") and sd is not None and rd is not None:
                 upd["completed_at"] = (now - sd) + rd
 

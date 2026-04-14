@@ -1,4 +1,4 @@
-# crud bed_templates texto guardado pelo editor
+# crud de templates bed armazenados como texto na tabela bed templates
 from datetime import datetime, timezone
 from typing import List
 import uuid
@@ -18,6 +18,7 @@ router = APIRouter()
 
 
 def _dt_iso(v) -> str:
+    # normaliza timestamps para strings json estaveis
     if v is None:
         return ""
     if hasattr(v, "isoformat"):
@@ -26,6 +27,7 @@ def _dt_iso(v) -> str:
 
 
 def _to_summary(row: BedTemplate) -> TemplateSummary:
+    # payload leve sem campo content grande
     return TemplateSummary(
         id=row.id,
         name=row.name,
@@ -37,6 +39,7 @@ def _to_summary(row: BedTemplate) -> TemplateSummary:
 
 
 def _to_response(row: BedTemplate) -> TemplateResponse:
+    # payload completo para edicao
     return TemplateResponse(
         id=row.id,
         name=row.name,
@@ -51,6 +54,7 @@ def _to_response(row: BedTemplate) -> TemplateResponse:
 @router.post("/templates/save", response_model=TemplateResponse, tags=["templates"])
 async def save_template(template_data: TemplateCreate, db: Session = Depends(get_db)):
     """salvar um novo template"""
+    # uuid4 string evita colisao sem servico central
     template_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
     row = BedTemplate(

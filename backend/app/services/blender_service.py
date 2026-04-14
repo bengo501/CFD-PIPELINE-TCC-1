@@ -1,4 +1,5 @@
 # corre blender ou script python conforme MODELING_PROFILE para gerar geometria
+# atualiza objeto job mutavel partilhado pelo router e pela tarefa em background
 import subprocess
 import sys
 from pathlib import Path

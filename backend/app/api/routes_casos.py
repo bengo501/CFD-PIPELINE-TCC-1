@@ -1,4 +1,5 @@
 # inspeciona pastas generated cfd e apaga caso no disco
+# endpoints pensados para manutencao manual quando openfoam gera muitas pastas
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from typing import List, Dict, Optional

@@ -1,4 +1,5 @@
 # lanca subprocessos para montar caso openfoam e opcionalmente correr solver
+# espera script setup python no repositorio e paths relativos gravados no job
 import subprocess
 import sys
 import json

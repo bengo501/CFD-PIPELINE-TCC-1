@@ -1,4 +1,5 @@
-# motor sql engine sessoes e helper de arranque
+# configura sqlalchemy engine session factory e helpers de arranque
+# tambem expoe get db como dependencia fastapi
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -6,53 +7,53 @@ from typing import Generator
 import os
 from dotenv import load_dotenv
 
-# carrega ficheiro env se existir
+# carrega variaveis de um ficheiro env ao lado do projeto se existir
 load_dotenv()
 
-# url completa do banco sqlite local por defeito
+# string de ligacao completa prioriza env senao sqlite local no cwd
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "sqlite:///./cfd_pipeline.db"
 )
 
-# engine e a fabrica de ligacoes ao banco
+# engine mantem pool de ligacoes e traduz orm para sql
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,  # testa ligacao antes de cada uso do pool
-    pool_size=10,        # ligacoes mantidas abertas
-    max_overflow=20,     # ligacoes extra temporarias
-    echo=False           # True imprime sql no log
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    echo=False
 )
 
-# factory que produz objetos Session
+# session local fabrica objetos session ligados ao engine acima
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# classe base declarative para subclasses em models
+# base e a classe mae declarative usada em database models
 Base = declarative_base()
 
 
 class DatabaseConnection:
-    # metodos estaticos para arranque e teste
+    # agrupa operacoes estaticas para nao precisar de estado de instancia
     @staticmethod
     def get_session() -> Session:
-        # devolve uma sessao nova quem chama deve fechar ou usar contexto
+        # quem recebe deve fechar ou usar with em codigo novo
         return SessionLocal()
 
     @staticmethod
     def create_tables():
-        # cria todas as tabelas definidas em models que herdam Base
+        # create all varre metadata registrada nas classes que herdam base
         Base.metadata.create_all(bind=engine)
-        # sqlite antigo pode nao ter coluna options_json
+        # migracao manual leve para bases sqlite antigas
         DatabaseConnection._ensure_sqlite_app_settings_options()
         print("[OK] tabelas criadas no banco de dados")
 
     @staticmethod
     def _ensure_sqlite_app_settings_options():
-        # migracao leve so sqlite adiciona coluna se faltar
+        # so executa em sqlite e so se faltar coluna options json
         url = str(DATABASE_URL or "")
         if not url.startswith("sqlite"):
             return
@@ -70,13 +71,13 @@ class DatabaseConnection:
 
     @staticmethod
     def drop_tables():
-        # apaga todas as tabelas so para dev
+        # destrutivo util apenas em testes locais
         Base.metadata.drop_all(bind=engine)
         print("[OK] tabelas removidas do banco de dados")
 
     @staticmethod
     def check_connection() -> bool:
-        # select simples para ver se o banco responde
+        # select 1 e o menor comando para validar sessao e permissoes
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
@@ -87,7 +88,7 @@ class DatabaseConnection:
 
 
 def get_db() -> Generator[Session, None, None]:
-    # dependencia fastapi abre sessao por pedido e fecha no fim
+    # padrao yield garante fecho mesmo se endpoint lancar excecao
     db = SessionLocal()
     try:
         yield db

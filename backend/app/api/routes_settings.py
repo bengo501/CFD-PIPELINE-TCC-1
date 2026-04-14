@@ -1,4 +1,4 @@
-# patch no singleton app_settings e merge profundo em options_json
+# le e atualiza linha unica app settings com merge profundo em options json
 from __future__ import annotations
 
 import json
@@ -21,8 +21,10 @@ from backend.app.api.models import (
 
 router = APIRouter()
 
+# mesma estrategia do perfil id fixo para facilitar frontend sem descobrir chaves
 SETTINGS_ROW_ID = 1
 
+# defaults aplicados quando coluna json null ou incompleta
 DEFAULT_OPTIONS: Dict[str, Any] = {
     "simple_mode": False,
     "dev_mode": False,
@@ -47,6 +49,7 @@ def _iso(v) -> str:
 
 
 def _deep_merge(base: Dict[str, Any], overlay: Dict[str, Any] | None) -> Dict[str, Any]:
+    # percorre chaves do overlay e funde dicts internos recursivamente
     if not overlay:
         return dict(base)
     out = dict(base)
@@ -59,6 +62,7 @@ def _deep_merge(base: Dict[str, Any], overlay: Dict[str, Any] | None) -> Dict[st
 
 
 def _raw_options_to_dict(raw: Any) -> Dict[str, Any]:
+    # sqlite pode guardar json como texto str entao tenta json loads
     if raw is None:
         return {}
     if isinstance(raw, str):
@@ -73,6 +77,7 @@ def _raw_options_to_dict(raw: Any) -> Dict[str, Any]:
 
 
 def _resolved_options(row: M.AppSettings) -> Dict[str, Any]:
+    # camada final usada tanto no get como no patch para consistencia
     return _deep_merge(DEFAULT_OPTIONS, _raw_options_to_dict(row.options_json))
 
 
@@ -124,6 +129,7 @@ async def get_settings(db: Session = Depends(get_db)):
 async def update_settings(body: AppSettingsUpdate, db: Session = Depends(get_db)):
     """atualizar preferências; idioma também atualiza o perfil singleton."""
     row = _ensure_settings(db)
+    # colunas simples primeiro
     if body.theme_mode is not None:
         row.theme_mode = body.theme_mode
     if body.language is not None:
@@ -141,6 +147,7 @@ async def update_settings(body: AppSettingsUpdate, db: Session = Depends(get_db)
     if body.show_advanced_hints is not None:
         row.show_advanced_hints = body.show_advanced_hints
 
+    # bloco json merge profundo campo a campo
     opts = _resolved_options(row)
     if body.simple_mode is not None:
         opts["simple_mode"] = body.simple_mode

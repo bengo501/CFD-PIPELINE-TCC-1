@@ -1,4 +1,5 @@
 # gera texto bed corre subprocesso antlr e opcional grava linha na base
+# traduz dict flat ou aninhado em sintaxe dsl e chama compilador externo
 import subprocess
 import sys
 from pathlib import Path
@@ -6,11 +7,12 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class BedService:
-    # encapsula caminhos fixos do repo para dsl e pasta output
     def __init__(self):
+        # quatro niveis acima leva a raiz do repo onde existem dsl e output
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.dsl_dir = self.project_root / "dsl"
         self.compiler_script = self.dsl_dir / "compiler" / "bed_compiler_antlr_standalone.py"
+        # ficheiros bed brutos vivem em output antes de copias para generated
         self.output_dir = self.project_root / "output"
 
     def check_availability(self) -> bool:

@@ -1,21 +1,22 @@
-# ponto de entrada fastapi do pipeline cfd
-# expoe rotas http monta estaticos e liga routers
+# arranca a aplicacao fastapi registra middlewares monta estaticos e inclui routers
+# tambem corre migracao leve e seed opcional no evento startup
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import sys
 
-# pasta raiz do repositorio tres niveis acima deste ficheiro
+# calcula raiz do repo subindo tres niveis a partir deste ficheiro app main py
 project_root = Path(__file__).parent.parent.parent
-# permite imports tipo backend app a partir da raiz
+# insere raiz no sys path para imports absolutos estilo backend app
 sys.path.insert(0, str(project_root))
 
 from backend.app.api import routes
 from backend.app.database.connection import DatabaseConnection
 from backend.app.database.seed_demo import seed_demo_data_if_needed
 
-# instancia principal da api documentacao em docs e redoc
+# objeto app exposto ao asgi uvicorn
+# docs e redoc gerados a partir dos tipos pydantic dos endpoints
 app = FastAPI(
     title="CFD Pipeline API",
     description="api rest para gerenciar pipeline de simulações cfd de leitos empacotados",
@@ -24,33 +25,34 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# cors permite browser em localhost3000 ou 5173 chamar a api
+# cors liberta chamadas do frontend vite ou create react app em portas locais
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # vite usa 5173
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# pasta onde ficam artefactos gerados servidos tambem em url files
+# pasta generated guarda artefactos grandes servidos tambem em url files
 output_dir = project_root / "generated"
 output_dir.mkdir(exist_ok=True)
 
+# static files mapeia url files para disco sem autenticacao neste prototipo
 app.mount("/files", StaticFiles(directory=str(output_dir)), name="files")
 
-# rotas genericas compilacao modelo jobs ficheiros
+# router principal cobre bed compile modelo jobs e listagens
 app.include_router(routes.router, prefix="/api")
 
-# crud sql beds simulations results dashboard
+# router sql expoe crud beds simulations results e resumos
 from backend.app.api import routes_database
 app.include_router(routes_database.router, prefix="/api")
 
-# pipeline assincrono completo
+# router integrado orquestra pipeline longo
 from backend.app.api import routes_integrated
 app.include_router(routes_integrated.router, prefix="/api")
 
-# wizard web cfd casos templates
+# routers auxiliares wizard cfd casos templates relatorios perfil settings admin
 from backend.app.api import routes_wizard, routes_cfd, routes_casos, routes_templates
 app.include_router(routes_wizard.router, prefix="/api")
 app.include_router(routes_cfd.router, prefix="/api")
@@ -72,15 +74,15 @@ app.include_router(routes_admin.router, prefix="/api")
 
 @app.on_event("startup")
 async def on_startup():
-    # ao arrancar cria tabelas se faltarem
+    # garante ddl aplicada antes de aceitar trafego
     DatabaseConnection.create_tables()
-    # opcionalmente insere linhas demo conforme env
+    # dados demo so se env e base permitirem
     seed_demo_data_if_needed()
 
 
 @app.get("/")
 async def root():
-    # resposta minima para saber que o servico esta de pe
+    # health humano com links uteis
     return {
         "message": "cfd pipeline api",
         "version": "0.1.0",
@@ -91,7 +93,7 @@ async def root():
 
 @app.get("/health")
 async def health():
-    # testa ligacao ao motor sql para o painel de estado
+    # health de infraestrutura inclui ping ao sql
     db_status = DatabaseConnection.check_connection()
 
     return {
@@ -106,11 +108,11 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
-    # modo reload util em desenvolvimento local
+    # bloco main permite python backend app main py em dev
     uvicorn.run(
         "backend.app.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,  # hot reload em desenvolvimento
+        reload=True,
         log_level="info"
     )

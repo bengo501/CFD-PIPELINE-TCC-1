@@ -1,4 +1,5 @@
 # relatorios com anexos fracos a simulacao template ou result
+# anexos guardam ref id string para nao forcar fk rigida a todas entidades
 from datetime import datetime, timezone
 from typing import List
 

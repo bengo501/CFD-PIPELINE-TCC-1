@@ -1,4 +1,4 @@
-// entrada react monta a arvore com tema idioma e modo ui
+// ponto de entrada do bundle vite que monta react na div root do index html
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -7,11 +7,15 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AppUiProvider } from './context/AppUiContext'
 import './styles/App.css'
 
-// strict mode ajuda a detetar efeitos secundarios duplos em dev
+// create root liga o react a um elemento dom existente
+// strict mode executa certas verificacoes duplicadas em desenvolvimento para achar bugs
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    {/* theme define data theme no html para css */}
     <ThemeProvider>
+      {/* language guarda codigo pt ou en e funcao de traducao t */}
       <LanguageProvider>
+        {/* app ui sincroniza modo simples modo dev e timeout axios com settings */}
         <AppUiProvider>
           <App />
         </AppUiProvider>

@@ -1,18 +1,19 @@
-// tema claro escuro ou segue preferencia do sistema operativo
+// tema visual claro escuro ou seguir o sistema operativo via media query
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
+// le preferencia dark do browser devolve string dark ou light
 function getSystemTheme() {
-  // media query padrao do css para dark mode
+  // match media e api padrao para prefers color scheme
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     return 'dark';
   }
   return 'light';
 }
 
+// le local storage com migracao de chave antiga theme para theme mode
 function readInitialThemeMode() {
-  // compativel com chave antiga theme
   const m = localStorage.getItem('themeMode');
   if (m === 'light' || m === 'dark' || m === 'system') return m;
   const legacy = localStorage.getItem('theme');
@@ -20,17 +21,20 @@ function readInitialThemeMode() {
   return 'system';
 }
 
+// converte modo escolhido pelo utilizador no tema efetivo aplicado ao css
 function resolveEffective(mode) {
-  // system calcula light ou dark em tempo real
   if (mode === 'light') return 'light';
   if (mode === 'dark') return 'dark';
   return getSystemTheme();
 }
 
 export function ThemeProvider({ children }) {
+  // modo pode ser system light dark
   const [themeMode, setThemeModeState] = useState(readInitialThemeMode);
+  // tema efetivo light dark ja resolvido
   const [theme, setTheme] = useState(() => resolveEffective(readInitialThemeMode()));
 
+  // quando modo e system escuta mudancas do sistema para atualizar tema
   useEffect(() => {
     const eff = resolveEffective(themeMode);
     setTheme(eff);
@@ -41,6 +45,7 @@ export function ThemeProvider({ children }) {
     return () => mq.removeEventListener('change', onChange);
   }, [themeMode]);
 
+  // persiste escolha e aplica atributo data theme usado pelas folhas de estilo
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
@@ -57,6 +62,7 @@ export function ThemeProvider({ children }) {
     setThemeModeState((prev) => {
       if (prev === 'light') return 'dark';
       if (prev === 'dark') return 'light';
+      // se estava em system passa para o oposto do sistema atual
       return getSystemTheme() === 'dark' ? 'light' : 'dark';
     });
   }, []);

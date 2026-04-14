@@ -1,4 +1,7 @@
-# le results json no disco e atualiza linhas simulation e result na base
+# servico de ingestao pos processamento
+# localiza results json dentro da pasta do caso openfoam
+# promove campos agregados para a linha simulation
+# explode dicionarios metrics e fields em linhas result
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -12,7 +15,7 @@ from backend.app.database import crud, models, schemas
 
 class ResultsService:
     def __init__(self) -> None:
-        # backend/app/services/results_service.py -> backend/
+        # sobe tres niveis ate backend que contem generated ou caminhos relativos gravados no sql
         self.project_root = Path(__file__).parent.parent.parent
 
     def ingest_simulation_results(
@@ -31,14 +34,12 @@ class ResultsService:
             return None
 
         if not sim.case_directory:
-            # sem diretório de caso, nada a fazer
             return sim
 
         case_dir = (self.project_root / sim.case_directory).resolve()
         results_path = case_dir / "results.json"
 
         if not results_path.exists():
-            # ainda não há resultados
             return sim
 
         import json
@@ -46,7 +47,7 @@ class ResultsService:
         with results_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
 
-        # montar update da Simulation com campos conhecidos
+        # simulation update recebe apenas chaves suportadas pelo schema pydantic
         sim_update = schemas.SimulationUpdate(
             status="completed",
             progress=100,
@@ -64,10 +65,8 @@ class ResultsService:
             ),
         )
 
-        # atualizar simulation
         sim = crud.SimulationCRUD.update(db, simulation_id, sim_update) or sim
 
-        # criar resultados detalhados (se existirem)
         metrics_block = data.get("metrics", {})
         results_to_create: list[schemas.ResultCreate] = []
 
@@ -88,7 +87,6 @@ class ResultsService:
                 )
             )
 
-        # bloco opcional de fields (arquivos de campo, visualizações etc.)
         fields_block = data.get("fields", {})
         for name, field in fields_block.items():
             if not isinstance(field, dict):
