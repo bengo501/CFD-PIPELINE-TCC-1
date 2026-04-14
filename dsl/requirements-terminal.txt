@@ -1,0 +1,2 @@
+# interface do wizard no terminal (opcional mas recomendado)
+rich>=13.7.0

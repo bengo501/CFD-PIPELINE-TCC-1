@@ -752,6 +752,28 @@ function App() {
                 </a>
               </li>
               <li>
+                <button type="button" className="footer-about-btn" onClick={() => setShowCredits(true)}>
+                  <ThemeIcon light="profileLight.png" dark="profileLight.png" alt="" className="link-icon" location="footer" />
+                  {language === 'pt' ? 'sobre' : 'about'}
+                </button>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/bengo501/CFD-PIPELINE-TCC-1/blob/main/README.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ThemeIcon light="docsLight.png" dark="docsLight.png" alt="" className="link-icon" location="footer" />
+                  {language === 'pt' ? 'mais informações' : 'more information'}
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/bengo501?tab=repositories" target="_blank" rel="noopener noreferrer">
+                  <ThemeIcon light="folderLight.png" dark="folderLight.png" alt="" className="link-icon" location="footer" />
+                  {language === 'pt' ? 'mais projetos' : 'more projects'}
+                </a>
+              </li>
+              <li>
                 <button className="footer-help-btn" onClick={() => setShowHelp(true)}>
                   <ThemeIcon light="helpLight.png" dark="helpLight.png" alt="ajuda" className="link-icon" location="footer" />
                   {language === 'pt' ? 'ajuda' : 'help'}

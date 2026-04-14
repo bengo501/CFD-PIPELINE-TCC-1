@@ -7,11 +7,18 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
 
 router = APIRouter()
+
+
+def _repo_root() -> Path:
+    """raiz do repositorio (pai de backend/)."""
+    return Path(__file__).resolve().parents[3]
 
 # modelos pydantic para validação
 class BedParams(BaseModel):
@@ -469,4 +476,90 @@ async def process_bed_file(request: Dict[str, Any]):
         raise HTTPException(status_code=408, detail="timeout na compilação")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro: {str(e)}")
+
+
+@router.get("/wizard/cli-instructions")
+async def wizard_cli_instructions():
+    """
+    comandos para correr o bed wizard no terminal (fora do browser).
+    """
+    root = _repo_root()
+    script = root / "bed_wizard.py"
+    py = shutil.which("python") or shutil.which("python3") or sys.executable
+    win = f'cd /d "{root}" && "{py}" bed_wizard.py'
+    unix = f'cd "{root}" && "{py}" bed_wizard.py'
+    return {
+        "project_root": str(root),
+        "script": str(script),
+        "script_exists": script.is_file(),
+        "python": py,
+        "windows_cmd": win,
+        "unix_sh": unix,
+        "hint": "recomendado: pip install -r dsl/requirements-terminal.txt (rich)",
+    }
+
+
+@router.post("/wizard/launch-cli-terminal")
+async def wizard_launch_cli_terminal():
+    """
+    tenta abrir uma nova janela de terminal com o wizard cli.
+    windows: cmd /k; linux: gnome-terminal ou xterm se existir.
+    """
+    root = _repo_root()
+    script = root / "bed_wizard.py"
+    if not script.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail=f"bed_wizard.py nao encontrado em {script}",
+        )
+    py = shutil.which("python") or shutil.which("python3") or sys.executable
+    inner = f'cd /d "{root}" && "{py}" "{script}"' if os.name == "nt" else f'cd "{root}" && "{py}" "{script}"'
+
+    try:
+        if os.name == "nt":
+            subprocess.Popen(
+                [
+                    "cmd.exe",
+                    "/c",
+                    "start",
+                    "bed wizard cli",
+                    "cmd.exe",
+                    "/k",
+                    inner,
+                ],
+                cwd=str(root),
+                shell=False,
+            )
+        else:
+            launched = False
+            for cmd in (
+                [
+                    "gnome-terminal",
+                    "--",
+                    "bash",
+                    "-lc",
+                    f'{inner}; exec bash',
+                ],
+                [
+                    "xterm",
+                    "-e",
+                    f'bash -lc "{inner}; read"',
+                ],
+            ):
+                try:
+                    subprocess.Popen(cmd, cwd=str(root))
+                    launched = True
+                    break
+                except FileNotFoundError:
+                    continue
+            if not launched:
+                raise HTTPException(
+                    status_code=503,
+                    detail="terminal grafico nao encontrado (gnome-terminal ou xterm)",
+                )
+        return {"ok": True, "message": "terminal solicitado; se nada abrir, copie o comando de /api/wizard/cli-instructions"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 

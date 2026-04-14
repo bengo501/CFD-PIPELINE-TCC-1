@@ -13,15 +13,30 @@ import sys  # para acessar argumentos e sair do programa
 import subprocess  # para executar comandos externos (editores, compilador)
 import tempfile  # para criar arquivos temporarios
 from pathlib import Path  # para trabalhar com caminhos de arquivos
-from typing import Dict, Any, List, Optional  # para tipagem de variaveis
+from typing import Dict, Any, List, Optional, Tuple  # para tipagem de variaveis
+
+from wizard_terminal_ui import make_terminal_ui, rich_available
 
 class BedWizard:
     """classe principal do wizard para criacao de arquivos .bed"""
+
+    # linhas do menu inicial (atalho, titulo, descricao curta)
+    MENU_ROWS: List[Tuple[str, str, str]] = [
+        ("1", "questionario interativo", "perguntas passo a passo; gera .bed"),
+        ("2", "editor de template", "edita um modelo .bed em editor externo"),
+        ("3", "modo blender", "apenas modelo 3d (sem cfd)"),
+        ("4", "blender interativo", "gera e abre o blender automaticamente"),
+        ("5", "pipeline completo", "modelo 3d + caso openfoam + simulacao no wsl"),
+        ("6", "ajuda", "resumo dos parametros por secao"),
+        ("7", "documentacao", "guia html no navegador"),
+        ("8", "sair", "encerrar o wizard"),
+    ]
     
     def __init__(self):
         """inicializar wizard com parametros vazios"""
         self.params = {}  # dicionario para armazenar parametros do leito
         self.output_file = None  # nome do arquivo de saida
+        self.ui = make_terminal_ui()
         
         # dicionario com informacoes de ajuda para cada parametro
         self.param_help = {
@@ -248,31 +263,27 @@ class BedWizard:
         
     def clear_screen(self):
         """limpar tela do terminal para melhor visualizacao"""
-        # usar comando apropriado para windows (cls) ou unix (clear)
-        os.system('cls' if os.name == 'nt' else 'clear')
+        self.ui.clear()
     
-    def print_header(self, title: str):
+    def print_header(self, title: str, subtitle: str = ""):
         """imprimir cabecalho formatado com titulo"""
-        print("=" * 60)
-        print(f"  {title}")
-        print("=" * 60)
-        print()
+        self.ui.header(title, subtitle)
     
     def print_section(self, title: str):
         """imprimir titulo de secao formatado"""
-        print(f"\n--- {title} ---")
+        self.ui.section(title)
     
     def show_param_help(self, param_key: str):
         """mostrar ajuda detalhada sobre um parametro"""
         if param_key in self.param_help:
             info = self.param_help[param_key]
-            print(f"\n  [ajuda] {info['desc']}")
+            lines = [f"descricao: {info['desc']}"]
             if 'min' in info and 'max' in info:
                 unit = info.get('unit', '')
-                print(f"  [range] minimo: {info['min']}{unit}, maximo: {info['max']}{unit}")
+                lines.append(f"range: minimo {info['min']}{unit} — maximo {info['max']}{unit}")
             if 'exemplo' in info:
-                print(f"  [exemplo] {info['exemplo']}")
-            print()
+                lines.append(f"exemplo: {info['exemplo']}")
+            self.ui.param_help(lines)
     
     def get_input(self, prompt: str, default: str = "", required: bool = True) -> str:
         """obter entrada de texto do usuario com validacao"""
@@ -284,7 +295,7 @@ class BedWizard:
                 full_prompt = f"{prompt}: "
             
             # obter entrada do usuario (nao remover espacos ainda)
-            value = input(full_prompt)
+            value = self.ui.ask_line(full_prompt)
             
             # se for apenas espacos ou vazio e houver padrao, usar padrao
             if not value.strip() and default:
@@ -301,7 +312,7 @@ class BedWizard:
             elif not required:
                 return ""  # retornar vazio se nao obrigatorio
             else:
-                print("  aviso: campo obrigatorio!")  # avisar se obrigatorio
+                self.ui.warn("campo obrigatorio!")
     
     def get_number_input(self, prompt: str, default: str = "", unit: str = "", required: bool = True, param_key: str = "") -> str:
         """obter entrada numerica com unidade e validacao"""
@@ -325,14 +336,14 @@ class BedWizard:
                 full_prompt = f"{prompt} ({unit}) (? para ajuda): "
             
             # obter entrada do usuario (nao remover espacos ainda)
-            value = input(full_prompt)
+            value = self.ui.ask_line(full_prompt)
             
             # verificar se usuario quer ajuda
             if value.strip() == '?':
                 if param_key:
                     self.show_param_help(param_key)
                 else:
-                    print("  [info] ajuda nao disponivel para este parametro")
+                    self.ui.hint("ajuda nao disponivel para este parametro")
                 continue
             
             # se for apenas espacos ou vazio e houver padrao, usar padrao
@@ -350,91 +361,41 @@ class BedWizard:
                     
                     # validar limites se especificados
                     if min_val is not None and num_value < min_val:
-                        print(f"  aviso: valor muito baixo! minimo: {min_val}{unit}")
+                        self.ui.warn(f"valor muito baixo! minimo: {min_val}{unit}")
                         continue
                     if max_val is not None and num_value > max_val:
-                        print(f"  aviso: valor muito alto! maximo: {max_val}{unit}")
+                        self.ui.warn(f"valor muito alto! maximo: {max_val}{unit}")
                         continue
                     
                     return value  # retornar valor se valido
                 except ValueError:
-                    print("  aviso: digite um numero valido!")  # avisar se nao for numero
+                    self.ui.warn("digite um numero valido!")
                     continue
             elif default and not required:
                 return default  # retornar padrao se nao obrigatorio
             elif not required:
                 return ""  # retornar vazio se nao obrigatorio
             else:
-                print("  aviso: campo obrigatorio!")  # avisar se obrigatorio
+                self.ui.warn("campo obrigatorio!")
     
     def get_choice(self, prompt: str, options: List[str], default: int = 0) -> str:
         """obter escolha do usuario de uma lista de opcoes"""
-        print(f"\n{prompt}")
-        # mostrar todas as opcoes numeradas
-        for i, option in enumerate(options):
-            print(f"  {i + 1}. {option}")
-        
-        while True: #loop infinito para obter escolha do usuario
-            try:
-                # obter escolha do usuario (nao remover espacos ainda)
-                choice = input(f"\nescolha (1-{len(options)}) [{default + 1}]: ")
-                
-                # se for apenas espacos ou vazio, usar padrao
-                if not choice.strip():
-                    return options[default]
-                
-                # remover espacos para validacao
-                choice = choice.strip()
-                
-                # converter para indice (comeca em 0)
-                choice_idx = int(choice) - 1
-                # validar se indice esta dentro do range
-                if 0 <= choice_idx < len(options):
-                    return options[choice_idx]
-                else:
-                    print(f"  aviso: escolha entre 1 e {len(options)}!")  # avisar se fora do range
-            except ValueError:
-                print("  aviso: digite um numero valido!")  # avisar se nao for numero
+        return self.ui.pick_from_list(prompt, options, default)
     
     def get_boolean(self, prompt: str, default: bool = True) -> bool:
         """obter entrada booleana (sim/nao) do usuario"""
-        default_str = "sim" if default else "nao"
-        while True:
-            # obter entrada (nao remover espacos ainda)
-            value = input(f"{prompt} (s/n) [{default_str}]: ")
-            
-            # se for apenas espacos ou vazio, usar padrao
-            if not value.strip():
-                return default
-            
-            # remover espacos e converter para minusculo
-            value = value.strip().lower()
-            
-            # validar entrada
-            if value in ['s', 'sim', 'y', 'yes']:
-                return True  # retornar true para sim
-            elif value in ['n', 'nao', 'no']:
-                return False  # retornar false para nao
-            else:
-                print("  aviso: digite 's' para sim ou 'n' para nao!")  # avisar se entrada invalida
+        return self.ui.confirm(prompt, default)
     
     def get_list_input(self, prompt: str, separator: str = ",") -> List[str]:
         """obter entrada de lista separada por delimitador"""
-        value = input(f"{prompt} (separado por '{separator}'): ").strip()
+        value = self.ui.ask_line(f"{prompt} (separado por '{separator}'): ").strip()
         if value:
             # dividir string pelo separador e remover espacos de cada item
             return [item.strip() for item in value.split(separator)]
         return []  # retornar lista vazia se nao digitou nada
     
-    def interactive_mode(self):
-        """modo questionario interativo - usuario responde perguntas passo a passo"""
-        self.clear_screen()
-        self.print_header("wizard interativo - parametrizacao de leito")
-        
-        print("vamos criar seu leito empacotado passo a passo...")
-        print("pressione enter ou espaco para usar valores padrao quando disponivel.")
-        print()
-        
+    def _fill_params_from_questionnaire(self) -> None:
+        """preenche self.params com todas as secoes do questionario (sem nome de arquivo nem salvar)."""
         # secao bed - parametros geometricos do leito
         self.print_section("geometria do leito")
         self.params['bed'] = {
@@ -516,17 +477,27 @@ class BedWizard:
                 'convergence_criteria': self.get_number_input("criterio de convergencia", "1e-6", "", False),
                 'write_fields': self.get_boolean("escrever campos", False)
             }
-        
-        # obter nome do arquivo de saida
+    
+    def interactive_questionnaire(self) -> None:
+        """apenas coleta parametros (usado pelo pipeline completo, sem salvar .bed aqui)."""
+        self._fill_params_from_questionnaire()
+    
+    def interactive_mode(self):
+        """modo questionario interativo - usuario responde perguntas passo a passo"""
+        self.clear_screen()
+        self.print_header("questionario interativo", "parametrizacao do leito passo a passo")
+        self.ui.breadcrumbs("wizard", "questionario")
+        self.ui.muted("vamos criar o leito empacotado. use enter para aceitar o valor padrao quando aparecer entre colchetes.")
+        self.ui.println()
+        self._fill_params_from_questionnaire()
         self.output_file = self.get_input("nome do arquivo de saida", "meu_leito.bed")
-        
-        # confirmar parametros e salvar arquivo
         self.confirm_and_save()
     
     def template_mode(self):
         """modo edicao de template - usuario edita um arquivo template padrao"""
         self.clear_screen()
-        self.print_header("editor de template - parametrizacao de leito")
+        self.print_header("editor de template", "edicao de modelo .bed")
+        self.ui.breadcrumbs("wizard", "template")
         
         # criar template padrao com valores exemplo
         template = self.create_default_template()
@@ -539,12 +510,10 @@ class BedWizard:
             temp_file.write(template)  # escrever template no arquivo temporario
             temp_file_path = temp_file.name  # obter caminho do arquivo temporario
         
-        print(f"\ntemplate criado em: {temp_file_path}")
-        print("\neditores disponiveis:")
-        print("1. notepad (windows)")
-        print("2. nano (linux/mac)")
-        print("3. vim (linux/mac)")
-        print("4. continuar sem editar")
+        self.ui.println()
+        self.ui.muted(f"template temporario: {temp_file_path}")
+        self.ui.println("editores sugeridos:")
+        self.ui.muted("notepad (windows) | nano / vim (linux ou mac) | ou continuar sem editar")
         
         # obter escolha do editor
         editor_choice = self.get_choice("escolha um editor", 
@@ -559,11 +528,9 @@ class BedWizard:
                 else:
                     subprocess.run([editor_choice, temp_file_path], check=True)
             except subprocess.CalledProcessError:
-                print(f"  aviso: erro ao abrir editor {editor_choice}")
-                print("  continuando sem edicao...")
+                self.ui.warn(f"erro ao abrir editor {editor_choice}; continuando sem edicao")
             except FileNotFoundError:
-                print(f"  aviso: editor {editor_choice} nao encontrado")
-                print("  continuando sem edicao...")
+                self.ui.warn(f"editor {editor_choice} nao encontrado; continuando sem edicao")
         
         # ler conteudo editado do arquivo temporario
         with open(temp_file_path, 'r', encoding='utf-8') as f:
@@ -576,7 +543,7 @@ class BedWizard:
         with open(self.output_file, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        print(f"\nsucesso: arquivo salvo: {self.output_file}")
+        self.ui.ok(f"arquivo salvo: {self.output_file}")
         
         # verificar sintaxe e compilar arquivo
         self.verify_and_compile()
@@ -656,29 +623,24 @@ cfd {
     def confirm_and_save(self):
         """confirmar parametros configurados e salvar arquivo"""
         self.clear_screen()
-        self.print_header("confirmacao dos parametros")
-        
-        print("parametros configurados:")
-        print()
-        
-        # mostrar resumo dos parametros principais
-        print(f"leito: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
-        print(f"particulas: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
-        print(f"empacotamento: {self.params['packing']['method']}")
-        print(f"exportacao: {', '.join(self.params['export']['formats'])}")
-        
-        # mostrar parametros cfd se configurados
+        self.print_header("confirmacao", "revise antes de salvar o .bed")
+        self.ui.breadcrumbs("wizard", "questionario", "confirmacao")
+        self.ui.println("parametros configurados:")
+        self.ui.println()
+        self.ui.println(f"  leito: {self.params['bed']['diameter']} m x {self.params['bed']['height']} m")
+        self.ui.println(f"  particulas: {self.params['particles']['count']} {self.params['particles']['kind']} ({self.params['particles']['diameter']} m)")
+        self.ui.println(f"  empacotamento: {self.params['packing']['method']}")
+        self.ui.println(f"  exportacao: {', '.join(self.params['export']['formats'])}")
         if 'cfd' in self.params:
-            print(f"cfd: {self.params['cfd']['regime']}")
-        
-        print()
+            self.ui.println(f"  cfd: {self.params['cfd']['regime']}")
+        self.ui.println()
         
         # confirmar se usuario quer salvar
         if self.get_boolean("salvar arquivo .bed?", True):
             self.save_bed_file()
             self.verify_and_compile()
         else:
-            print("operacao cancelada.")
+            self.ui.muted("operacao cancelada.")
     
     def save_bed_file(self):
         """salvar arquivo .bed com conteudo gerado"""
@@ -688,7 +650,7 @@ cfd {
         with open(self.output_file, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        print(f"sucesso: arquivo salvo: {self.output_file}")
+        self.ui.ok(f"arquivo salvo: {self.output_file}")
     
     def generate_bed_content(self) -> str:
         """gerar conteudo do arquivo .bed a partir dos parametros configurados"""
@@ -853,13 +815,11 @@ cfd {
     def blender_mode(self):
         """modo blender - apenas geracao de modelo 3d sem parametros cfd"""
         self.clear_screen()
-        self.print_header("modo blender - geracao de modelo 3d")
-        
-        print("este modo gera apenas o modelo 3d no blender")
-        print("parametros cfd nao serao configurados")
-        print("pressione enter ou espaco para usar valores padrao quando disponivel.")
-        print("digite '?' para ver ajuda sobre cada parametro")
-        print()
+        self.print_header("modo blender", "somente modelo 3d (sem cfd)")
+        self.ui.breadcrumbs("wizard", "blender")
+        self.ui.muted("gera modelo no blender; parametros cfd nao sao pedidos.")
+        self.ui.muted("enter aceita padrao; '?' mostra ajuda no campo numerico.")
+        self.ui.println()
         
         # secao bed - parametros geometricos do leito
         self.print_section("geometria do leito")
@@ -928,7 +888,7 @@ cfd {
         }
         
         # nao incluir secao cfd
-        print("\nparametros cfd: nao configurados (modo blender)")
+        self.ui.hint("secao cfd omitida neste modo")
         
         # obter nome do arquivo de saida
         self.output_file = self.get_input("nome do arquivo de saida", "leito_blender.bed")
@@ -939,13 +899,11 @@ cfd {
     def blender_interactive_mode(self):
         """modo blender interativo - gera modelo e abre blender automaticamente"""
         self.clear_screen()
-        self.print_header("modo blender interativo - visualizacao automatica")
-        
-        print("este modo gera o modelo 3d e abre automaticamente no blender")
-        print("voce podera visualizar e editar o modelo imediatamente")
-        print("pressione enter ou espaco para usar valores padrao quando disponivel.")
-        print("digite '?' para ver ajuda sobre cada parametro")
-        print()
+        self.print_header("blender interativo", "gera e abre o blender automaticamente")
+        self.ui.breadcrumbs("wizard", "blender-interativo")
+        self.ui.muted("apos gerar, o blender abre para visualizar ou editar.")
+        self.ui.muted("enter aceita padrao; '?' ajuda nos campos numericos.")
+        self.ui.println()
         
         # usar mesma coleta de parametros do modo blender normal
         # secao bed - parametros geometricos do leito
@@ -1015,7 +973,7 @@ cfd {
         }
         
         # nao incluir secao cfd
-        print("\nparametros cfd: nao configurados (modo blender)")
+        self.ui.hint("secao cfd omitida neste modo")
         
         # obter nome do arquivo de saida
         self.output_file = self.get_input("nome do arquivo de saida", "leito_interativo.bed")
@@ -1026,84 +984,60 @@ cfd {
     def confirm_and_generate_blender(self):
         """confirmar parametros e executar geracao no blender"""
         self.clear_screen()
-        self.print_header("confirmacao e geracao 3d")
+        self.print_header("confirmacao", "geracao 3d no blender")
+        self.ui.breadcrumbs("wizard", "blender", "confirmar")
+        self.ui.println("resumo:")
+        self.ui.muted(f"  leito: {self.params['bed']['diameter']} m x {self.params['bed']['height']} m")
+        self.ui.muted(f"  particulas: {self.params['particles']['count']} {self.params['particles']['kind']}")
+        self.ui.muted(f"  empacotamento: {self.params['packing']['method']} | export: blend, stl")
+        self.ui.println()
         
-        print("parametros configurados:")
-        print()
-        
-        # mostrar resumo dos parametros principais
-        print(f"leito: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
-        print(f"particulas: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
-        print(f"empacotamento: {self.params['packing']['method']}")
-        print(f"exportacao: blend, stl")
-        print()
-        
-        # confirmar se usuario quer continuar
         if not self.get_boolean("continuar com geracao no blender?", True):
-            print("operacao cancelada.")
+            self.ui.muted("operacao cancelada.")
             return
         
-        # salvar arquivo .bed
         self.save_bed_file()
         
-        # compilar arquivo
-        print("\ncompilando arquivo...")
+        self.ui.section("compilando .bed")
         if not self.verify_and_compile():
-            print("erro: nao foi possivel compilar o arquivo")
+            self.ui.err("nao foi possivel compilar o arquivo")
             return
         
-        # executar blender
-        print("\nexecutando blender...")
+        self.ui.section("executando blender")
         self.execute_blender()
     
     def confirm_and_generate_blender_interactive(self):
         """confirmar parametros, gerar modelo e abrir blender automaticamente"""
         self.clear_screen()
-        self.print_header("confirmacao e geracao 3d interativa")
+        self.print_header("confirmacao", "geracao 3d + abrir blender")
+        self.ui.breadcrumbs("wizard", "blender-interativo", "confirmar")
+        self.ui.println("resumo:")
+        self.ui.muted(f"  leito: {self.params['bed']['diameter']} m x {self.params['bed']['height']} m")
+        self.ui.muted(f"  particulas: {self.params['particles']['count']} {self.params['particles']['kind']}")
+        self.ui.muted(f"  empacotamento: {self.params['packing']['method']} | export: blend, stl")
+        self.ui.println()
+        self.ui.hint("apos gerar, o blender abre automaticamente")
+        self.ui.println()
         
-        print("parametros configurados:")
-        print()
-        
-        # mostrar resumo dos parametros principais
-        print(f"leito: {self.params['bed']['diameter']}m x {self.params['bed']['height']}m")
-        print(f"particulas: {self.params['particles']['count']} {self.params['particles']['kind']} de {self.params['particles']['diameter']}m")
-        print(f"empacotamento: {self.params['packing']['method']}")
-        print(f"exportacao: blend, stl")
-        print()
-        print("** apos a geracao, o blender sera aberto automaticamente **")
-        print()
-        
-        # confirmar se usuario quer continuar
         if not self.get_boolean("continuar com geracao e abertura no blender?", True):
-            print("operacao cancelada.")
+            self.ui.muted("operacao cancelada.")
             return
         
-        # salvar arquivo .bed
         self.save_bed_file()
         
-        # compilar arquivo
-        print("\ncompilando arquivo...")
+        self.ui.section("compilando .bed")
         if not self.verify_and_compile():
-            print("erro: nao foi possivel compilar o arquivo")
+            self.ui.err("nao foi possivel compilar o arquivo")
             return
         
-        # executar blender com abertura automatica
-        print("\nexecutando blender...")
+        self.ui.section("executando blender")
         success, blend_file = self.execute_blender(open_after=True)
         
         if success:
-            print("\n" + "="*60)
-            print("processo concluido com sucesso!")
-            print("="*60)
-            print(f"\nmodelo gerado: {blend_file}")
-            print("blender aberto e rodando em segundo plano")
-            print("\ndicas:")
-            print("- use o scroll do mouse para zoom")
-            print("- segure botao do meio e arraste para rotacionar")
-            print("- pressione numpad 7 para vista superior")
-            print("- pressione z para mudar modo de visualizacao")
-            print("="*60)
-            input("\npressione enter para voltar ao menu...")
+            self.ui.section("concluido")
+            self.ui.ok(f"modelo: {blend_file}")
+            self.ui.muted("blender em segundo plano — zoom: scroll; orbita: botao do meio; topo: numpad 7; shading: z")
+            self.ui.pause("enter para voltar ao menu...")
     
     def execute_blender(self, open_after=False):
         """executar script do blender para gerar modelo 3d"""
@@ -1239,7 +1173,8 @@ cfd {
     def show_help_menu(self):
         """mostrar menu de ajuda com informacoes sobre parametros"""
         self.clear_screen()
-        self.print_header("menu de ajuda - parametros do leito")
+        self.print_header("ajuda", "parametros do arquivo .bed")
+        self.ui.breadcrumbs("wizard", "ajuda")
         
         sections = {
             '1': ('bed', 'geometria do leito'),
@@ -1250,106 +1185,89 @@ cfd {
             '6': ('cfd', 'simulacao cfd')
         }
         
-        print("escolha uma secao para ver detalhes dos parametros:")
-        for key, (section, desc) in sections.items():
-            print(f"{key}. {desc}")
-        print("0. voltar ao menu principal")
-        print()
-        
-        choice = input("escolha (0-6): ").strip()
+        entries = [(k, v[1]) for k, v in sections.items()]
+        self.ui.render_help_section_menu(entries, back_key="0")
+        choice = self.ui.ask_line("opcao (0-6): ").strip()
         
         if choice == '0':
             return
         elif choice in sections:
             section_key, section_desc = sections[choice]
             self.clear_screen()
-            self.print_header(f"ajuda - {section_desc}")
+            self.print_header(f"ajuda: {section_desc}", "detalhes dos campos")
+            self.ui.breadcrumbs("wizard", "ajuda", section_key)
             
-            # mostrar todos os parametros da secao
-            for param_key, param_info in self.param_help.items():
+            for param_key, param_info in sorted(self.param_help.items()):
                 if param_key.startswith(f"{section_key}."):
                     param_name = param_key.split('.')[1]
-                    print(f"\n[{param_name}]")
-                    print(f"  descricao: {param_info['desc']}")
+                    lines = [
+                        f"parametro: {param_name}",
+                        f"descricao: {param_info['desc']}",
+                    ]
                     if 'min' in param_info and 'max' in param_info:
                         unit = param_info.get('unit', '')
-                        print(f"  range: {param_info['min']}{unit} a {param_info['max']}{unit}")
+                        lines.append(f"range: {param_info['min']}{unit} .. {param_info['max']}{unit}")
                     if 'exemplo' in param_info:
-                        print(f"  exemplo: {param_info['exemplo']}")
+                        lines.append(f"exemplo: {param_info['exemplo']}")
+                    self.ui.param_help(lines)
             
-            input("\npressione enter para continuar...")
+            self.ui.pause()
             self.show_help_menu()
         else:
-            print("  aviso: opcao invalida!")
-            input("pressione enter para continuar...")
+            self.ui.warn("opcao invalida")
+            self.ui.pause()
             self.show_help_menu()
     
     def pipeline_completo_mode(self):
         """modo pipeline completo - gera modelo 3d, cria caso cfd e executa simulacao"""
         self.clear_screen()
-        self.print_header("pipeline completo - modelagem 3d + simulacao cfd")
+        self.print_header("pipeline completo", "modelagem 3d + caso openfoam + simulacao")
+        self.ui.breadcrumbs("wizard", "pipeline")
+        self.ui.println("etapas:")
+        self.ui.muted("1) .bed + json  2) blender  3) stl  4) caso openfoam  5) simulacao no wsl")
+        self.ui.println()
+        self.ui.warn("tempo estimado 10-30 min | blender | wsl2 + openfoam | ~2 gb disco")
+        self.ui.println()
         
-        print("este modo executa o pipeline completo:")
-        print("1. gera arquivo .bed e compila para .json")
-        print("2. cria modelo 3d no blender com fisica")
-        print("3. exporta geometria para stl")
-        print("4. cria caso openfoam completo")
-        print("5. executa simulacao cfd no wsl/ubuntu")
-        print()
-        print("⚠️  importante:")
-        print("- tempo estimado: 10-30 minutos")
-        print("- requer blender instalado")
-        print("- requer wsl2 com openfoam instalado")
-        print("- requer ~2gb de espaco em disco")
-        print()
-        
-        continuar = input("deseja continuar? (s/n): ").strip().lower()
-        if continuar != 's':
-            print("operacao cancelada")
+        if not self.ui.confirm("deseja continuar?", default=False):
+            self.ui.muted("operacao cancelada")
             return
         
         # usar questionario interativo para coletar parametros
-        print("\n" + "="*60)
-        print("etapa 1/5: parametrizacao do leito")
-        print("="*60)
+        self.ui.section("etapa 1/5 — parametrizacao do leito")
         self.interactive_questionnaire()
         
         if not self.params:
-            print("erro: parametros nao definidos")
+            self.ui.err("parametros nao definidos")
             return
         
         # gerar arquivo .bed
-        print("\n" + "="*60)
-        print("etapa 2/5: geracao e compilacao do arquivo .bed")
-        print("="*60)
+        self.ui.section("etapa 2/5 — geracao e compilacao do .bed")
         
-        output_name = input("\nnome do arquivo .bed (sem extensao): ").strip()
+        output_name = self.ui.ask_line("nome do arquivo .bed (sem extensao) [leito_pipeline]: ").strip()
         if not output_name:
             output_name = "leito_pipeline"
         
         self.output_file = f"{output_name}.bed"
         
         if not self.generate_bed_file():
-            print("erro: falha ao gerar arquivo .bed")
+            self.ui.err("falha ao gerar arquivo .bed")
             return
         
         # compilar arquivo .bed
         success, json_path = self.compile_bed_file()
         if not success:
-            print("erro: falha na compilacao do arquivo .bed")
+            self.ui.err("falha na compilacao do arquivo .bed")
             return
         
-        print(f"\n✓ arquivo compilado: {json_path}")
+        self.ui.ok(f"arquivo compilado: {json_path}")
         
         # gerar modelo 3d no blender
-        print("\n" + "="*60)
-        print("etapa 3/5: geracao de modelo 3d no blender")
-        print("="*60)
+        self.ui.section("etapa 3/5 — modelo 3d no blender")
         
         blender_exe = self.find_blender_executable()
         if not blender_exe:
-            print("erro: blender nao encontrado no sistema")
-            print("instale o blender e tente novamente")
+            self.ui.err("blender nao encontrado; instale e tente novamente")
             return
         
         # determinar formatos de exportacao
@@ -1362,49 +1280,40 @@ cfd {
         )
         
         if not success:
-            print("erro: falha na geracao do modelo 3d")
+            self.ui.err("falha na geracao do modelo 3d")
             return
         
-        print(f"\n✓ modelo 3d gerado: {blend_file}")
+        self.ui.ok(f"modelo 3d: {blend_file}")
         
         # criar caso openfoam
-        print("\n" + "="*60)
-        print("etapa 4/5: criacao do caso openfoam")
-        print("="*60)
+        self.ui.section("etapa 4/5 — caso openfoam")
         
         success, case_dir = self.create_openfoam_case(json_path, blend_file)
         if not success:
-            print("erro: falha na criacao do caso openfoam")
+            self.ui.err("falha na criacao do caso openfoam")
             return
         
-        print(f"\n✓ caso cfd criado: {case_dir}")
+        self.ui.ok(f"caso cfd: {case_dir}")
         
         # executar simulacao cfd
-        print("\n" + "="*60)
-        print("etapa 5/5: execucao da simulacao cfd")
-        print("="*60)
+        self.ui.section("etapa 5/5 — simulacao cfd")
         
         success = self.run_openfoam_simulation(case_dir)
         if not success:
-            print("erro: falha na execucao da simulacao cfd")
+            self.ui.err("falha na execucao da simulacao cfd")
             return
         
         # resumo final
-        print("\n" + "="*60)
-        print("pipeline completo finalizado com sucesso!")
-        print("="*60)
-        print(f"\narquivos gerados:")
-        print(f"  - arquivo .bed: {self.output_file}")
-        print(f"  - parametros json: {json_path}")
-        print(f"  - modelo 3d: {blend_file}")
-        print(f"  - caso cfd: {case_dir}")
-        print()
-        print("proximo passo:")
-        print(f"  - visualizar resultados no paraview")
-        print(f"  - abra o arquivo: {case_dir}/caso.foam")
-        print()
-        
-        input("\npressione enter para voltar ao menu principal...")
+        self.ui.section("pipeline concluido")
+        self.ui.ok("resumo dos artefatos:")
+        self.ui.muted(f"  .bed: {self.output_file}")
+        self.ui.muted(f"  json: {json_path}")
+        self.ui.muted(f"  blend: {blend_file}")
+        self.ui.muted(f"  caso: {case_dir}")
+        self.ui.println()
+        self.ui.muted("proximo passo: paraview — abrir caso.foam no diretorio do caso")
+        self.ui.muted(f"  {case_dir / 'caso.foam'}")
+        self.ui.pause("enter para voltar ao menu principal...")
     
     def create_openfoam_case(self, json_path, blend_file):
         """
@@ -1620,47 +1529,37 @@ cfd {
         
         # verificar se arquivo existe
         if not doc_path.exists():
-            print("\nerro: arquivo de documentacao nao encontrado!")
-            print(f"procurado em: {doc_path}")
-            input("\npressione enter para continuar...")
+            self.ui.err("arquivo de documentacao nao encontrado")
+            self.ui.muted(f"caminho esperado: {doc_path}")
+            self.ui.pause()
             return
         
-        print("\nabrindo documentacao no navegador...")
-        print(f"arquivo: {doc_path}")
+        self.ui.println("abrindo documentacao no navegador padrao...")
+        self.ui.muted(str(doc_path))
         
         try:
-            # abrir no navegador padrao
             webbrowser.open(f"file://{doc_path.absolute()}")
-            print("\nsucesso: documentacao aberta no navegador!")
-            print("se nao abriu automaticamente, copie o caminho acima")
+            self.ui.ok("se o navegador nao abrir, abra manualmente o arquivo acima")
         except Exception as e:
-            print(f"\nerro ao abrir navegador: {e}")
-            print(f"\nabra manualmente o arquivo: {doc_path}")
+            self.ui.err(f"nao foi possivel abrir o navegador: {e}")
+            self.ui.muted(f"abra manualmente: {doc_path}")
         
-        input("\npressione enter para continuar...")
+        self.ui.pause()
+    
+    def _draw_main_menu(self) -> None:
+        """tela inicial estilo navegador (barra + tabela de modos)."""
+        self.ui.clear()
+        self.ui.header("wizard de parametrizacao", "leitos empacotados — arquivos .bed / antlr / blender / openfoam")
+        if not rich_available():
+            self.ui.hint("instale rich para cores e tabelas: pip install rich")
+            self.ui.println()
+        self.ui.render_main_menu(self.MENU_ROWS, "digite o numero da opcao e pressione enter.")
     
     def run(self):
         """executar wizard"""
-        self.clear_screen()
-        self.print_header("wizard de parametrizacao de leitos empacotados")
-        
-        print("bem-vindo ao wizard para criacao de arquivos .bed!")
-        print("este wizard ajuda voce a criar arquivos de parametrizacao")
-        print("para leitos empacotados que serao processados pelo compilador antlr.")
-        print()
-        
-        print("escolha o modo de criacao:")
-        print("1. questionario interativo - responda perguntas passo a passo")
-        print("2. editor de template - edite um arquivo padrao")
-        print("3. modo blender - geracao de modelo 3d (sem cfd)")
-        print("4. modo blender interativo - gera e abre automaticamente")
-        print("5. 🚀 pipeline completo - modelo 3d + simulacao cfd automatica")
-        print("6. menu de ajuda - informacoes sobre parametros")
-        print("7. documentacao completa - guia html interativo")
-        print("8. sair")
-        
         while True:
-            choice = input("\nescolha (1-8): ").strip()
+            self._draw_main_menu()
+            choice = self.ui.ask_line("opcao (1-8): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -1679,37 +1578,14 @@ cfd {
                 break
             elif choice == "6":
                 self.show_help_menu()
-                # apos ver ajuda, mostrar menu novamente
-                self.clear_screen()
-                self.print_header("wizard de parametrizacao de leitos empacotados")
-                print("escolha o modo de criacao:")
-                print("1. questionario interativo - responda perguntas passo a passo")
-                print("2. editor de template - edite um arquivo padrao")
-                print("3. modo blender - geracao de modelo 3d (sem cfd)")
-                print("4. modo blender interativo - gera e abre automaticamente")
-                print("5. 🚀 pipeline completo - modelo 3d + simulacao cfd automatica")
-                print("6. menu de ajuda - informacoes sobre parametros")
-                print("7. documentacao completa - guia html interativo")
-                print("8. sair")
             elif choice == "7":
                 self.show_documentation()
-                # apos ver documentacao, mostrar menu novamente
-                self.clear_screen()
-                self.print_header("wizard de parametrizacao de leitos empacotados")
-                print("escolha o modo de criacao:")
-                print("1. questionario interativo - responda perguntas passo a passo")
-                print("2. editor de template - edite um arquivo padrao")
-                print("3. modo blender - geracao de modelo 3d (sem cfd)")
-                print("4. modo blender interativo - gera e abre automaticamente")
-                print("5. 🚀 pipeline completo - modelo 3d + simulacao cfd automatica")
-                print("6. menu de ajuda - informacoes sobre parametros")
-                print("7. documentacao completa - guia html interativo")
-                print("8. sair")
             elif choice == "8":
-                print("ate logo!")
+                self.ui.muted("ate logo!")
                 sys.exit(0)
             else:
-                print("  aviso: escolha entre 1, 2, 3, 4, 5, 6, 7 ou 8!")
+                self.ui.warn("escolha um numero de 1 a 8")
+                self.ui.pause("enter para voltar ao menu...")
 
 def main():
     """funcao principal"""

@@ -1659,7 +1659,9 @@ legend {
 }
 
 /* estilos para botões do footer */
-.footer-help-btn, .footer-docs-btn {
+.footer-help-btn,
+.footer-docs-btn,
+.footer-about-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1672,9 +1674,12 @@ legend {
   cursor: pointer;
   font-size: inherit;
   font-family: inherit;
+  text-align: left;
 }
 
-.footer-help-btn:hover, .footer-docs-btn:hover {
+.footer-help-btn:hover,
+.footer-docs-btn:hover,
+.footer-about-btn:hover {
   color: var(--primary);
 }
 

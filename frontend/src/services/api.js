@@ -224,5 +224,16 @@ export const postAdminDevShutdown = async () => {
   return response.data;
 };
 
+/** instruções e lançamento do bed wizard no terminal (cli) */
+export const getWizardCliInstructions = async () => {
+  const response = await api.get('/api/wizard/cli-instructions');
+  return response.data;
+};
+
+export const launchWizardCliTerminal = async () => {
+  const response = await api.post('/api/wizard/launch-cli-terminal');
+  return response.data;
+};
+
 export default api;
 

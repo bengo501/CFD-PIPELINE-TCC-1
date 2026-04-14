@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+blockMesh
+snappyHexMesh -overwrite
+checkMesh
+echo "malha pronta em constant/polyMesh"

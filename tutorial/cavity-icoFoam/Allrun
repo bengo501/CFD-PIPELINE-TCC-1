@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+blockMesh
+icoFoam
+echo "concluido. use paraFoam ou postProcess para visualizar."

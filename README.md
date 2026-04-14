@@ -111,6 +111,23 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 6. resolver com simplefoam
 7. gerar arquivo para paraview
 
+### 5. tutoriais openfoam versionados (`tutorial/`)
+
+casos **minimos** no repositorio para validar openfoam e estudar fluxos classicos **sem** o pipeline do leito:
+
+| pasta | conteudo |
+|-------|----------|
+| [`tutorial/cavity-icoFoam/`](tutorial/cavity-icoFoam/) | cavidade com tampa arrastada — `icoFoam` (benchmark da literatura; ex.: ghia et al. 1982) |
+| [`tutorial/channel-simpleFoam/`](tutorial/channel-simpleFoam/) | canal 2d laminar estacionario — `simpleFoam` |
+| [`tutorial/sphere-snappyHexMesh/`](tutorial/sphere-snappyHexMesh/) | `blockMesh` + `snappyHexMesh` com `searchableSphere` (sem stl) |
+
+instrucoes completas: **[tutorial/README.md](tutorial/README.md)** (wsl/linux, `source` do openfoam, `./Allrun` / `./Allmesh`).
+
+### 6. wizard terminal cli e interface web
+
+- **terminal**: na raiz do repo, `python bed_wizard.py` (ou `python dsl/bed_wizard.py`). recomendado: `pip install -r dsl/requirements-terminal.txt`.
+- **browser**: no wizard web, modo **wizard terminal cli** pede ao backend para tentar abrir uma janela de terminal ou mostra os comandos para copiar (`GET /api/wizard/cli-instructions`, `POST /api/wizard/launch-cli-terminal`).
+
 ## tecnologias utilizadas
 
 | componente   | tecnologia    | versao | uso                          |
@@ -138,6 +155,7 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 
 - **[dsl/README_BLENDER_MODE.md](dsl/README_BLENDER_MODE.md)** - modo blender do wizard
 - **[dsl/README_SISTEMA_AJUDA.md](dsl/README_SISTEMA_AJUDA.md)** - sistema de ajuda
+- **[tutorial/README.md](tutorial/README.md)** - casos cavity, simplefoam e snappyhexmesh versionados
 - **[scripts/openfoam_scripts/GUIA_SIMULACAO_MANUAL.md](scripts/openfoam_scripts/GUIA_SIMULACAO_MANUAL.md)** - simulacao manual
 - **[scripts/openfoam_scripts/README.md](scripts/openfoam_scripts/README.md)** - scripts openfoam
 
@@ -145,7 +163,20 @@ python scripts/openfoam_scripts/setup_openfoam_case.py \
 
 ### 1. criar um leito com wizard interativo
 
+recomendado instalar a interface rica do terminal (tabelas, cores, barra tipo navegador):
+
 ```bash
+pip install -r dsl/requirements-terminal.txt
+```
+
+```bash
+# na raiz do projeto (recomendado)
+python bed_wizard.py
+
+# ou, equivalente:
+python dsl/bed_wizard.py
+
+# ou a partir da pasta dsl:
 cd dsl
 python bed_wizard.py
 ```
@@ -191,6 +222,8 @@ paraview caso.foam
 ```
 CFD-PIPELINE-TCC-1/
 ├── .config/                         # arquivos de configuracao (config.ini, env.example)
+├── bed_wizard.py                    # atalho na raiz -> dsl/bed_wizard.py (wizard terminal)
+├── tutorial/                        # casos openfoam minimos versionados (cavity, simplefoam, snappy)
 ├── docker/                          # docker-compose e dockerfiles
 ├── dsl/                              # domain specific language
 │   ├── grammar/

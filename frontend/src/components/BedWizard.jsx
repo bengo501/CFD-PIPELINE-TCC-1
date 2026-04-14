@@ -4,6 +4,7 @@ import { HelpModal, DocsModal } from './WizardHelpers';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
 import { useLanguage } from '../context/LanguageContext';
+import { getWizardCliInstructions, launchWizardCliTerminal } from '../services/api';
 import '../styles/BedWizard.css';
 
 const BedWizard = () => {
@@ -101,6 +102,11 @@ const BedWizard = () => {
   const [bedFileName, setBedFileName] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [wizardConnectionError, setWizardConnectionError] = useState(null);
+  const [showWizardCliModal, setShowWizardCliModal] = useState(false);
+  const [wizardCliInfo, setWizardCliInfo] = useState(null);
+  const [wizardCliError, setWizardCliError] = useState(null);
+  const [wizardCliBusy, setWizardCliBusy] = useState(false);
+  const [wizardCliLaunchMsg, setWizardCliLaunchMsg] = useState('');
 
   const steps = useMemo(
     () => [
@@ -119,6 +125,44 @@ const BedWizard = () => {
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
     setStep(1);
+  };
+
+  const buildWizardCliFallback = () => ({
+    project_root: t('wizardCliFallbackRoot'),
+    windows_cmd: 'python bed_wizard.py',
+    unix_sh: 'python3 bed_wizard.py',
+    script_exists: true,
+    hint: t('wizardCliFallbackHint'),
+    offline: true,
+  });
+
+  const openWizardCliModal = async () => {
+    setShowWizardCliModal(true);
+    setWizardCliError(null);
+    setWizardCliLaunchMsg('');
+    setWizardCliInfo(null);
+    try {
+      const data = await getWizardCliInstructions();
+      setWizardCliInfo({ ...data, offline: false });
+      if (!data.script_exists) {
+        setWizardCliError(t('wizardCliLoadError'));
+      }
+    } catch {
+      setWizardCliInfo(buildWizardCliFallback());
+    }
+  };
+
+  const handleLaunchWizardCli = async () => {
+    setWizardCliBusy(true);
+    setWizardCliLaunchMsg('');
+    try {
+      await launchWizardCliTerminal();
+      setWizardCliLaunchMsg(t('wizardCliLaunchOk'));
+    } catch {
+      setWizardCliLaunchMsg(t('wizardCliLaunchFail'));
+    } finally {
+      setWizardCliBusy(false);
+    }
   };
 
   const handleInputChange = (section, field, value) => {
@@ -350,6 +394,25 @@ const BedWizard = () => {
           </div>
         </div>
         
+        <div
+          className="mode-card mode-card-wizard-cli"
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            void openWizardCliModal();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              void openWizardCliModal();
+            }
+          }}
+        >
+          <ThemeIcon light="textEditorLight.png" dark="textEditor.png" alt="" className="mode-icon-small" />
+          <h3>{t('wizardCliModeTitle')}</h3>
+          <p>{t('wizardCliModeDesc')}</p>
+        </div>
+
         <div className="mode-card" onClick={() => handleModeSelectWithTemplate('pipeline_completo')}>
           <ThemeIcon light="pipelineLight.png" dark="pipeline.png" alt="pipeline" className="mode-icon-small" />
           <h3>pipeline completo</h3>
@@ -984,6 +1047,104 @@ const BedWizard = () => {
       
 
       {/* modal de opções de arquivo .bed */}
+      {showWizardCliModal && (
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={() => {
+            setShowWizardCliModal(false);
+            setWizardCliInfo(null);
+            setWizardCliError(null);
+            setWizardCliLaunchMsg('');
+          }}
+        >
+          <div
+            className="modal-content bed-file-options wizard-cli-modal"
+            role="dialog"
+            aria-labelledby="wizard-cli-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2 id="wizard-cli-title">{t('wizardCliModalTitle')}</h2>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => {
+                  setShowWizardCliModal(false);
+                  setWizardCliInfo(null);
+                  setWizardCliError(null);
+                  setWizardCliLaunchMsg('');
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="wizard-cli-body">
+              <p className="wizard-cli-intro">{t('wizardCliModalIntro')}</p>
+              {wizardCliError && <p className="wizard-cli-err">{wizardCliError}</p>}
+              {wizardCliInfo && (
+                <div className="wizard-cli-commands">
+                  <p className="wizard-cli-hint">{wizardCliInfo.hint}</p>
+                  <label>windows (cmd)</label>
+                  <pre>{wizardCliInfo.windows_cmd}</pre>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => navigator.clipboard.writeText(wizardCliInfo.windows_cmd)}
+                  >
+                    {t('wizardCliCopyWin')}
+                  </button>
+                  <label>linux / mac / wsl (bash)</label>
+                  <pre>{wizardCliInfo.unix_sh}</pre>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => navigator.clipboard.writeText(wizardCliInfo.unix_sh)}
+                  >
+                    {t('wizardCliCopyUnix')}
+                  </button>
+                  <p className="wizard-cli-root">
+                    <span>project_root: </span>
+                    {wizardCliInfo.project_root}
+                  </p>
+                </div>
+              )}
+              {wizardCliLaunchMsg && <p className="wizard-cli-launch-msg">{wizardCliLaunchMsg}</p>}
+              <p className="wizard-cli-foot">{t('wizardCliFootnote')}</p>
+              <div className="wizard-cli-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  title={wizardCliInfo?.offline ? t('wizardCliLaunchNeedsBackend') : undefined}
+                  disabled={
+                    wizardCliBusy ||
+                    !wizardCliInfo?.script_exists ||
+                    wizardCliInfo?.offline
+                  }
+                  onClick={() => {
+                    void handleLaunchWizardCli();
+                  }}
+                >
+                  {t('wizardCliOpenTerminal')}
+                </button>
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowWizardCliModal(false);
+                    setWizardCliInfo(null);
+                    setWizardCliError(null);
+                    setWizardCliLaunchMsg('');
+                  }}
+                >
+                  {t('close')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showBedFileOptions && (
         <div className="modal-overlay">
           <div className="modal-content bed-file-options">
