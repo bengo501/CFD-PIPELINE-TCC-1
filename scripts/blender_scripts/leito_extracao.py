@@ -15,6 +15,7 @@ if str(_SCRIPT_DIR) not in sys.path:
 
 # modulos sem bpy definem matematica validacao e algoritmos de posicao
 from packed_bed_science.geometry_math import AnnulusBedDomain, estimate_porosity
+from packed_bed_science.packing_modes import merge_root_packing_mode, packing_method_from_section
 from packed_bed_science.validation import validate_configuration
 from packed_bed_science.packing_spherical import generate_spherical_packing
 from packed_bed_science.packing_hexagonal import generate_hexagonal_packing
@@ -342,6 +343,8 @@ def ler_parametros_json(json_path):
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
             params = json.load(f)
+        if isinstance(params, dict):
+            merge_root_packing_mode(params)
         print(f"parametros carregados de: {json_path}")
         return params
     except Exception as e:
@@ -371,15 +374,7 @@ def _coerce_int(v, default=0):
 
 
 def _packing_method_name(packing):
-    # le o dicionario packing do json e devolve um nome interno padronizado
-    # aceita tanto method quanto packing_method por compatibilidade com api e exemplos antigos
-    if not packing:
-        return "rigid_body"
-    m = packing.get("method") or packing.get("packing_method") or "rigid_body"
-    s = str(m).strip().strip('"').lower()
-    if s in ("hexagonal3d", "hexagonal-3d"):
-        return "hexagonal_3d"
-    return s
+    return packing_method_from_section(packing)
 
 
 def _coerce_bool(v, default=True):

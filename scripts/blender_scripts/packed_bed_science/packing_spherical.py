@@ -1,8 +1,11 @@
-# algoritmo spherical_packing coloca esferas uma a uma usando sorteio e rejeicao
-# ideia geral sorteia um ponto na caixa que envolve o leito
-# se o ponto cai dentro do anel valido e longe de todas as esferas ja aceitas entao aceita
-# se nao sorteia de novo ate atingir a quantidade desejada ou o limite de tentativas
-
+# modo spherical packing coloca centros de esferas um a um com algoritmo de monte carlo
+# cada tentativa sorteia x y z dentro de uma caixa que envolve o dominio anular
+# point_in_domain rejeita pontos fora do cilindro oco com folga para parede e tampas
+# para cada candidato comparamos distancia ao quadrado a todos os centros ja aceites
+# se distancia ao quadrado for menor que need ao quadrado ha sobreposicao ou violacao de gap
+# need vem de sphere center clearance que e raio mais raio mais gap para duas esferas iguais
+# o dominio geometrico completo esta em geometry math AnnulusBedDomain e point in domain
+# apos gerar centros o ficheiro validation py percorre pares para confirmar que nada escapou
 from __future__ import annotations
 
 import random
@@ -21,25 +24,22 @@ def generate_spherical_packing(
     random_seed: Optional[int] = None,
     max_placement_attempts: int = 500_000,
 ) -> Dict[str, Any]:
-    # domain descreve o leito e folgas
-    # n_target quantas esferas queremos
-    # r_sphere raio de cada esfera
-    # gap folga entre superficies
-    # random_seed se nao for none fixa o gerador para repetir o mesmo sorteio
-    # max_placement_attempts limite de sorteios para nao travar para sempre
+    # domain resume o leito cilindrico oco com raios espessuras de tampa e folga entre esferas
+    # n_target e quantas esferas o utilizador pediu pode nao ser atingivel se o volume for pequeno
+    # r_sphere e o raio fisico da esfera todas iguais neste fluxo
+    # gap e folga minima extra entre superficies duas esferas encostadas teriam distancia de centro 2r mais gap
+    # random seed fixa o gerador pseudo aleatorio para repetir a mesma sequencia em depuracao
+    # max placement attempts evita laco infinito quando o dominio esta cheio ou muito dificil
 
     t0 = time.perf_counter()
-    # fixa a semente do modulo random do python para reprodutibilidade
     if random_seed is not None:
         random.seed(random_seed)
 
     centers: List[Tuple[float, float, float]] = []
     attempts = 0
-    # limites da caixa onde sorteamos x y z
     xmin, xmax, ymin, ymax, zmin, zmax = domain.bbox_for_sampling()
     rho_min, rho_max = domain.radial_bounds()
 
-    # se nao existe faixa radial ou vertical valida devolve vazio imediato
     if rho_min > rho_max or zmin > zmax:
         return {
             "centers": [],
@@ -51,22 +51,17 @@ def generate_spherical_packing(
         }
 
     stopped_reason = "ok"
-    # laco principal tenta ate ter n_target esferas ou estourar o contador
     while len(centers) < n_target and attempts < max_placement_attempts:
         attempts += 1
-        # sorteia coordenadas uniformes dentro da caixa
         x = random.uniform(xmin, xmax)
         y = random.uniform(ymin, ymax)
         z = random.uniform(zmin, zmax)
         p = (x, y, z)
-        # descarta se fora do cilindro com folga
         if not point_in_domain(p, domain):
             continue
         ok = True
-        # distancia minima entre centros de duas esferas iguais com mesma folga
         need_prev = sphere_center_clearance(r_sphere, r_sphere, gap)
         need_sq = need_prev * need_prev
-        # compara com cada esfera ja colocada usando distancia ao quadrado para evitar sqrt
         for c in centers:
             dx = p[0] - c[0]
             dy = p[1] - c[1]
@@ -77,7 +72,6 @@ def generate_spherical_packing(
         if ok:
             centers.append(p)
 
-    # se parou antes de n_target explica o motivo aproximado no relatorio
     if len(centers) < n_target:
         stopped_reason = (
             "max_tentativas" if attempts >= max_placement_attempts else "volume_insuficiente"

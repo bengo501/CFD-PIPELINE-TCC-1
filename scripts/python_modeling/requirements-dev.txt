@@ -1,0 +1,2 @@
+# dependencias apenas para testes locais do python modeling
+pytest>=7.4,<9

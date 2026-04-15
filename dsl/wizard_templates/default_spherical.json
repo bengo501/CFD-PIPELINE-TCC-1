@@ -1,0 +1,51 @@
+{
+  "packing_mode": "spherical_packing",
+  "bed": {
+    "diameter": 0.06,
+    "height": 0.12,
+    "wall_thickness": 0.002,
+    "clearance": 0.008,
+    "material": "steel",
+    "roughness": 0.0
+  },
+  "lids": {
+    "top_type": "flat",
+    "bottom_type": "flat",
+    "top_thickness": 0.003,
+    "bottom_thickness": 0.003,
+    "seal_clearance": 0.001
+  },
+  "particles": {
+    "kind": "sphere",
+    "diameter": 0.002,
+    "count": 50,
+    "target_porosity": 0.38,
+    "density": 2500.0,
+    "mass": 0.0,
+    "restitution": 0.0,
+    "friction": 0.5,
+    "rolling_friction": 0.1,
+    "linear_damping": 0.1,
+    "angular_damping": 0.1,
+    "seed": 7
+  },
+  "packing": {
+    "method": "spherical_packing",
+    "gap": 0.0001,
+    "random_seed": 7,
+    "max_placement_attempts": 300000,
+    "strict_validation": true,
+    "mesh_segmentos": 32,
+    "sphere_lat": 4,
+    "sphere_lon": 6
+  },
+  "export": {
+    "formats": ["blend", "stl"],
+    "units": "m",
+    "scale": 1.0,
+    "wall_mode": "surface",
+    "fluid_mode": "none",
+    "manifold_check": true,
+    "merge_distance": 0.001
+  }
+}

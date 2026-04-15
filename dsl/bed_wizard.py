@@ -10,12 +10,54 @@ este wizard gera arquivos .bed que sao compilados pelo antlr
 # importar bibliotecas necessarias
 import os  # para operacoes do sistema operacional (limpar tela, arquivos)
 import sys  # para acessar argumentos e sair do programa
+import shutil
 import subprocess  # para executar comandos externos (editores, compilador)
 import tempfile  # para criar arquivos temporarios
 from pathlib import Path  # para trabalhar com caminhos de arquivos
-from typing import Dict, Any, List, Optional, Tuple  # para tipagem de variaveis
+# dict mapeia chave string para valor qualquer
+# any aceita qualquer tipo quando o valor e misto
+# list sequencia ordenada por exemplo lista de strings do menu
+# optional t significa valor do tipo t ou none quando algo e opcional
+# tuple par ou tupla fixa por exemplo atalho titulo descricao do menu
+from typing import Dict, Any, List, Optional, Tuple
 
+# pasta onde este ficheiro bed wizard py vive normalmente dsl na raiz do repo
+_DSL_DIR = Path(__file__).resolve().parent
+# raiz do repositorio um nivel acima de dsl usada para achar scripts blender
+_REPO_ROOT = _DSL_DIR.parent
+# caminho para packed bed science e leito extracao dentro de scripts blender scripts
+_BLENDER_SCRIPTS = _REPO_ROOT / "scripts" / "blender_scripts"
+# inserir esse caminho no inicio de sys path para importar packed bed science como pacote
+if str(_BLENDER_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_BLENDER_SCRIPTS))
+
+# ignorar aviso e402 imports apos codigo sao intencionais porque o path vem antes
+from packed_bed_science.packing_modes import (
+    PACKING_MODE_CHOICES,
+    normalize_packing_mode,
+)
+# carregar json mesclar packing mode raiz e corrigir json compilado
+from wizard_json_loader import (
+    export_formats_for_blender,
+    json_to_wizard_params,
+    load_wizard_json,
+    normalize_loaded_dict,
+    patch_compiled_json_export,
+    patch_compiled_json_packing,
+)
+# listar nomes de templates json e carregar um template por nome
+from wizard_template_engine import list_template_names, load_template
 from wizard_terminal_ui import make_terminal_ui, rich_available
+
+# fluxo geral do wizard em memoria
+# self params guarda bed particles lids packing export cfd como dicts aninhados
+# generate bed content transforma self params em texto linguagem bed
+# save bed file grava esse texto no disco
+# verify and compile chama o antlr que produz um json ao lado do bed
+# patch compiled json packing export recoloca gap e formats que a gramatica bed nao suporta
+# run blender with json path chama o executavel blender com leito extracao py
+# modos spherical packing e hexagonal 3d no blender usam packed bed science sem rigid body
+# modo rigid body usa fisica antiga com queda e nao passa pela validacao fechada dos modos cientificos
 
 class BedWizard:
     """classe principal do wizard para criacao de arquivos .bed"""
@@ -30,6 +72,7 @@ class BedWizard:
         ("6", "ajuda", "resumo dos parametros por secao"),
         ("7", "documentacao", "guia html no navegador"),
         ("8", "sair", "encerrar o wizard"),
+        ("9", "testes rapidos (json)", "fixtures _test_*.json + compile / blender"),
     ]
     
     def __init__(self):
@@ -193,6 +236,30 @@ class BedWizard:
                 'desc': 'margem de deteccao de colisao',
                 'min': 0.00001, 'max': 0.01, 'unit': 'm',
                 'exemplo': '0.001m = 1mm de margem'
+            },
+            'packing.gap': {
+                'desc': 'folga minima entre superficies das esferas (modos cientificos)',
+                'min': 0.0, 'max': 0.01, 'unit': 'm',
+                'exemplo': '0.0001m = 0.1 mm entre esferas'
+            },
+            'packing.random_seed': {
+                'desc': 'seed para spherical_packing',
+                'min': 0, 'max': 999999, 'unit': '',
+                'exemplo': '7 = colocacao reproduzivel'
+            },
+            'packing.max_placement_attempts': {
+                'desc': 'tentativas max. de colocacao aleatoria (spherical_packing)',
+                'min': 1000, 'max': 5000000, 'unit': '',
+                'exemplo': '200000'
+            },
+            'packing.strict_validation': {
+                'desc': 'se true, falha se geometria invalida ou faltam esferas',
+                'exemplo': 'true recomendado para cfd'
+            },
+            'packing.step_x': {
+                'desc': 'passo horizontal da grade hexagonal (vazio = 2*r+gap)',
+                'min': 0.00001, 'max': 0.5, 'unit': 'm',
+                'exemplo': 'deixe vazio para automatico'
             },
             # secao export
             'export.formats': {
@@ -394,6 +461,44 @@ class BedWizard:
             return [item.strip() for item in value.split(separator)]
         return []  # retornar lista vazia se nao digitou nada
     
+    def _collect_packing_params(self, with_param_help: bool = False) -> Dict[str, Any]:
+        # pergunta ao utilizador qual dos tres modos usar e recolhe campos extra
+        # with param help true liga textos de ajuda ricos nos campos numericos do modo blender
+        # with param help false usa questionario simples sem chaves param help
+        # ph e uma funcao que ou devolve a chave de ajuda ou string vazia
+        # primeiro bloco gravidade substeps etc serve para rigid body e fica no dict mesmo nos modos cientificos
+        # segundo bloco gap random seed tentativas strict so para spherical packing
+        # terceiro bloco gap step x strict so para hexagonal 3d
+        opts = list(PACKING_MODE_CHOICES)
+        ph = (lambda k: k) if with_param_help else (lambda _k: "")
+        self.print_section("empacotamento")
+        method_raw = self.get_choice("metodo de empacotamento", opts, 0)
+        method = normalize_packing_mode(method_raw)
+        pack: Dict[str, Any] = {
+            "method": method,
+            "gravity": self.get_number_input("gravidade", "-9.81", "m/s2", True, ph("packing.gravity")),
+            "substeps": int(self.get_number_input("sub-passos de simulacao", "10", "", False, ph("packing.substeps"))),
+            "iterations": int(self.get_number_input("iteracoes", "10", "", False, ph("packing.iterations"))),
+            "damping": self.get_number_input("amortecimento", "0.1", "", False, ph("packing.damping")),
+            "rest_velocity": self.get_number_input("velocidade de repouso", "0.01", "m/s", False, ph("packing.rest_velocity")),
+            "max_time": self.get_number_input("tempo maximo", "5.0", "s", False, ph("packing.max_time")),
+            "collision_margin": self.get_number_input("margem de colisao", "0.001", "m", False, ph("packing.collision_margin")),
+        }
+        if method == "spherical_packing":
+            pack["gap"] = float(self.get_number_input("gap entre esferas", "0.0001", "m", False, ph("packing.gap")))
+            pack["random_seed"] = int(self.get_number_input("random_seed", "42", "", False, ph("packing.random_seed")))
+            pack["max_placement_attempts"] = int(self.get_number_input("max tentativas colocacao", "500000", "", False, ph("packing.max_placement_attempts")))
+            sv = self.get_boolean("strict_validation (falhar se invalido)?", True)
+            pack["strict_validation"] = sv
+        elif method == "hexagonal_3d":
+            pack["gap"] = float(self.get_number_input("gap entre esferas", "0.0001", "m", False, ph("packing.gap")))
+            step_raw = self.get_number_input("step_x grade hex (vazio=auto)", "", "m", False, ph("packing.step_x"))
+            if step_raw.strip():
+                pack["step_x"] = float(step_raw)
+            sv = self.get_boolean("strict_validation (falhar se invalido)?", True)
+            pack["strict_validation"] = sv
+        return pack
+    
     def _fill_params_from_questionnaire(self) -> None:
         """preenche self.params com todas as secoes do questionario (sem nome de arquivo nem salvar)."""
         # secao bed - parametros geometricos do leito
@@ -436,19 +541,7 @@ class BedWizard:
             'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False))
         }
         
-        # secao packing - parametros do empacotamento fisico
-        self.print_section("empacotamento")
-        packing_methods = ["rigid_body"]  # metodos de empacotamento disponiveis
-        self.params['packing'] = {
-            'method': self.get_choice("metodo de empacotamento", packing_methods),
-            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2"),
-            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False)),
-            'iterations': int(self.get_number_input("iteracoes", "10", "", False)),
-            'damping': self.get_number_input("amortecimento", "0.1", "", False),
-            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False),
-            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False),
-            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False)
-        }
+        self.params['packing'] = self._collect_packing_params(with_param_help=False)
         
         # secao export - parametros de exportacao da geometria
         self.print_section("exportacao")
@@ -498,6 +591,43 @@ class BedWizard:
         self.clear_screen()
         self.print_header("editor de template", "edicao de modelo .bed")
         self.ui.breadcrumbs("wizard", "template")
+
+        # nomes dos ficheiros json em dsl wizard templates sem extensao
+        json_names = list_template_names()
+        # se existir pelo menos um template json oferecemos fluxo rapido sem editor externo
+        if json_names:
+            # usuario escolhe entre carregar json pronto ou cair no editor bed classico
+            modo = self.get_choice(
+                "origem do template",
+                ["ficheiros json em dsl/wizard_templates", "editor .bed classico"],
+                0,
+            )
+            # ramo json carrega dict ja estruturado converte para params do wizard e compila
+            if modo.startswith("ficheiros"):
+                # pick e o identificador do template por exemplo default spherical
+                pick = self.get_choice("template", json_names, 0)
+                # data e o dicionario python lido do ficheiro json do template
+                data = load_template(pick)
+                # normalizar chaves aninhadas e tipos antes de mapear para o wizard
+                normalize_loaded_dict(data)
+                # self params fica no mesmo formato que o questionario interativo preencheria
+                self.params = json_to_wizard_params(data)
+                # sugestao de nome troca prefixo default por leito para o bed de saida
+                self.output_file = self.get_input(
+                    "nome do arquivo de saida", f"{pick.replace('default_', 'leito_')}.bed"
+                )
+                # grava o texto bed no disco a partir de self params
+                self.save_bed_file()
+                # se o compilador antlr passar aplicamos patches no json gerado
+                if self.verify_and_compile():
+                    # jpath e o json compilado ao lado do bed mesmo nome com sufixo json
+                    jpath = Path(str(Path(self.output_file).resolve()) + ".json")
+                    # recoloca packing mode e campos que a gramatica bed nao serializa
+                    patch_compiled_json_packing(jpath, self.params)
+                    # recoloca formatos de export pedidos pelo usuario stl obj etc
+                    patch_compiled_json_export(jpath, self.params)
+                # termina template mode neste fluxo sem abrir editor temporario
+                return
         
         # criar template padrao com valores exemplo
         template = self.create_default_template()
@@ -651,7 +781,21 @@ cfd {
             f.write(content)
         
         self.ui.ok(f"arquivo salvo: {self.output_file}")
-    
+
+    def generate_bed_file(self) -> bool:
+        # usado pelo pipeline completo e menu de testes rapidos
+        # nao mostra confirmacao rica apenas grava e devolve bool
+        # parent mkdir garante pastas intermediarias se output bed tiver caminho profundo
+        try:
+            content = self.generate_bed_content()
+            Path(self.output_file).parent.mkdir(parents=True, exist_ok=True)
+            with open(self.output_file, "w", encoding="utf-8") as f:
+                f.write(content)
+            return True
+        except OSError as e:
+            self.ui.err(f"falha ao gravar .bed: {e}")
+            return False
+
     def generate_bed_content(self) -> str:
         """gerar conteudo do arquivo .bed a partir dos parametros configurados"""
         lines = ["// arquivo .bed gerado pelo wizard"]
@@ -783,25 +927,33 @@ cfd {
             print(f"  erro: arquivo nao encontrado: {self.output_file}")
             return False
         
+        # caminho absoluto: o subprocess do compilador usa cwd=dsl/; paths relativos
+        # gravados na raiz do repo nao seriam encontrados sem isso
+        bed_abs = str(Path(self.output_file).resolve())
+        json_abs = f"{bed_abs}.json"
+        
         # tentar compilar com ANTLR
         try:
             result = subprocess.run([
                 sys.executable, 
                 "compiler/bed_compiler_antlr_standalone.py", 
-                self.output_file, 
-                "-o", f"{self.output_file}.json",
+                bed_abs, 
+                "-o", json_abs,
                 "-v"
             ], capture_output=True, text=True, cwd=Path(__file__).parent)
             
             if result.returncode == 0:
                 print("  sucesso: sintaxe valida!")
                 print("  sucesso: compilacao bem-sucedida!")
-                print(f"  arquivo json gerado: {self.output_file}.json")
+                print(f"  arquivo json gerado: {json_abs}")
                 print(f"  resultado: {result.stdout}")
                 return True
             else:
                 print("  erro: erro na compilacao:")
-                print(f"  {result.stderr}")
+                if result.stderr:
+                    print(f"  {result.stderr}")
+                if result.stdout:
+                    print(f"  {result.stdout}")
                 return False
                 
         except FileNotFoundError:
@@ -861,19 +1013,7 @@ cfd {
             'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False, "particles.seed"))
         }
         
-        # secao packing - parametros do empacotamento fisico
-        self.print_section("empacotamento")
-        packing_methods = ["rigid_body"]
-        self.params['packing'] = {
-            'method': self.get_choice("metodo de empacotamento", packing_methods),
-            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2", True, "packing.gravity"),
-            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False, "packing.substeps")),
-            'iterations': int(self.get_number_input("iteracoes", "10", "", False, "packing.iterations")),
-            'damping': self.get_number_input("amortecimento", "0.1", "", False, "packing.damping"),
-            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False, "packing.rest_velocity"),
-            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False, "packing.max_time"),
-            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False, "packing.collision_margin")
-        }
+        self.params['packing'] = self._collect_packing_params(with_param_help=True)
         
         # secao export - parametros de exportacao simplificados
         self.print_section("exportacao")
@@ -946,19 +1086,7 @@ cfd {
             'seed': int(self.get_number_input("seed para reproducibilidade", "42", "", False, "particles.seed"))
         }
         
-        # secao packing - parametros do empacotamento fisico
-        self.print_section("empacotamento")
-        packing_methods = ["rigid_body"]
-        self.params['packing'] = {
-            'method': self.get_choice("metodo de empacotamento", packing_methods),
-            'gravity': self.get_number_input("gravidade", "-9.81", "m/s2", True, "packing.gravity"),
-            'substeps': int(self.get_number_input("sub-passos de simulacao", "10", "", False, "packing.substeps")),
-            'iterations': int(self.get_number_input("iteracoes", "10", "", False, "packing.iterations")),
-            'damping': self.get_number_input("amortecimento", "0.1", "", False, "packing.damping"),
-            'rest_velocity': self.get_number_input("velocidade de repouso", "0.01", "m/s", False, "packing.rest_velocity"),
-            'max_time': self.get_number_input("tempo maximo", "5.0", "s", False, "packing.max_time"),
-            'collision_margin': self.get_number_input("margem de colisao", "0.001", "m", False, "packing.collision_margin")
-        }
+        self.params['packing'] = self._collect_packing_params(with_param_help=True)
         
         # secao export - parametros de exportacao simplificados
         self.print_section("exportacao")
@@ -1002,9 +1130,16 @@ cfd {
         if not self.verify_and_compile():
             self.ui.err("nao foi possivel compilar o arquivo")
             return
-        
+        jpath = Path(str(Path(self.output_file).resolve()) + ".json")
+        patch_compiled_json_packing(jpath, self.params)
+        patch_compiled_json_export(jpath, self.params)
+
         self.ui.section("executando blender")
-        self.execute_blender()
+        ok, blend_path = self.execute_blender(open_after=False)
+        if ok and blend_path and self.get_boolean(
+            "gostaria de abrir o blender com o modelo gerado?", False
+        ):
+            self.open_blender_gui_with_blend(blend_path)
     
     def confirm_and_generate_blender_interactive(self):
         """confirmar parametros, gerar modelo e abrir blender automaticamente"""
@@ -1029,7 +1164,10 @@ cfd {
         if not self.verify_and_compile():
             self.ui.err("nao foi possivel compilar o arquivo")
             return
-        
+        jpath = Path(str(Path(self.output_file).resolve()) + ".json")
+        patch_compiled_json_packing(jpath, self.params)
+        patch_compiled_json_export(jpath, self.params)
+
         self.ui.section("executando blender")
         success, blend_file = self.execute_blender(open_after=True)
         
@@ -1039,116 +1177,143 @@ cfd {
             self.ui.muted("blender em segundo plano — zoom: scroll; orbita: botao do meio; topo: numpad 7; shading: z")
             self.ui.pause("enter para voltar ao menu...")
     
-    def execute_blender(self, open_after=False):
-        """executar script do blender para gerar modelo 3d"""
+    def find_blender_executable(self) -> Optional[str]:
+        # procura instalacoes tipicas no windows por caminho absoluto
+        # se nenhuma existir tenta blender no path via shutil which
+        # retorno none significa que run blender with json path vai falhar cedo
+        candidates = [
+            r"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 4.1\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 4.0\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 3.6\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 3.5\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender\blender.exe",
+        ]
+        for path in candidates:
+            if Path(path).exists():
+                return path
+        w = shutil.which("blender")
+        return w
+
+    def run_blender_with_json_path(
+        self,
+        json_file: Path,
+        open_after: bool = False,
+        formats: Optional[str] = None,
+        output_blend: Optional[Path] = None,
+    ) -> Tuple[bool, Optional[Path]]:
+        # subprocesso blender background python leito extracao py
+        # json file e o params json ja com patch de packing cientifico
+        # formats string virgula blend stl glb se none le do proprio json export
+        # output blend destino do ficheiro principal se none derivado do stem do json
+        # open after true chama open blender with file no fim
+        # timeout 600 segundos para leitos grandes ou muitas esferas rigid body
         try:
-            # definir caminhos
             project_root = Path(__file__).parent.parent
-            dsl_dir = Path(__file__).parent
             blender_script = project_root / "scripts" / "blender_scripts" / "leito_extracao.py"
             output_dir = project_root / "generated" / "3d" / "output"
-            
-            # obter caminho completo do arquivo json
-            # o compilador gera arquivo.bed.json, nao arquivo.json
-            json_file = Path(self.output_file + '.json')
-            if not json_file.is_absolute():
-                json_file = dsl_dir / json_file
-            
-            # criar diretorio de saida se nao existir
             output_dir.mkdir(parents=True, exist_ok=True)
-            
+
+            json_file = Path(json_file).resolve()
+            if output_blend is None:
+                stem = json_file.name.replace(".bed.json", "").replace(".json", "")
+                output_blend = output_dir / f"{stem}.blend"
+            else:
+                output_blend = Path(output_blend)
+
             print(f"script blender: {blender_script}")
             print(f"arquivo json: {json_file}")
-            print(f"diretorio saida: {output_dir}")
-            
-            # verificar se arquivos existem
+            print(f"saida .blend: {output_blend}")
+
             if not blender_script.exists():
                 print(f"erro: script blender nao encontrado: {blender_script}")
                 return False, None
-            
             if not json_file.exists():
                 print(f"erro: arquivo json nao encontrado: {json_file}")
                 return False, None
-            
-            # tentar encontrar blender
-            blender_paths = [
-                r"C:\Program Files\Blender Foundation\Blender 4.0\blender.exe",
-                r"C:\Program Files\Blender Foundation\Blender 3.6\blender.exe",
-                r"C:\Program Files\Blender Foundation\Blender 3.5\blender.exe",
-                r"C:\Program Files\Blender Foundation\Blender\blender.exe",
-                "blender"
-            ]
-            
-            blender_exe = None
-            for path in blender_paths:
-                if Path(path).exists() if path.startswith("C:") else True:
-                    blender_exe = path
-                    break
-            
+
+            blender_exe = self.find_blender_executable()
             if not blender_exe:
                 print("erro: blender nao encontrado")
-                print("instale o blender ou adicione ao path do sistema")
                 return False, None
-            
+
+            if formats is None:
+                try:
+                    import json as _json
+
+                    with open(json_file, "r", encoding="utf-8") as f:
+                        d = _json.load(f)
+                    formats = export_formats_for_blender(d.get("export") or {})
+                except Exception:
+                    formats = "blend,stl"
+
             print(f"blender encontrado: {blender_exe}")
+            print(f"formatos: {formats}")
             print("\niniciando geracao do modelo 3d...")
-            print("isso pode levar alguns minutos...")
-            
-            # nome do arquivo de saida
-            output_blend = output_dir / f"{Path(self.output_file).stem}.blend"
-            
-            # executar blender em modo headless
-            result = subprocess.run([
+
+            cmd = [
                 blender_exe,
                 "--background",
-                "--python", str(blender_script),
+                "--python",
+                str(blender_script),
                 "--",
-                "--params", str(json_file),
-                "--output", str(output_blend)
-            ], capture_output=True, text=True, timeout=300)
-            
-            # mostrar saida do blender para debug
+                "--params",
+                str(json_file),
+                "--output",
+                str(output_blend),
+                "--formats",
+                formats,
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+
             if result.stdout:
                 print("\nsaida do blender:")
                 print(result.stdout)
-            
-            if result.returncode == 0:
-                # verificar se arquivo foi realmente criado
-                if output_blend.exists():
-                    print("\nsucesso: modelo 3d gerado!")
-                    print(f"arquivo salvo: {output_blend}")
-                    print(f"tamanho: {output_blend.stat().st_size / 1024:.2f} kb")
-                    print(f"diretorio: {output_dir}")
-                    
-                    # abrir blender com o arquivo se solicitado
-                    if open_after:
-                        print("\nabrindo modelo no blender...")
-                        self.open_blender_with_file(blender_exe, output_blend)
-                    
-                    return True, output_blend
-                else:
-                    print("\naviso: blender executou mas arquivo nao foi criado")
-                    print(f"arquivo esperado: {output_blend}")
-                    print("verifique a saida do blender acima")
-                    return False, None
-            else:
-                print("\nerro: falha na geracao do modelo")
-                print(f"codigo de erro: {result.returncode}")
-                if result.stderr:
-                    print(f"detalhes do erro:")
-                    print(result.stderr)
-                return False, None
-                
-        except subprocess.TimeoutExpired:
-            print("erro: timeout na execucao do blender (limite: 5 minutos)")
+
+            if result.returncode == 0 and output_blend.exists():
+                print("\nsucesso: modelo 3d gerado!")
+                if open_after:
+                    print("\nabrindo modelo no blender...")
+                    self.open_blender_with_file(blender_exe, output_blend)
+                return True, output_blend
+
+            print("\nerro: falha na geracao do modelo")
+            print(f"codigo: {result.returncode}")
+            if result.stderr:
+                print(result.stderr)
             return False, None
-        except FileNotFoundError:
-            print("erro: blender nao encontrado no sistema")
-            print("verifique a instalacao do blender")
+
+        except subprocess.TimeoutExpired:
+            print("erro: timeout na execucao do blender (limite: 10 minutos)")
             return False, None
         except Exception as e:
-            print(f"erro: erro inesperado: {e}")
+            print(f"erro: {e}")
             return False, None
+
+    def open_blender_gui_with_blend(self, blend_file: Path) -> None:
+        # atalho que resolve o executavel outra vez e delega em open blender with file
+        exe = self.find_blender_executable()
+        if exe:
+            self.open_blender_with_file(exe, blend_file)
+        else:
+            print("aviso: blender nao encontrado para abrir o ficheiro")
+
+    def execute_blender(self, open_after=False):
+        # compatibilidade com fluxos antigos que assumem self output file bed
+        # o json e sempre output file absoluto mais sufixo json
+        # le export do json para montar lista de formatos
+        bed_resolved = Path(self.output_file).resolve()
+        json_file = Path(str(bed_resolved) + ".json")
+        fmt = None
+        if json_file.exists():
+            try:
+                import json as _json
+
+                with open(json_file, "r", encoding="utf-8") as f:
+                    fmt = export_formats_for_blender(_json.load(f).get("export") or {})
+            except Exception:
+                fmt = None
+        return self.run_blender_with_json_path(json_file, open_after=open_after, formats=fmt)
     
     def open_blender_with_file(self, blender_exe, blend_file):
         """abrir blender com arquivo especifico em modo gui"""
@@ -1170,6 +1335,69 @@ cfd {
             print(f"\nabra manualmente executando:")
             print(f"{blender_exe} {blend_file}")
     
+    def tests_quick_menu(self) -> None:
+        # menu9 do wizard
+        # glob test json na pasta python modeling
+        # mostra indice nome ficheiro e modo packing lido do json
+        # carrega json converte para self params gera bed compila patch
+        # pergunta se corre blender e se abre gui no fim
+        self.clear_screen()
+        self.print_header("testes rapidos", "fixtures em scripts/python_modeling")
+        self.ui.breadcrumbs("wizard", "testes")
+        fix_dir = _REPO_ROOT / "scripts" / "python_modeling"
+        files = sorted(fix_dir.glob("_test_*.json"))
+        if not files:
+            self.ui.err("nenhum _test_*.json encontrado")
+            self.ui.pause()
+            return
+        self.ui.println("ficheiros disponiveis:")
+        for i, p in enumerate(files, 1):
+            try:
+                d = load_wizard_json(p)
+                pm = d.get("packing_mode") or (d.get("packing") or {}).get("method") or "?"
+            except OSError:
+                pm = "?"
+            self.ui.muted(f"  {i}. {p.name}  | modo: {pm}")
+        self.ui.println()
+        raw = self.ui.ask_line(f"numero (1-{len(files)}) ou 0 voltar: ").strip()
+        if raw == "0" or raw == "":
+            return
+        try:
+            idx = int(raw) - 1
+            if not (0 <= idx < len(files)):
+                raise ValueError
+        except ValueError:
+            self.ui.warn("escolha invalida")
+            self.ui.pause()
+            return
+        chosen = files[idx]
+        data = load_wizard_json(chosen)
+        self.params = json_to_wizard_params(data)
+        self.output_file = str((Path.cwd() / f"{chosen.stem}.bed").resolve())
+        do_blender = self.ui.confirm("executar blender apos compilar?", default=False)
+        if not self.generate_bed_file():
+            self.ui.err("falha ao gerar .bed")
+            self.ui.pause()
+            return
+        self.ui.section("compilando")
+        if not self.verify_and_compile():
+            self.ui.err("falha na compilacao")
+            self.ui.pause()
+            return
+        jpath = Path(str(Path(self.output_file).resolve()) + ".json")
+        patch_compiled_json_packing(jpath, self.params)
+        patch_compiled_json_export(jpath, self.params)
+        if do_blender:
+            fmt = export_formats_for_blender(self.params.get("export") or {})
+            ok, blend = self.run_blender_with_json_path(jpath, open_after=False, formats=fmt)
+            if ok and blend and self.ui.confirm(
+                "gostaria de abrir o blender com o modelo gerado?", default=False
+            ):
+                self.open_blender_gui_with_blend(blend)
+        else:
+            self.ui.ok(f"json pronto: {jpath}")
+        self.ui.pause("enter para voltar ao menu...")
+
     def show_help_menu(self):
         """mostrar menu de ajuda com informacoes sobre parametros"""
         self.clear_screen()
@@ -1254,29 +1482,20 @@ cfd {
             self.ui.err("falha ao gerar arquivo .bed")
             return
         
-        # compilar arquivo .bed
-        success, json_path = self.compile_bed_file()
-        if not success:
+        self.ui.section("compilando .bed")
+        if not self.verify_and_compile():
             self.ui.err("falha na compilacao do arquivo .bed")
             return
-        
+        json_path = Path(str(Path(self.output_file).resolve()) + ".json")
+        patch_compiled_json_packing(json_path, self.params)
+        patch_compiled_json_export(json_path, self.params)
         self.ui.ok(f"arquivo compilado: {json_path}")
         
         # gerar modelo 3d no blender
         self.ui.section("etapa 3/5 — modelo 3d no blender")
-        
-        blender_exe = self.find_blender_executable()
-        if not blender_exe:
-            self.ui.err("blender nao encontrado; instale e tente novamente")
-            return
-        
-        # determinar formatos de exportacao
-        export_formats = ['blend', 'stl']  # stl e essencial para cfd
-        
-        success, blend_file = self.generate_blender_model(
-            blender_exe, 
-            json_path, 
-            export_formats
+        fmt = export_formats_for_blender(self.params.get("export") or {})
+        success, blend_file = self.run_blender_with_json_path(
+            json_path, open_after=False, formats=fmt
         )
         
         if not success:
@@ -1559,7 +1778,7 @@ cfd {
         """executar wizard"""
         while True:
             self._draw_main_menu()
-            choice = self.ui.ask_line("opcao (1-8): ").strip()
+            choice = self.ui.ask_line("opcao (1-9): ").strip()
             
             if choice == "1":
                 self.interactive_mode()
@@ -1583,14 +1802,30 @@ cfd {
             elif choice == "8":
                 self.ui.muted("ate logo!")
                 sys.exit(0)
+            elif choice == "9":
+                self.tests_quick_menu()
             else:
-                self.ui.warn("escolha um numero de 1 a 8")
+                self.ui.warn("escolha um numero de 1 a 9")
                 self.ui.pause("enter para voltar ao menu...")
 
 def main():
-    """funcao principal"""
+    """entrada do programa import tardio evita ciclo se wizard cli importar este modulo"""
+    # import dentro da funcao so corre quando main e chamada
+    from wizard_cli import run_cli, should_hand_off_to_cli
+
+    # argumentos sem o nome do script contem apenas flags e valores passados pelo usuario
+    # should hand off verifica se ha flag tipo load json spec template ou help
+    if should_hand_off_to_cli():
+        # instancia minima do wizard para reutilizar save verify compile e blender
+        wizard = BedWizard()
+        # run cli devolve codigo de saida numerico para o sistema operativo
+        sys.exit(run_cli(wizard, sys.argv[1:]))
+    # sem flags cli abrimos o menu interativo classico
     wizard = BedWizard()
+    # run contem o loop do menu e todos os modos questionario template blender
     wizard.run()
 
+# quando executas python bed wizard py diretamente este bloco corre
+# quando importas bed wizard como modulo este bloco nao corre
 if __name__ == "__main__":
     main()

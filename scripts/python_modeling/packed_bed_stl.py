@@ -63,6 +63,10 @@ from modelo_cilindro import (  # noqa: E402
 
 from packed_bed_science.geometry_math import AnnulusBedDomain, estimate_porosity  # noqa: E402
 from packed_bed_science.packing_hexagonal import generate_hexagonal_packing  # noqa: E402
+from packed_bed_science.packing_modes import (  # noqa: E402
+    merge_root_packing_mode,
+    packing_method_from_section,
+)
 from packed_bed_science.packing_spherical import generate_spherical_packing  # noqa: E402
 from packed_bed_science.validation import validate_configuration  # noqa: E402
 
@@ -100,17 +104,7 @@ def _to_int(v: Any, default: int = 0) -> int:
 
 
 def _packing_method_name(packing: Dict[str, Any]) -> str:
-    # le o metodo de empacotamento e normaliza nomes
-    # packing pode ser vazio no json
-    # method aceita chave method ou packing method
-    # hexagonal3d e hexagonal-3d viram hexagonal_3d
-    if not packing:
-        return "rigid_body"
-    m = packing.get("method") or packing.get("packing_method") or "rigid_body"
-    s = str(m).strip().strip('"').lower()
-    if s in ("hexagonal3d", "hexagonal-3d"):
-        return "hexagonal_3d"
-    return s
+    return packing_method_from_section(packing)
 
 
 def _coerce_bool(v: Any, default: bool = True) -> bool:
@@ -137,6 +131,8 @@ def load_bed_json(path: Path) -> Dict[str, Any]:
     # secao packing tem metodo gravidade gap seeds e malha
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
+    if isinstance(data, dict):
+        merge_root_packing_mode(data)
     bed = data.get("bed") or {}
     particles = data.get("particles") or {}
     lids = data.get("lids") or {}
@@ -184,7 +180,7 @@ def load_bed_json(path: Path) -> Dict[str, Any]:
         "bottom_thickness": bottom_t,
         "top_thickness": top_t,
         "packing": packing,
-        "packing_method": _packing_method_name(packing),
+        "packing_method": packing_method_from_section(packing),
         "gap": gap_f,
         "random_seed": packing.get("random_seed"),
         "max_placement_attempts": _to_int(packing.get("max_placement_attempts"), 500_000),
