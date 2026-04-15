@@ -41,7 +41,9 @@ async def create_bed_full(
     db: Session = Depends(get_db),
     modeling_profile: str | None = Query(
         None,
-        description="blender ou python; None usa env MODELING_PROFILE",
+        description=(
+            "blender ou blender_python vs python ou pure_python; None usa env MODELING_PROFILE"
+        ),
     ),
     generate_model: bool = True,
     run_simulation: bool = False,
@@ -227,7 +229,9 @@ async def execute_full_pipeline_with_simulation(
     background_tasks: BackgroundTasks,
     modeling_profile: str | None = Query(
         None,
-        description="blender ou python; None usa env MODELING_PROFILE",
+        description=(
+            "blender ou blender_python vs python ou pure_python; None usa env MODELING_PROFILE"
+        ),
     ),
     db: Session = Depends(get_db),
 ):

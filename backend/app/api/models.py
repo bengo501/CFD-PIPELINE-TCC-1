@@ -105,7 +105,10 @@ class GenerateModelRequest(BaseModel):
     open_blender: bool = Field(False, description="abrir blender gui após gerar")
     modeling_profile: Optional[str] = Field(
         None,
-        description="blender ou python; None usa env MODELING_PROFILE",
+        description=(
+            "motor de geometria: blender ou blender_python (blend), "
+            "python ou pure_python (stl via packed_bed_stl); None usa env MODELING_PROFILE"
+        ),
     )
 
 class SimulationRequest(BaseModel):
@@ -115,7 +118,7 @@ class SimulationRequest(BaseModel):
     run_simulation: bool = Field(False, description="executar simulação imediatamente")
     modeling_profile: Optional[str] = Field(
         None,
-        description="informativo; geometria já deve ser .blend ou .stl coerente",
+        description="informativo; mesmo conjunto de aliases que em gerar modelo",
     )
 
 # modelos de job (tarefa assíncrona)

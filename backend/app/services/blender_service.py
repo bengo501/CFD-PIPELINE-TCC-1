@@ -9,6 +9,25 @@ from typing import Dict, Any, Optional
 from backend.app.api.models import JobStatus
 from backend.app import config as app_config
 
+
+def _normalize_modeling_profile(modeling_profile: Optional[str]) -> str:
+    # converte texto da api ou do config para um de dois motores internos
+    # modeling profile pode ser none entao cai no default global
+    # raw fica em minusculas sem espacos laterais
+    # pure python e python disparam o script packed bed stl sem blender
+    # blender python e blender disparam leito extracao com blender
+    # qualquer outro valor levanta erro cedo para o cliente corrigir o json
+    raw = (modeling_profile or app_config.MODELING_PROFILE or "blender").strip().lower()
+    if raw in ("pure_python", "python"):
+        return "python"
+    if raw in ("blender_python", "blender"):
+        return "blender"
+    raise ValueError(
+        f"modeling_profile invalido: {raw} "
+        "(use blender blender_python python ou pure_python)"
+    )
+
+
 class BlenderService:
     # prepara caminhos de saida tipicos generated 3d output
     def __init__(self):
@@ -88,9 +107,7 @@ class BlenderService:
         job = jobs_store[job_id]
         
         try:
-            profile = (modeling_profile or app_config.MODELING_PROFILE or "blender").strip().lower()
-            if profile not in ("blender", "python"):
-                raise ValueError(f"modeling_profile invalido: {profile} (use blender ou python)")
+            profile = _normalize_modeling_profile(modeling_profile)
 
             # atualizar status
             job.status = JobStatus.RUNNING

@@ -1,1 +1,1 @@
-# geração de geometria empacotada em python (sem blender)
+# geracao de geometria empacotada em python sem blender
