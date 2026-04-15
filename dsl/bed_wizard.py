@@ -1188,6 +1188,7 @@ cfd {
             r"C:\Program Files\Blender Foundation\Blender 3.6\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender 3.5\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender\blender.exe",
+            r"C:\Steam\steamapps\common\Blender\blender.exe",
         ]
         for path in candidates:
             if Path(path).exists():

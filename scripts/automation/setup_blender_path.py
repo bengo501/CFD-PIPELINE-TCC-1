@@ -22,6 +22,7 @@ class BlenderPathSetup: # classe para configurar o Blender no PATH
                 r"C:\Program Files\Blender Foundation\Blender 3.4",
                 r"C:\Program Files\Blender Foundation\Blender",
                 r"C:\Program Files (x86)\Blender Foundation\Blender",
+                r"C:\Steam\steamapps\common\Blender",
             ]
         elif self.system == "Linux": # linux 
             return [

@@ -1,2 +1,3 @@
 # interface do wizard no terminal (opcional mas recomendado)
 rich>=13.7.0
+antlr4-python3-runtime>=4.13.1

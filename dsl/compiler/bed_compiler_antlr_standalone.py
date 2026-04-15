@@ -32,8 +32,19 @@ try:
 except ImportError as e:
     # se nao conseguir importar, mostrar mensagem de erro e instrucoes
     print(f"aviso: antlr nao disponivel: {e}")
-    print("execute: java -jar antlr-4.13.1-complete.jar -Dlanguage=Python3 -o generated grammar/Bed.g4")
+    print("para habilitar o compilador antlr (.bed -> .json):")
+    print("  - instale o runtime python: pip install antlr4-python3-runtime")
+    print("  - (se precisar gerar os arquivos) execute:")
+    print("    java -jar antlr-4.13.1-complete.jar -Dlanguage=Python3 -o generated grammar/Bed.g4")
     ANTLR_AVAILABLE = False  # flag indicando que o antlr nao esta disponivel
+
+    # definir stubs minimos para evitar falha de import do modulo
+    # (o compile_bed_file ja bloqueia execucao quando ANTLR_AVAILABLE = False)
+    class ErrorListener:  # type: ignore
+        pass
+
+    class BedListener:  # type: ignore
+        pass
 
 # estruturas de dados para parametros do leito
 # cada classe representa uma secao do arquivo .bed
