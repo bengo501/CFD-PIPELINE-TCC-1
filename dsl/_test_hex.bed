@@ -22,6 +22,7 @@ particles {
     count = 80;
     target_porosity = 0.4;
     density = 2500.0 kg/m3;
+    restitution = 0.3;
     friction = 0.5;
     rolling_friction = 0.1;
     linear_damping = 0.1;
@@ -30,7 +31,7 @@ particles {
 }
 
 packing {
-    method = "hexagonal_3d";
+    method = "spherical_packing";
     gravity = -9.81 m/s2;
     substeps = 10;
     iterations = 10;
@@ -48,4 +49,14 @@ export {
     fluid_mode = "none";
     manifold_check = true;
     merge_distance = 0.001 m;
+}
+
+cfd {
+    regime = "laminar";
+    inlet_velocity = 0.1 m/s;
+    fluid_density = 1.225 kg/m3;
+    fluid_viscosity = 1.8e-05 Pa.s;
+    max_iterations = 1000;
+    convergence_criteria = 1e-06;
+    write_fields = false;
 }

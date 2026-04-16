@@ -200,7 +200,7 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
                 wizard.open_blender_gui_with_stl(stl)
         elif args.run_blender:
             fmt = export_formats_for_blender(wizard.params.get("export") or {})
-            ok, blend = wizard.run_blender_with_json_path(
+            ok, blend, _bl_out = wizard.run_blender_with_json_path(
                 out_json,
                 open_after=args.open_blender,
                 formats=fmt,
@@ -255,7 +255,7 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
 
     if want_blender:
         fmt = export_formats_for_blender(wizard.params.get("export") or {})
-        ok, blend = wizard.run_blender_with_json_path(
+        ok, blend, _bl_out = wizard.run_blender_with_json_path(
             json_path,
             open_after=args.open_blender,
             formats=fmt,
@@ -274,7 +274,7 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
             "executar blender agora para gerar o modelo 3d?", False
         ):
             fmt = export_formats_for_blender(wizard.params.get("export") or {})
-            ok, blend = wizard.run_blender_with_json_path(
+            ok, blend, _bl_out = wizard.run_blender_with_json_path(
                 json_path, open_after=False, formats=fmt
             )
             if ok and blend and wizard.get_boolean(

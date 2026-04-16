@@ -29,19 +29,14 @@
     "seed": 1
   },
   "packing": {
-    "method": "hexagonal_3d",
+    "method": "spherical_packing",
     "gravity": -9.81,
     "substeps": 10,
     "iterations": 10,
     "damping": 0.1,
     "rest_velocity": 0.01,
     "max_time": 5.0,
-    "collision_margin": 0.001,
-    "gap": 0.0001,
-    "strict_validation": true,
-    "mesh_segmentos": 24,
-    "sphere_lat": 3,
-    "sphere_lon": 5
+    "collision_margin": 0.001
   },
   "export": {
     "formats": [
@@ -67,6 +62,8 @@
   "_metadata": {
     "hash": "ecbb42c7",
     "compiler": "bed_compiler_antlr_standalone",
-    "input_file": "F:\\Game Projects\\Godot 4\\CFD-PIPELINE-TCC-2\\dsl\\_test_hex.bed"
-  }
+    "input_file": "C:\\Users\\joxto\\Downloads\\CFD-PIPELINE-TCC-2\\dsl\\_test_hex.bed"
+  },
+  "packing_mode": "spherical_packing",
+  "generation_backend": "pure_python"
 }

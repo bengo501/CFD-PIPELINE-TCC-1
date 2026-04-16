@@ -1,0 +1,27 @@
+{
+  "n_spheres": 80,
+  "r_ext": 0.025,
+  "r_int": 0.023,
+  "height": 0.1,
+  "packing_method": "spherical_packing",
+  "validation": {
+    "ok": true,
+    "n_spheres": 80,
+    "pair_violations": 0,
+    "domain_violations": 0,
+    "messages": []
+  },
+  "porosity_estimate": 0.9951675257731959,
+  "generation": {
+    "n_placed": 80,
+    "n_target": 80,
+    "attempts": 5586,
+    "elapsed_sec": 0.030827599999611266,
+    "acceptance_rate": 0.014321518080916577,
+    "stopped_reason": "ok"
+  },
+  "generation_wall_time_sec": 0.030847400004859082,
+  "gap_convention": "center_distance >= r1+r2+gap",
+  "n_spheres_requested": 80,
+  "n_spheres_placed": 80
+}

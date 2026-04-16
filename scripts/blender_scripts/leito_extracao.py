@@ -676,7 +676,7 @@ def main_com_parametros():
                 diametro,
                 esp_tampa_inf,
                 esp_tampa_sup,
-                top_has_collision=False,
+                top_has_collision=True,
             )
             print(f"esferas: {len(centers)} malhas mesh compartilhada")
             particulas = create_spheres(centers, raio_particula)
@@ -701,9 +701,9 @@ def main_com_parametros():
                 diametro=diametro,
                 espessura=esp_tampa_sup,
                 nome="tampa_superior",
-                tem_colisao=False,
+                tem_colisao=True,
             )
-            print("tampa superior sem colisao particulas atravessam")
+            print("tampa superior com colisao alinhada a inferior leito fechado")
 
             # criar particulas antigas sorteia posicoes acima do leito para a gravidade puxar
             raio_leito = raio_int

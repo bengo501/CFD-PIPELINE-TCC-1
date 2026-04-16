@@ -44,13 +44,13 @@ from packed_bed_science.packing_modes import (
 from wizard_json_loader import (
     export_formats_for_blender,
     json_to_wizard_params,
-    load_wizard_json,
     normalize_loaded_dict,
     patch_compiled_json_export,
     patch_compiled_json_metadata,
     patch_compiled_json_packing,
 )
 # listar nomes de templates json e carregar um template por nome
+from wizard_quick_tests import run as wizard_quick_tests_run
 from wizard_template_engine import list_template_names, load_template
 from wizard_terminal_ui import make_terminal_ui, rich_available
 
@@ -77,7 +77,7 @@ class BedWizard:
         ("6", "ajuda", "resumo dos parametros por secao"),
         ("7", "documentacao", "guia html no navegador"),
         ("8", "sair", "encerrar o wizard"),
-        ("9", "testes rapidos (json)", "fixtures _test_*.json + compile / blender"),
+        ("9", "testes rapidos", "json ou bed fluxo guiado pure python ou blender"),
     ]
     
     def __init__(self):
@@ -1225,8 +1225,9 @@ cfd {
         open_after: bool = False,
         formats: Optional[str] = None,
         output_blend: Optional[Path] = None,
-    ) -> Tuple[bool, Optional[Path]]:
+    ) -> Tuple[bool, Optional[Path], str]:
         # subprocesso blender background python leito extracao py
+        # terceiro elemento e stdout para preview no modo testes rapidos
         # json file e o params json ja com patch de packing cientifico
         # formats string virgula blend stl glb se none le do proprio json export
         # output blend destino do ficheiro principal se none derivado do stem do json
@@ -1251,15 +1252,15 @@ cfd {
 
             if not blender_script.exists():
                 print(f"erro: script blender nao encontrado: {blender_script}")
-                return False, None
+                return False, None, ""
             if not json_file.exists():
                 print(f"erro: arquivo json nao encontrado: {json_file}")
-                return False, None
+                return False, None, ""
 
             blender_exe = self.find_blender_executable()
             if not blender_exe:
                 print("erro: blender nao encontrado")
-                return False, None
+                return False, None, ""
 
             if formats is None:
                 try:
@@ -1299,20 +1300,20 @@ cfd {
                 if open_after:
                     print("\nabrindo modelo no blender...")
                     self.open_blender_with_file(blender_exe, output_blend)
-                return True, output_blend
+                return True, output_blend, result.stdout or ""
 
             print("\nerro: falha na geracao do modelo")
             print(f"codigo: {result.returncode}")
             if result.stderr:
                 print(result.stderr)
-            return False, None
+            return False, None, result.stdout or ""
 
         except subprocess.TimeoutExpired:
             print("erro: timeout na execucao do blender (limite: 10 minutos)")
-            return False, None
+            return False, None, ""
         except Exception as e:
             print(f"erro: {e}")
-            return False, None
+            return False, None, ""
 
     def open_blender_gui_with_blend(self, blend_file: Path) -> None:
         # atalho que resolve o executavel outra vez e delega em open blender with file
@@ -1389,7 +1390,10 @@ cfd {
                     fmt = export_formats_for_blender(_json.load(f).get("export") or {})
             except Exception:
                 fmt = None
-        return self.run_blender_with_json_path(json_file, open_after=open_after, formats=fmt)
+        ok, blend, _stdout = self.run_blender_with_json_path(
+            json_file, open_after=open_after, formats=fmt
+        )
+        return ok, blend
     
     def open_blender_with_file(self, blender_exe, blend_file):
         """abrir blender com arquivo especifico em modo gui"""
@@ -1412,106 +1416,8 @@ cfd {
             print(f"{blender_exe} {blend_file}")
     
     def tests_quick_menu(self) -> None:
-        # menu de testes rapidos
-        # ele procura todos os ficheiros iniciados por _test_ na pasta python modeling
-        # cada json define um modo de empacotamento e um backend de geracao
-        #
-        # o menu permite duas estrategias
-        # estrategia 1 gerar stl direto com pure python
-        # estrategia 2 gerar bed compilar com antlr e depois opcionalmente gerar stl
-        #
-        # tambem existe um filtro para mostrar apenas ficheiros com generation backend pure python
-        self.clear_screen()
-        self.print_header("testes rapidos", "fixtures em scripts/python_modeling")
-        self.ui.breadcrumbs("wizard", "testes")
-        fix_dir = _REPO_ROOT / "scripts" / "python_modeling"
-        all_files = sorted(fix_dir.glob("_test_*.json"))
-        if not all_files:
-            self.ui.err("nenhum _test_*.json encontrado")
-            self.ui.pause()
-            return
-        filt = self.ui.ask_line(
-            "filtro: 1 todos os json 2 apenas generation_backend pure_python [1]: "
-        ).strip()
-        if filt == "2":
-            files = []
-            for p in all_files:
-                try:
-                    d = load_wizard_json(p)
-                    gb = str(d.get("generation_backend") or "").lower()
-                    if gb == "pure_python":
-                        files.append(p)
-                except OSError:
-                    continue
-            if not files:
-                self.ui.warn("nenhum fixture pure_python encontrado mostrando todos")
-                files = all_files
-        else:
-            files = all_files
-        self.ui.println("ficheiros disponiveis:")
-        for i, p in enumerate(files, 1):
-            try:
-                d = load_wizard_json(p)
-                pm = d.get("packing_mode") or (d.get("packing") or {}).get("method") or "?"
-                gb = d.get("generation_backend") or "?"
-            except OSError:
-                pm = "?"
-                gb = "?"
-            self.ui.muted(f"  {i}. {p.name}  | modo: {pm}  | backend: {gb}")
-        self.ui.println()
-        raw = self.ui.ask_line(f"numero (1-{len(files)}) ou 0 voltar: ").strip()
-        if raw == "0" or raw == "":
-            return
-        try:
-            idx = int(raw) - 1
-            if not (0 <= idx < len(files)):
-                raise ValueError
-        except ValueError:
-            self.ui.warn("escolha invalida")
-            self.ui.pause()
-            return
-        chosen = files[idx]
-        data = load_wizard_json(chosen)
-        self.params = json_to_wizard_params(data)
-        fluxo = self.ui.ask_line(
-            "fluxo: 1 gerar stl python puro (rapido) 2 compilar .bed e json completo [1]: "
-        ).strip()
-        if fluxo == "2":
-            self.output_file = str((Path.cwd() / f"{chosen.stem}.bed").resolve())
-            do_blender = self.ui.confirm("executar blender apos compilar?", default=False)
-            if not self.generate_bed_file():
-                self.ui.err("falha ao gerar .bed")
-                self.ui.pause()
-                return
-            self.ui.section("compilando")
-            if not self.verify_and_compile():
-                self.ui.err("falha na compilacao")
-                self.ui.pause()
-                return
-            jpath = Path(str(Path(self.output_file).resolve()) + ".json")
-            patch_compiled_json_packing(jpath, self.params)
-            patch_compiled_json_export(jpath, self.params)
-            patch_compiled_json_metadata(jpath, self.params)
-            if do_blender:
-                fmt = export_formats_for_blender(self.params.get("export") or {})
-                ok, blend = self.run_blender_with_json_path(jpath, open_after=False, formats=fmt)
-                if ok and blend and self.ui.confirm(
-                    "gostaria de abrir o blender com o modelo gerado?", default=False
-                ):
-                    self.open_blender_gui_with_blend(blend)
-            else:
-                self.ui.ok(f"json pronto: {jpath}")
-            self.ui.pause("enter para voltar ao menu...")
-            return
-        out_stl = (Path.cwd() / f"{chosen.stem}_pure.stl").resolve()
-        ok, stl = self.run_pure_python_with_json_path(chosen, out_stl=out_stl)
-        if ok and stl and self.ui.confirm(
-            "gostaria de abrir o blender com o stl gerado?", default=False
-        ):
-            self.open_blender_gui_with_stl(stl)
-        elif ok:
-            self.ui.ok(f"stl gravado: {out_stl}")
-        self.ui.pause("enter para voltar ao menu...")
+        # delega no fluxo guiado wizard_quick_tests entrada backend modo execucao pos
+        wizard_quick_tests_run(self)
 
     def show_help_menu(self):
         """mostrar menu de ajuda com informacoes sobre parametros"""
@@ -1610,7 +1516,7 @@ cfd {
         # gerar modelo 3d no blender
         self.ui.section("etapa 3/5 — modelo 3d no blender")
         fmt = export_formats_for_blender(self.params.get("export") or {})
-        success, blend_file = self.run_blender_with_json_path(
+        success, blend_file, _blender_out = self.run_blender_with_json_path(
             json_path, open_after=False, formats=fmt
         )
         

@@ -245,6 +245,7 @@ def _legacy_generate_stl(p: Dict[str, Any], out_stl: Path, max_passos: int) -> N
         max_passos=max_passos,
     )
 
+    t_wall0 = time.perf_counter()
     # gera malha do tubo com tampas como no fluxo antigo
     malha_tubo = gera_malha_tubo_com_tampas(p_cil)
     verts, faces = _mesh_to_lists(malha_tubo)
@@ -281,6 +282,37 @@ def _legacy_generate_stl(p: Dict[str, Any], out_stl: Path, max_passos: int) -> N
         verts, faces = merge_mesh(verts, faces, sv, sf)
 
     write_stl_binary(out_stl, verts, faces)
+    elapsed = time.perf_counter() - t_wall0
+    preview_n = 12
+    # json lateral para o modo testes rapidos e para inspecao humana sem abrir stl
+    # report legacy vem de validate configuration que compara pares e limites do dominio
+    # sphere centers preview sao poucas linhas para tabela id x y z no terminal
+    # sphere centers histogram sao ate quinhentos pontos para barras de altura aproximadas
+    # isto nao repete a lista completa de centros para poupar tamanho em leitos grandes
+    sidecar: Dict[str, Any] = {
+        "packing_method": "rigid_body",
+        "validation": report_legacy,
+        "generation_wall_time_sec": elapsed,
+        "n_spheres_requested": p["particle_count"],
+        "n_spheres_placed": len(centers_chk),
+        "sphere_centers_preview": [
+            [float(c[0]), float(c[1]), float(c[2])] for c in centers_chk[:preview_n]
+        ],
+        "sphere_centers_histogram": [
+            [float(c[0]), float(c[1]), float(c[2])]
+            for c in centers_chk[: min(len(centers_chk), 500)]
+        ],
+        "generation": {
+            "mode": "legacy_python_rigid",
+            "max_passos": max_passos,
+        },
+        "pair_violations": report_legacy.get("pair_violations"),
+        "domain_violations": report_legacy.get("domain_violations"),
+    }
+    out_json = out_stl.parent / f"{out_stl.stem}_pure_bed.json"
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    with out_json.open("w", encoding="utf-8") as fp:
+        json.dump(sidecar, fp, indent=2, ensure_ascii=False)
 
 
 def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
@@ -401,16 +433,39 @@ def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
         lon_sphere=p["sphere_lon"],
     )
 
-    # extra metadados escritos ao lado do stl
+    preview_n = 12
+    gen_public = {k: v for k, v in gen.items() if k != "centers"}
+    attempts_i = gen.get("attempts")
+    reject_approx = None
+    if isinstance(attempts_i, (int, float)):
+        # no spherical packing cada tentativa falha conta como rejeicao aproximada
+        # tentativas aceites mais rejeicoes somam o total attempts do gerador
+        reject_approx = max(0, int(attempts_i) - len(centers))
+    # extra junta metadados ao packed bed model antes de export model data
+    # export escreve stl binario e opcionalmente este extra como ficheiro json lateral
+    # spherical e hexagonal passam por validate configuration depois dos geradores
+    # a validacao verifica cada par de esferas com distancia maior ou igual dois r mais gap
+    # tambem verifica cada centro dentro do anel cilindrico com folga para tampas
     extra: Dict[str, Any] = {
         "packing_method": method,
         "validation": report_val,
         "porosity_estimate": poros,
-        "generation": {k: v for k, v in gen.items() if k != "centers"},
+        "generation": gen_public,
         "generation_wall_time_sec": elapsed,
         "gap_convention": "center_distance >= r1+r2+gap",
         "n_spheres_requested": p["particle_count"],
         "n_spheres_placed": len(centers),
+        "sphere_centers_preview": [
+            [float(c[0]), float(c[1]), float(c[2])] for c in centers[:preview_n]
+        ],
+        "sphere_centers_histogram": [
+            [float(c[0]), float(c[1]), float(c[2])]
+            for c in centers[: min(len(centers), 500)]
+        ],
+        "pair_violations": report_val.get("pair_violations"),
+        "domain_violations": report_val.get("domain_violations"),
+        "placement_attempts_total": attempts_i,
+        "placement_rejections_approx": reject_approx,
     }
     # json opcional com mesmo nome base que stl mais sufixo pure bed
     out_json = out_stl.parent / f"{out_stl.stem}_pure_bed.json"

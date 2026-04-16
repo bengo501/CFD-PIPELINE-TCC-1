@@ -194,6 +194,36 @@ def json_to_wizard_params(data: Dict[str, Any]) -> Dict[str, Any]:
     return params
 
 
+def apply_quick_test_overrides(
+    json_path: Path,
+    *,
+    packing_method: Optional[str] = None,
+    generation_backend: Optional[str] = None,
+) -> None:
+    # usada pelo modo testes rapidos para alinhar ficheiro json ao menu sem editar a mao
+    # packing method escolhe entre spherical packing hexagonal 3d e rigid body
+    # generation backend escolhe entre pure python e blender
+    # normalize packing mode garante nomes canonicos iguais ao packed bed science
+    # normalize generation backend garante strings que o resto do pipeline reconhece
+    # normalize loaded dict reaplica merges de packing mode e backend na raiz por coerencia
+    path = Path(json_path).resolve()
+    with path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ValueError("json raiz deve ser um objeto")
+    if packing_method is not None:
+        pm = normalize_packing_mode(packing_method)
+        pack = dict(data.get("packing") or {})
+        pack["method"] = pm
+        data["packing"] = pack
+        data["packing_mode"] = pm
+    if generation_backend is not None:
+        data["generation_backend"] = normalize_generation_backend(generation_backend)
+    normalize_loaded_dict(data)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
 def patch_compiled_json_packing(
     json_path: Path, wizard_params: Dict[str, Any]
 ) -> None:
