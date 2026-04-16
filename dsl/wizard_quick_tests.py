@@ -4,6 +4,10 @@
 # passo tipico copiar json de trabalho ou compilar bed depois apply quick test overrides
 # depois opcionalmente gerar bed completo compilar patch e correr pure python ou blender
 # o utilizador escolhe cinco grupos entrada backend packing execucao pos execucao
+# integracao bed wizard chama run com self ui e params atualizados
+# integracao typer chama execute quick test noninteractive com caminhos e flags
+# spherical packing e hexagonal tres d escolhidos no menu viram packing method no json
+# rigid body so no blender com fisica queda e colisao de malhas
 # comentarios em minusculas sem acentos sem pontuacao final por linha
 from __future__ import annotations
 
@@ -200,6 +204,185 @@ def _exec_label(key: str) -> str:
     return "completa (.bed + json + modelo)" if key == "2" else "rapida (apenas modelo 3d)"
 
 
+def format_equivalent_test_command(
+    *,
+    input_path: Path,
+    backend: str,
+    packing: str,
+    quick: bool,
+    open_blender: bool,
+) -> str:
+    # monta linha sugerida para repetir o mesmo teste em modo nao interativo
+    parts = [
+        "bedwizard",
+        "test",
+        "--input",
+        str(input_path.resolve()),
+        "--backend",
+        backend,
+        "--mode",
+        packing,
+    ]
+    if not quick:
+        parts.append("--full")
+    if open_blender:
+        parts.append("--open-blender")
+    return " ".join(parts)
+
+
+def execute_quick_test_noninteractive(
+    wizard: "BedWizard",
+    *,
+    input_path: Path,
+    backend: Optional[str] = None,
+    packing: Optional[str] = None,
+    quick: bool = True,
+    open_blender: bool = False,
+    verbose: bool = False,
+) -> Tuple[int, str, str]:
+    # mesmo pipeline do run interativo sem perguntas nem pausa no fim
+    # usado pelo comando typer bedwizard test
+    # tuplo devolve codigo saida zero ok um erro backend final packing final para montar comando equivalente
+    # passo um resolver tipo de ficheiro json ou bed
+    # passo dois obter work json sempre via copia ou compilacao
+    # passo tres aplicar overrides de packing e generation backend no disco
+    # passo quatro ramo quick so modelo ou full regerar bed patch json
+    # passo cinco pure python gera stl e sidecar ou blender gera blend
+    # passo seis open blender opcional segundo flags
+    console = get_console(wizard.ui)
+    path = input_path.resolve()
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        input_is_json = True
+        original = path
+        # copia para cwd para nao corromper fixtures ao reescrever packing
+        with progress_phase(console, "copiar json de trabalho"):
+            work_json = _copy_work_json(original)
+            data_preview = load_wizard_json(work_json)
+    elif suffix == ".bed":
+        input_is_json = False
+        original = path
+        wizard.output_file = str(original)
+        with progress_phase(console, "compilar bed"):
+            if not wizard.verify_and_compile():
+                render_error_panel(console, "falha compilacao bed")
+                return 1, "", ""
+        work_json = _json_from_bed(Path(wizard.output_file))
+        if not work_json.is_file():
+            render_error_panel(console, f"json ausente {work_json}")
+            return 1, "", ""
+        data_preview = load_wizard_json(work_json)
+    else:
+        render_error_panel(console, "input deve ser ficheiro json ou bed")
+        return 1, "", ""
+
+    # se flags omitidas usamos defaults inferidos do conteudo do json
+    backend_final = backend if backend is not None else _map_backend(
+        _default_backend_key(data_preview)
+    )
+    packing_final = packing if packing is not None else _map_packing(
+        _default_packing_key(data_preview)
+    )
+
+    # esta funcao reescreve packing method e generation backend e normaliza dict
+    with progress_phase(console, "aplicar overrides packing e generation_backend"):
+        apply_quick_test_overrides(
+            work_json,
+            packing_method=packing_final,
+            generation_backend=backend_final,
+        )
+        data_final = load_wizard_json(work_json)
+        wizard.params = json_to_wizard_params(data_final)
+
+    if verbose:
+        render_technical_before(
+            console,
+            data_final,
+            input_label="json" if input_is_json else "bed",
+            input_path=str(original),
+            backend=backend_final,
+            packing=packing_final,
+            exec_label=_exec_label("2" if not quick else "1"),
+            post_label="abrir blender" if open_blender else "nao abrir",
+        )
+        ascii_pre = ascii_cross_section_schematic(
+            dict(data_final.get("bed") or {}),
+            dict(data_final.get("particles") or {}),
+            str(
+                data_final.get("packing_mode")
+                or (data_final.get("packing") or {}).get("method")
+                or "?"
+            ),
+            backend_final,
+        )
+        render_ascii_section(console, ascii_pre)
+
+    run_json = work_json
+    t_run0 = time.perf_counter()
+
+    if not quick:
+        with progress_phase(console, "gerar bed compilar patch"):
+            if input_is_json:
+                out_bed = (Path.cwd() / f"{original.stem}.bed").resolve()
+            else:
+                out_bed = original
+            wizard.output_file = str(out_bed)
+            if not wizard.generate_bed_file():
+                render_error_panel(console, "falha ao gerar bed")
+                return 1, backend_final, packing_final
+            if not wizard.verify_and_compile():
+                render_error_panel(console, "falha na compilacao")
+                return 1, backend_final, packing_final
+            run_json = _json_from_bed(Path(wizard.output_file))
+            patch_compiled_json_packing(run_json, wizard.params)
+            patch_compiled_json_export(run_json, wizard.params)
+            patch_compiled_json_metadata(run_json, wizard.params)
+
+    # post key dois abre gui logo tres nunca abre um modo cli nao pergunta interativamente
+    post_key = "2" if open_blender else "3"
+
+    if backend_final == "pure_python":
+        out_stl = (Path.cwd() / f"{run_json.stem}_pure.stl").resolve()
+        with progress_phase(console, "gerar stl python puro"):
+            ok, stl = wizard.run_pure_python_with_json_path(run_json, out_stl=out_stl)
+        wall = time.perf_counter() - t_run0
+        if not ok or not stl:
+            render_error_panel(console, "falha na geracao python pura")
+            return 1, backend_final, packing_final
+        bd = float((dict(data_final.get("bed") or {}).get("diameter") or 0) or 0)
+        _render_after_pure(
+            console,
+            sidecar_path=sidecar_path_for_stl(stl),
+            stl_path=stl,
+            wall_s=wall,
+            backend_effective="pure_python",
+            packing_effective=packing_final,
+            bed_diameter=bd,
+        )
+        _open_blender_after(wizard, console, post_key=post_key, stl=stl, blend=None)
+    else:
+        fmt = export_formats_for_blender(wizard.params.get("export") or {})
+        with progress_phase(console, "executar blender"):
+            ok, blend, bout = wizard.run_blender_with_json_path(
+                run_json, open_after=False, formats=fmt
+            )
+        wall = time.perf_counter() - t_run0
+        if not ok:
+            render_error_panel(console, "falha no blender")
+            return 1, backend_final, packing_final
+        _render_after_blender(
+            console,
+            stdout=bout or "",
+            blend_path=blend,
+            wall_s=wall,
+            backend_effective="blender",
+            packing_effective=packing_final,
+        )
+        _open_blender_after(wizard, console, post_key=post_key, stl=None, blend=blend)
+
+    return 0, backend_final, packing_final
+
+
 def _open_blender_after(
     wizard: "BedWizard",
     *,
@@ -340,6 +523,13 @@ class QuickTestConfig:
 def run(wizard: "BedWizard") -> None:
     # funcao principal chamada pelo tests quick menu do bed wizard
     # ordem fixa cinco passos depois resumo depois confirmar depois ramo pure ou blender
+    # passo um tipo entrada json fixture ou bed local
+    # passo dois backend pure python valida geometria rapido ou blender cena completa
+    # passo tres packing method alinha com packed bed science
+    # passo quatro execucao rapida ou completa
+    # passo cinco pos execucao abrir blender ou nao
+    # packing spherical e hexagonal usam distancia minima entre centros no motor cientifico
+    # packing rigid body delega colisao ao motor de fisica blender
     ui = wizard.ui
     console = get_console(ui)
     wizard.clear_screen()
@@ -547,6 +737,7 @@ def run(wizard: "BedWizard") -> None:
     ascii_pre = ascii_cross_section_schematic(bed, particles, pm, backend)
     render_ascii_section(console, ascii_pre)
 
+    # texto mostrado ao utilizador sobre onde a colisao e verificada
     collision_note = (
         "regras: spherical_packing e hexagonal_3d validam sem sobreposicao no motor cientifico; "
         "rigid_body no blender usa corpos rigidos com colisao em paredes e tampas."

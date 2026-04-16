@@ -1831,21 +1831,12 @@ cfd {
                 self.ui.pause("enter para voltar ao menu...")
 
 def main():
-    """entrada do programa import tardio evita ciclo se wizard cli importar este modulo"""
-    # import dentro da funcao so corre quando main e chamada
-    from wizard_cli import run_cli, should_hand_off_to_cli
+    """entrada unifica typer rich comandos e legado argparse via dispatch main"""
+    if str(_DSL_DIR) not in sys.path:
+        sys.path.insert(0, str(_DSL_DIR))
+    from cli.app import dispatch_main
 
-    # argumentos sem o nome do script contem apenas flags e valores passados pelo usuario
-    # should hand off verifica se ha flag tipo load json spec template ou help
-    if should_hand_off_to_cli():
-        # instancia minima do wizard para reutilizar save verify compile e blender
-        wizard = BedWizard()
-        # run cli devolve codigo de saida numerico para o sistema operativo
-        sys.exit(run_cli(wizard, sys.argv[1:]))
-    # sem flags cli abrimos o menu interativo classico
-    wizard = BedWizard()
-    # run contem o loop do menu e todos os modos questionario template blender
-    wizard.run()
+    sys.exit(dispatch_main())
 
 # quando executas python bed wizard py diretamente este bloco corre
 # quando importas bed wizard como modulo este bloco nao corre

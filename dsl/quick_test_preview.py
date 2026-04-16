@@ -1,9 +1,9 @@
-# este modulo prepara textos e listas numericas para o modo testes rapidos
-# nao gera malha 3d so le json lateral e desenha ascii no terminal
-# os modos spherical packing e hexagonal 3d sao gerados noutro sitio em pure generation
-# la a colisao usa distancia entre centros maior ou igual a dois raios mais gap
-# spherical sorteia pontos ate aceitar ou esgotar tentativas
-# hexagonal corta uma grade regular pelo dominio cilindrico anular
+# prepara textos e listas numericas para o modo testes rapidos no terminal
+# nao gera malha tres d so le json lateral e desenha ascii
+# os modos spherical packing e hexagonal tres d sao executados em pure generation ou blender
+# la a colisao geometrica usa distancia entre centros maior ou igual a dois raios mais gap
+# spherical sorteia candidatos e rejeita sobreposicao
+# hexagonal gera grade regular e filtra pelo dominio cilindrico anular
 from __future__ import annotations
 
 import json
@@ -14,16 +14,15 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 
 def sidecar_path_for_stl(out_stl: Path) -> Path:
-    # entrada out stl e o caminho do ficheiro stl que o python puro acabou de escrever
-    # saida e o json com o mesmo stem mais sufixo fixo pure bed
-    # o export model data em pure generation segue esta convencao de nome
+    # out stl e o caminho do ficheiro stl escrito pelo gerador python puro
+    # devolve o json com mesmo stem e sufixo fixo pure bed
+    # pure generation segue esta convencao ao exportar metricas
     stl = Path(out_stl)
     return stl.parent / f"{stl.stem}_pure_bed.json"
 
 
 def load_sidecar(path: Path) -> Optional[Dict[str, Any]]:
-    # tenta ler um json utf8 e devolve dict ou none se falhar
-    # p pode ser qualquer caminho o Path normaliza ao usar
+    # le json utf8 e devolve dict ou none se ficheiro ausente ou json invalido
     p = Path(path)
     if not p.is_file():
         return None
@@ -36,9 +35,9 @@ def load_sidecar(path: Path) -> Optional[Dict[str, Any]]:
 
 
 def centers_for_histogram(obj: Dict[str, Any]) -> List[Tuple[float, float, float]]:
-    # prefere a lista longa sphere centers histogram ate quinhentos pontos
-    # serve para barras de altura sem guardar todas as esferas em ficheiros enormes
-    # se nao existir cai em centers from sidecar que usa a amostra curta
+    # prefere lista sphere centers histogram ate quinhentos pontos quando existe
+    # evita carregar todas as esferas so para desenhar barras no terminal
+    # se nao existir cai em centers from sidecar com amostra curta
     hist = obj.get("sphere_centers_histogram")
     if isinstance(hist, list) and hist:
         out: List[Tuple[float, float, float]] = []
@@ -51,8 +50,8 @@ def centers_for_histogram(obj: Dict[str, Any]) -> List[Tuple[float, float, float
 
 
 def centers_from_sidecar(obj: Dict[str, Any]) -> List[Tuple[float, float, float]]:
-    # extrai xyz de listas aninhadas no json lateral
-    # ordem de preferencia e preview curto depois chaves legadas
+    # extrai coordenadas xyz de varias chaves possiveis no json lateral
+    # ordem preview curto depois chaves legadas generation centers etc
     prev = obj.get("sphere_centers_preview")
     if isinstance(prev, list) and prev:
         out: List[Tuple[float, float, float]] = []
@@ -89,10 +88,10 @@ def height_distribution_lines(
     nbins: int = 6,
     bar_width: int = 28,
 ) -> List[str]:
-    # divide o eixo z em nbins faixas conta quantas esferas caem em cada faixa
-    # z de cada esfera e o terceiro numero do centro xyz
-    # a barra ascii usa hashtag proporcional ao maximo da coluna
-    # isto nao substitui histograma cientifico so ajuda a ver empilhamento rapido
+    # divide eixo z em nbins faixas conta esferas por faixa
+    # terceira coordenada de cada tupla e z
+    # barra ascii usa hashtag proporcional ao maximo da coluna
+    # visual rapido nao substitui histograma cientifico completo
     if z_hi <= z_lo or nbins < 1:
         return ["intervalo z invalido"]
     if not centers:
@@ -125,9 +124,8 @@ def ascii_cross_section_schematic(
     backend_label: str,
     width: int = 44,
 ) -> str:
-    # desenho muito simples de uma faixa horizontal com paredes verticais
-    # nao calcula posicao real das esferas so mostra numeros do json
-    # serve como cabecalho visual antes de correr o motor pesado
+    # esquema textual de uma faixa com paredes nao usa posicoes reais das esferas
+    # mostra diametro altura count e packing antes de correr motor pesado
     d = float(bed.get("diameter") or 0.0)
     h = float(bed.get("height") or 0.0)
     pd = float(particles.get("diameter") or 0.0)
@@ -157,10 +155,10 @@ def ascii_cross_section_with_particles(
     centers_xy: Sequence[Tuple[float, float, float]],
     grid: int = 31,
 ) -> str:
-    # vista de cima aproximada projeta x y das esferas num quadrado
-    # o circulo de raio externo do leito mapeia para um disco na grade
-    # asterisco marca celula com particula cardinalidade pode perder se duas caem na mesma celula
-    # tralha marca anel de parede aproximado nao e malha cad exata
+    # vista de cima aproximada projeta x y num quadrado de caracteres
+    # raio externo do leito mapeia para disco na grade
+    # asterisco marca celula com particula duas no mesmo pixel colapsam
+    # tralha marca anel de parede aproximado sem precisao cad
     d = float(bed.get("diameter") or 0.0)
     r_ext = d / 2.0
     if r_ext <= 0:
@@ -200,8 +198,7 @@ def ascii_cross_section_with_particles(
 
 
 def preview_before_from_dict(data: Dict[str, Any], backend_label: str) -> None:
-    # funcao legada que imprime direto no stdout sem rich
-    # o fluxo novo prefere ascii cross section schematic via quick test rich
+    # legado imprime stdout direto fluxo novo prefere rich
     bed = dict(data.get("bed") or {})
     particles = dict(data.get("particles") or {})
     packing = dict(data.get("packing") or {})
@@ -212,7 +209,7 @@ def preview_before_from_dict(data: Dict[str, Any], backend_label: str) -> None:
 
 
 def preview_after_pure_sidecar(sidecar_path: Path, limit: int = 5) -> None:
-    # impressao simples depois da geracao util para scripts sem wizard
+    # util para scripts sem wizard mostrar metricas pos geracao
     p = Path(sidecar_path)
     print("\n--- preview (depois, python puro) ---")
     obj = load_sidecar(p)
@@ -245,7 +242,7 @@ def preview_after_pure_sidecar(sidecar_path: Path, limit: int = 5) -> None:
 
 
 def preview_after_blender_note(stdout_tail: Optional[str] = None) -> None:
-    # quando nao ha json lateral do blender mostramos so o rabo do stdout
+    # quando nao ha json lateral mostramos rabo do stdout do subprocesso
     print("\n--- preview (depois, blender) ---")
     if stdout_tail:
         lines = stdout_tail.strip().splitlines()

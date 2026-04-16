@@ -200,26 +200,35 @@ def apply_quick_test_overrides(
     packing_method: Optional[str] = None,
     generation_backend: Optional[str] = None,
 ) -> None:
-    # usada pelo modo testes rapidos para alinhar ficheiro json ao menu sem editar a mao
-    # packing method escolhe entre spherical packing hexagonal 3d e rigid body
-    # generation backend escolhe entre pure python e blender
-    # normalize packing mode garante nomes canonicos iguais ao packed bed science
-    # normalize generation backend garante strings que o resto do pipeline reconhece
-    # normalize loaded dict reaplica merges de packing mode e backend na raiz por coerencia
+    # objetivo escrever no disco o mesmo json que o utilizador veria depois do menu testes rapidos
+    # packing method quando nao e none vira o campo packing method canonico
+    # generation backend quando nao e none vira pure python ou blender na raiz
+    # o ficheiro e lido inteiro alterado em memoria e gravado de volta com indentacao estavel
+    # normalize loaded dict recalcula campos derivados como packing mode resumo e backend
     path = Path(json_path).resolve()
+    # leitura utf8 evita surpresas com caracteres nao ascii em caminhos ou notas
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
+    # raiz tem de ser objeto para podermos atribuir chaves packing e generation backend
     if not isinstance(data, dict):
         raise ValueError("json raiz deve ser um objeto")
+    # ramo packing so corre se o chamador pediu mudanca explicita
     if packing_method is not None:
+        # pm e a string final aceite pelo motor spherical packing hexagonal 3d ou rigid body
         pm = normalize_packing_mode(packing_method)
+        # copia dict existente para nao partilhar referencia acidental com outras estruturas
         pack = dict(data.get("packing") or {})
+        # method dentro de packing e o que pure generation e blender leem primeiro
         pack["method"] = pm
         data["packing"] = pack
+        # packing mode na raiz e redundancia util para menus e patches rapidos
         data["packing_mode"] = pm
+    # ramo backend alinha gerador stl local versus cena blender
     if generation_backend is not None:
         data["generation_backend"] = normalize_generation_backend(generation_backend)
+    # reforca coerencia entre dicts internos e campos resumo no topo do json
     normalize_loaded_dict(data)
+    # grava pretty print sem escapar unicode em nomes de ficheiro ou strings livres
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 

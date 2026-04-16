@@ -573,6 +573,13 @@ def main_com_parametros():
         else:
             gap = _coerce_float(packing_raw.get("collision_margin"), 0.0)
 
+        # ramo cientifico spherical packing ou hexagonal tres d
+        # diferente do rigid body nao ha queda nem bake de fisica blender
+        # passos mentais ler parametros montar domain igual ao pure generation
+        # chamar generate spherical packing ou generate hexagonal packing
+        # validate configuration confere pares e dominio com a mesma matematica python
+        # depois create hollow cylinder create caps e create spheres materializam na cena
+        # gap e distancia extra entre superficies exigida entre centros usamos sphere center clearance no gerador
         if metodo in ("spherical_packing", "hexagonal_3d"):
             # aqui nao rodamos rigid body nem bake porque as posicoes ja sao finais
             print("modo cientifico: sem simulacao fisica rigid body")
@@ -591,6 +598,7 @@ def main_com_parametros():
             # mede tempo de cpu do gerador para comparar metodos no relatorio
             t0_gen = time.perf_counter()
             if metodo == "spherical_packing":
+                # monte carlo com rejeicao ver packed bed science packing spherical
                 # seed pode vir do packing ou cair no seed das particles do dsl
                 seed = packing_raw.get("random_seed")
                 if seed is None:
@@ -606,6 +614,7 @@ def main_com_parametros():
                     max_placement_attempts=max_att,
                 )
             else:
+                # grade hexagonal filtrada ver packed bed science packing hexagonal
                 # passo opcional da grade se ausente o modulo usa dois r mais gap
                 step_x_opt = packing_raw.get("step_x")
                 step_x_f = (
@@ -629,6 +638,7 @@ def main_com_parametros():
 
             # strict true faz o script levantar erro se geometria invalida ou faltar esferas no modo esferico
             strict = _coerce_bool(packing_raw.get("strict_validation"), True)
+            # validate configuration percorre pares e checa point in domain de novo
             report_val = validate_configuration(centers, radii, domain, gap)
 
             poros = estimate_porosity(domain, centers, raio_particula)
