@@ -1,9 +1,10 @@
 {
   "packing_mode": "spherical_packing",
+  "generation_backend": "pure_python",
   "bed": {
-    "diameter": 0.05,
+    "r_outer": 0.025,
+    "r_inner": 0.023,
     "height": 0.1,
-    "wall_thickness": 0.002,
     "clearance": 0.01,
     "material": "steel",
     "roughness": 0.0

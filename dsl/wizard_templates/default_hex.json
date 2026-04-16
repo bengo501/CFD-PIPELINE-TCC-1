@@ -1,5 +1,6 @@
 {
   "packing_mode": "hexagonal_3d",
+  "generation_backend": "pure_python",
   "bed": {
     "diameter": 0.06,
     "height": 0.12,

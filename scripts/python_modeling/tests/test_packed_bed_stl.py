@@ -17,6 +17,8 @@ def test_load_bed_json_spherical_fixture():
     assert p["particle_count"] == 40
     assert p["gap"] == pytest.approx(0.0001)
     assert p["strict_validation"] is True
+    assert p["diameter"] == pytest.approx(0.05)
+    assert p["wall_thickness"] == pytest.approx(0.002)
 
 
 def test_load_bed_json_hex_fixture():
@@ -25,7 +27,7 @@ def test_load_bed_json_hex_fixture():
 
 
 def test_load_bed_json_rigid_fixture():
-    p = pbs.load_bed_json(FIXTURES / "_test_rigid.json")
+    p = pbs.load_bed_json(FIXTURES / "_test_rigidbody.json")
     assert p["packing_method"] == "rigid_body"
 
 
@@ -68,7 +70,7 @@ def test_generate_science_writes_stl_and_optional_json(
 def test_generate_legacy_rigid_writes_stl(tmp_path: Path):
     out = tmp_path / "out_rigid.stl"
     pbs.generate_packed_bed_stl(
-        FIXTURES / "_test_rigid.json",
+        FIXTURES / "_test_rigidbody.json",
         out,
         max_passos=5_000,
     )

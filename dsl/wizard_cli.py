@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -22,6 +23,7 @@ from wizard_json_loader import (  # noqa: E402
     normalize_loaded_dict,
     parse_spec,
     patch_compiled_json_export,
+    patch_compiled_json_metadata,
     patch_compiled_json_packing,
     resolve_repo_path,
 )
@@ -83,6 +85,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         metavar="PATH",
         help="com skip compile gravar json merged aqui padrao cwd cli run json",
     )
+    p.add_argument(
+        "--pure-python",
+        action="store_true",
+        help="apos json final usar gerador packed_bed_stl em python puro",
+    )
     return p
 
 
@@ -121,6 +128,26 @@ def _resolve_data_from_args(
     return data, label, source or Path(".")
 
 
+def _cli_json_for_disk(data: Dict[str, Any], wizard_params: Dict[str, Any]) -> Dict[str, Any]:
+    # alinha bed e metadados com o que o wizard usa para compilacao e pure python
+    # este helper e usado apenas quando o user passa --skip-compile
+    # nesse caso o pipeline nao gera o arquivo bed e nem passa pelo antlr
+    # entao precisamos gravar um json final que o gerador pure python consiga ler
+    out = deepcopy(data)
+    out["bed"] = dict(wizard_params.get("bed") or {})
+    if wizard_params.get("generation_backend") is not None:
+        out["generation_backend"] = wizard_params["generation_backend"]
+    if wizard_params.get("packing_mode") is not None:
+        out["packing_mode"] = wizard_params["packing_mode"]
+    return out
+
+
+def _wants_pure_python(args: argparse.Namespace, wizard_params: Dict[str, Any]) -> bool:
+    if args.pure_python:
+        return True
+    return str(wizard_params.get("generation_backend") or "") == "pure_python"
+
+
 def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
     # wizard e instancia BedWizard ja criada para reutilizar generate bed verify compile blender
     # argv omitido usa padrao do argparse
@@ -141,16 +168,37 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
     wizard.output_file = str(out_bed)
 
     if args.skip_compile:
+        # modo skip compile significa
+        # 1 o sistema grava um json final no disco
+        # 2 se generation_backend indicar pure python
+        #    a geometria stl e gerada direto pelo modulo pure generation
+        # 3 se nao indicar ou se o user pedir blender usamos o fluxo do blender
         out_json = (
             resolve_repo_path(args.output_json)
             if args.output_json
             else (Path.cwd() / "cli_run.json").resolve()
         )
+        disk = _cli_json_for_disk(data, wizard.params)
         with out_json.open("w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+            json.dump(disk, f, indent=2, ensure_ascii=False)
         wizard.output_file = str(out_bed)
         print(f"json gravado: {out_json}")
-        if args.run_blender:
+        want_pure = _wants_pure_python(args, wizard.params)
+        if want_pure:
+            ok, stl = wizard.run_pure_python_with_json_path(out_json)
+            if not ok:
+                return 1
+            if stl and (
+                args.open_blender
+                or (
+                    not args.no_prompt
+                    and wizard.get_boolean(
+                        "gostaria de abrir o blender com o stl gerado?", False
+                    )
+                )
+            ):
+                wizard.open_blender_gui_with_stl(stl)
+        elif args.run_blender:
             fmt = export_formats_for_blender(wizard.params.get("export") or {})
             ok, blend = wizard.run_blender_with_json_path(
                 out_json,
@@ -181,8 +229,31 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
     json_path = Path(str(Path(wizard.output_file).resolve()) + ".json")
     patch_compiled_json_packing(json_path, wizard.params)
     patch_compiled_json_export(json_path, wizard.params)
+    patch_compiled_json_metadata(json_path, wizard.params)
 
-    if args.run_blender or args.open_blender:
+    want_pure = _wants_pure_python(args, wizard.params)
+    want_blender = args.run_blender or args.open_blender
+    # aqui o cli decide o que fazer com o json compilado
+    # se want_pure for true
+    # chamamos o gerador stl sem blender
+    # depois opcionalmente abrimos o blender com o arquivo stl
+    # se want_blender for true
+    # chamamos o blender para gerar os formatos configurados
+
+    if want_pure:
+        ok, stl = wizard.run_pure_python_with_json_path(json_path)
+        if not ok:
+            return 1
+        if stl and (
+            args.open_blender
+            or (
+                not args.no_prompt
+                and wizard.get_boolean("gostaria de abrir o blender com o stl gerado?", False)
+            )
+        ):
+            wizard.open_blender_gui_with_stl(stl)
+
+    if want_blender:
         fmt = export_formats_for_blender(wizard.params.get("export") or {})
         ok, blend = wizard.run_blender_with_json_path(
             json_path,
@@ -198,7 +269,7 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
             and wizard.get_boolean("gostaria de abrir o blender com o modelo gerado?", False)
         ):
             wizard.open_blender_gui_with_blend(blend)
-    else:
+    elif not want_pure:
         if not args.no_prompt and wizard.get_boolean(
             "executar blender agora para gerar o modelo 3d?", False
         ):
@@ -210,6 +281,14 @@ def run_cli(wizard: Any, argv: Optional[list[str]] = None) -> int:
                 "gostaria de abrir o blender com o modelo gerado?", False
             ):
                 wizard.open_blender_gui_with_blend(blend)
+        elif not args.no_prompt and wizard.get_boolean(
+            "gerar stl em python puro agora (sem blender)?", False
+        ):
+            ok, stl = wizard.run_pure_python_with_json_path(json_path)
+            if ok and stl and wizard.get_boolean(
+                "gostaria de abrir o blender com o stl gerado?", False
+            ):
+                wizard.open_blender_gui_with_stl(stl)
 
     return 0
 

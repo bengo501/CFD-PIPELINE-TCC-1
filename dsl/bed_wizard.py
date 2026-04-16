@@ -30,6 +30,10 @@ _BLENDER_SCRIPTS = _REPO_ROOT / "scripts" / "blender_scripts"
 # inserir esse caminho no inicio de sys path para importar packed bed science como pacote
 if str(_BLENDER_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_BLENDER_SCRIPTS))
+# gerador stl python puro packed bed stl
+_PY_MODEL = _REPO_ROOT / "scripts" / "python_modeling"
+if str(_PY_MODEL) not in sys.path:
+    sys.path.insert(0, str(_PY_MODEL))
 
 # ignorar aviso e402 imports apos codigo sao intencionais porque o path vem antes
 from packed_bed_science.packing_modes import (
@@ -43,6 +47,7 @@ from wizard_json_loader import (
     load_wizard_json,
     normalize_loaded_dict,
     patch_compiled_json_export,
+    patch_compiled_json_metadata,
     patch_compiled_json_packing,
 )
 # listar nomes de templates json e carregar um template por nome
@@ -626,6 +631,22 @@ class BedWizard:
                     patch_compiled_json_packing(jpath, self.params)
                     # recoloca formatos de export pedidos pelo usuario stl obj etc
                     patch_compiled_json_export(jpath, self.params)
+                    patch_compiled_json_metadata(jpath, self.params)
+                    # aqui usamos o metadado generation_backend
+                    # se ele for pure_python entao o pipeline pode gerar o stl em python puro
+                    # isso evita depender de um passo extra dentro do blender
+                    gb = str(self.params.get("generation_backend") or "")
+                    if gb == "pure_python" and self.ui.confirm(
+                        "gerar stl em python puro agora?", default=True
+                    ):
+                        out_stl = (
+                            Path.cwd() / f"{Path(self.output_file).stem}_pure.stl"
+                        ).resolve()
+                        ok, stl = self.run_pure_python_with_json_path(jpath, out_stl=out_stl)
+                        if ok and stl and self.ui.confirm(
+                            "gostaria de abrir o blender com o stl gerado?", default=False
+                        ):
+                            self.open_blender_gui_with_stl(stl)
                 # termina template mode neste fluxo sem abrir editor temporario
                 return
         
@@ -1133,6 +1154,7 @@ cfd {
         jpath = Path(str(Path(self.output_file).resolve()) + ".json")
         patch_compiled_json_packing(jpath, self.params)
         patch_compiled_json_export(jpath, self.params)
+        patch_compiled_json_metadata(jpath, self.params)
 
         self.ui.section("executando blender")
         ok, blend_path = self.execute_blender(open_after=False)
@@ -1167,6 +1189,7 @@ cfd {
         jpath = Path(str(Path(self.output_file).resolve()) + ".json")
         patch_compiled_json_packing(jpath, self.params)
         patch_compiled_json_export(jpath, self.params)
+        patch_compiled_json_metadata(jpath, self.params)
 
         self.ui.section("executando blender")
         success, blend_file = self.execute_blender(open_after=True)
@@ -1299,6 +1322,58 @@ cfd {
         else:
             print("aviso: blender nao encontrado para abrir o ficheiro")
 
+    def run_pure_python_with_json_path(
+        self,
+        json_file: Path,
+        out_stl: Optional[Path] = None,
+        max_passos: int = 12000,
+    ) -> Tuple[bool, Optional[Path]]:
+        # esta funcao e o ponto unico para gerar geometria 3d
+        # em modo pure python
+        #
+        # ela recebe um json que contem os parametros do leito
+        # esse json pode ser um json compilado pelo antlr
+        # ou pode ser um json criado no modo skip compile
+        #
+        # depois ela chama o modulo packed bed stl
+        # esse modulo escolhe o gerador certo com base em packing method
+        # depois ele faz validacao de colisoes e limites
+        # e no final ele exporta um ficheiro stl
+        from packed_bed_stl import generate_packed_bed_stl
+
+        # resolve para um caminho absoluto
+        # isso evita problemas quando o cwd muda
+        json_file = Path(json_file).resolve()
+        if not json_file.is_file():
+            print(f"erro: json nao encontrado: {json_file}")
+            return False, None
+        if out_stl is None:
+            # se o usuario nao escolheu destino usamos um nome derivado do json
+            out_stl = (Path.cwd() / f"{json_file.stem}_pure.stl").resolve()
+        else:
+            # se foi passado destino usamos esse valor
+            out_stl = Path(out_stl).resolve()
+        # garantimos que a pasta destino existe
+        out_stl.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            # aqui ocorre a geracao de stl em python puro
+            print(f"geracao python puro: json={json_file}")
+            print(f"saida stl: {out_stl}")
+            generate_packed_bed_stl(json_file, out_stl, max_passos=max_passos)
+            print("sucesso: stl gerado em python puro")
+            return True, out_stl
+        except Exception as e:
+            # em caso de erro devolvemos falha e nao bloqueamos o menu
+            print(f"erro na geracao python pura: {e}")
+            return False, None
+
+    def open_blender_gui_with_stl(self, stl_file: Path) -> None:
+        exe = self.find_blender_executable()
+        if exe:
+            self.open_blender_with_file(exe, stl_file)
+        else:
+            print("aviso: blender nao encontrado para abrir o stl")
+
     def execute_blender(self, open_after=False):
         # compatibilidade com fluxos antigos que assumem self output file bed
         # o json e sempre output file absoluto mais sufixo json
@@ -1337,28 +1412,52 @@ cfd {
             print(f"{blender_exe} {blend_file}")
     
     def tests_quick_menu(self) -> None:
-        # menu9 do wizard
-        # glob test json na pasta python modeling
-        # mostra indice nome ficheiro e modo packing lido do json
-        # carrega json converte para self params gera bed compila patch
-        # pergunta se corre blender e se abre gui no fim
+        # menu de testes rapidos
+        # ele procura todos os ficheiros iniciados por _test_ na pasta python modeling
+        # cada json define um modo de empacotamento e um backend de geracao
+        #
+        # o menu permite duas estrategias
+        # estrategia 1 gerar stl direto com pure python
+        # estrategia 2 gerar bed compilar com antlr e depois opcionalmente gerar stl
+        #
+        # tambem existe um filtro para mostrar apenas ficheiros com generation backend pure python
         self.clear_screen()
         self.print_header("testes rapidos", "fixtures em scripts/python_modeling")
         self.ui.breadcrumbs("wizard", "testes")
         fix_dir = _REPO_ROOT / "scripts" / "python_modeling"
-        files = sorted(fix_dir.glob("_test_*.json"))
-        if not files:
+        all_files = sorted(fix_dir.glob("_test_*.json"))
+        if not all_files:
             self.ui.err("nenhum _test_*.json encontrado")
             self.ui.pause()
             return
+        filt = self.ui.ask_line(
+            "filtro: 1 todos os json 2 apenas generation_backend pure_python [1]: "
+        ).strip()
+        if filt == "2":
+            files = []
+            for p in all_files:
+                try:
+                    d = load_wizard_json(p)
+                    gb = str(d.get("generation_backend") or "").lower()
+                    if gb == "pure_python":
+                        files.append(p)
+                except OSError:
+                    continue
+            if not files:
+                self.ui.warn("nenhum fixture pure_python encontrado mostrando todos")
+                files = all_files
+        else:
+            files = all_files
         self.ui.println("ficheiros disponiveis:")
         for i, p in enumerate(files, 1):
             try:
                 d = load_wizard_json(p)
                 pm = d.get("packing_mode") or (d.get("packing") or {}).get("method") or "?"
+                gb = d.get("generation_backend") or "?"
             except OSError:
                 pm = "?"
-            self.ui.muted(f"  {i}. {p.name}  | modo: {pm}")
+                gb = "?"
+            self.ui.muted(f"  {i}. {p.name}  | modo: {pm}  | backend: {gb}")
         self.ui.println()
         raw = self.ui.ask_line(f"numero (1-{len(files)}) ou 0 voltar: ").strip()
         if raw == "0" or raw == "":
@@ -1374,29 +1473,44 @@ cfd {
         chosen = files[idx]
         data = load_wizard_json(chosen)
         self.params = json_to_wizard_params(data)
-        self.output_file = str((Path.cwd() / f"{chosen.stem}.bed").resolve())
-        do_blender = self.ui.confirm("executar blender apos compilar?", default=False)
-        if not self.generate_bed_file():
-            self.ui.err("falha ao gerar .bed")
-            self.ui.pause()
+        fluxo = self.ui.ask_line(
+            "fluxo: 1 gerar stl python puro (rapido) 2 compilar .bed e json completo [1]: "
+        ).strip()
+        if fluxo == "2":
+            self.output_file = str((Path.cwd() / f"{chosen.stem}.bed").resolve())
+            do_blender = self.ui.confirm("executar blender apos compilar?", default=False)
+            if not self.generate_bed_file():
+                self.ui.err("falha ao gerar .bed")
+                self.ui.pause()
+                return
+            self.ui.section("compilando")
+            if not self.verify_and_compile():
+                self.ui.err("falha na compilacao")
+                self.ui.pause()
+                return
+            jpath = Path(str(Path(self.output_file).resolve()) + ".json")
+            patch_compiled_json_packing(jpath, self.params)
+            patch_compiled_json_export(jpath, self.params)
+            patch_compiled_json_metadata(jpath, self.params)
+            if do_blender:
+                fmt = export_formats_for_blender(self.params.get("export") or {})
+                ok, blend = self.run_blender_with_json_path(jpath, open_after=False, formats=fmt)
+                if ok and blend and self.ui.confirm(
+                    "gostaria de abrir o blender com o modelo gerado?", default=False
+                ):
+                    self.open_blender_gui_with_blend(blend)
+            else:
+                self.ui.ok(f"json pronto: {jpath}")
+            self.ui.pause("enter para voltar ao menu...")
             return
-        self.ui.section("compilando")
-        if not self.verify_and_compile():
-            self.ui.err("falha na compilacao")
-            self.ui.pause()
-            return
-        jpath = Path(str(Path(self.output_file).resolve()) + ".json")
-        patch_compiled_json_packing(jpath, self.params)
-        patch_compiled_json_export(jpath, self.params)
-        if do_blender:
-            fmt = export_formats_for_blender(self.params.get("export") or {})
-            ok, blend = self.run_blender_with_json_path(jpath, open_after=False, formats=fmt)
-            if ok and blend and self.ui.confirm(
-                "gostaria de abrir o blender com o modelo gerado?", default=False
-            ):
-                self.open_blender_gui_with_blend(blend)
-        else:
-            self.ui.ok(f"json pronto: {jpath}")
+        out_stl = (Path.cwd() / f"{chosen.stem}_pure.stl").resolve()
+        ok, stl = self.run_pure_python_with_json_path(chosen, out_stl=out_stl)
+        if ok and stl and self.ui.confirm(
+            "gostaria de abrir o blender com o stl gerado?", default=False
+        ):
+            self.open_blender_gui_with_stl(stl)
+        elif ok:
+            self.ui.ok(f"stl gravado: {out_stl}")
         self.ui.pause("enter para voltar ao menu...")
 
     def show_help_menu(self):
@@ -1490,8 +1604,9 @@ cfd {
         json_path = Path(str(Path(self.output_file).resolve()) + ".json")
         patch_compiled_json_packing(json_path, self.params)
         patch_compiled_json_export(json_path, self.params)
+        patch_compiled_json_metadata(json_path, self.params)
         self.ui.ok(f"arquivo compilado: {json_path}")
-        
+
         # gerar modelo 3d no blender
         self.ui.section("etapa 3/5 — modelo 3d no blender")
         fmt = export_formats_for_blender(self.params.get("export") or {})

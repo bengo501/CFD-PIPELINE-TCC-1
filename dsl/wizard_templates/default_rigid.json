@@ -1,5 +1,6 @@
 {
   "packing_mode": "rigid_body",
+  "generation_backend": "blender",
   "bed": {
     "diameter": 0.08,
     "height": 0.15,

@@ -13,7 +13,8 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent / "wizard_templates"
 
 # chaves de primeiro nivel que o merge trata como blocos independentes
 # cada chave e uma secao do modelo bed particles lids packing export cfd
-_MERGE_KEYS = ("bed", "particles", "lids", "packing", "export", "cfd")
+# a secao generation e usada para configurar generation_backend
+_MERGE_KEYS = ("bed", "particles", "lids", "packing", "export", "cfd", "generation")
 
 
 def list_template_names() -> list[str]:
@@ -69,4 +70,6 @@ def merge_template(base: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str,
             out[key] = merged
     if "packing_mode" in overrides:
         out["packing_mode"] = overrides["packing_mode"]
+    if "generation_backend" in overrides:
+        out["generation_backend"] = overrides["generation_backend"]
     return out

@@ -24,6 +24,17 @@ from packed_bed_science.packing_modes import (  # noqa: E402
     packing_method_from_section,
 )
 
+# bed_config vive em scripts python modeling geometria e generation backend
+_PM = _REPO_ROOT / "scripts" / "python_modeling"
+if str(_PM) not in sys.path:
+    sys.path.insert(0, str(_PM))
+
+from bed_config import (  # noqa: E402
+    bed_section_for_wizard,
+    merge_root_generation_backend,
+    normalize_generation_backend,
+)
+
 
 def resolve_repo_path(path_str: str, base: Optional[Path] = None) -> Path:
     # path_str e texto que o utilizador escreveu pode ser relativo ou absoluto
@@ -72,13 +83,18 @@ def normalize_loaded_dict(data: Dict[str, Any]) -> None:
     # alias fino para merge_root_packing_mode
     # packing_mode no topo passa a packing method quando method falta
     merge_root_packing_mode(data)
+    # esta linha garante que se o usuario usar generation no formato interno
+    # a raiz passa a ter generation_backend
+    # isso e importante porque o gerador pure python decide o modo com base nesse valor
+    merge_root_generation_backend(data)
 
 
 def json_to_wizard_params(data: Dict[str, Any]) -> Dict[str, Any]:
     # converte o json plano das fixtures para o formato interno self params do BedWizard
     # generate_bed_content le self params e escreve texto bed
     # cada subdict usa get com default para nao rebentar se a chave faltar
-    bed = dict(data.get("bed") or {})
+    merge_root_generation_backend(data)
+    bed = bed_section_for_wizard(dict(data.get("bed") or {}))
     particles = dict(data.get("particles") or {})
     lids = dict(data.get("lids") or {})
     packing = dict(data.get("packing") or {})
@@ -166,6 +182,15 @@ def json_to_wizard_params(data: Dict[str, Any]) -> Dict[str, Any]:
             "convergence_criteria": cfd.get("convergence_criteria", 1e-6),
             "write_fields": cfd.get("write_fields", False),
         }
+    # packing_mode e um resumo simples do modo de empacotamento
+    # este resumo e usado por varios fluxos como menues e patches
+    pm_final = str(params["packing"]["method"])
+    params["packing_mode"] = pm_final
+
+    # generation_backend e o resumo do modo de geracao de geometria
+    # pure python significa que usamos o gerador de stl sem blender
+    # blender significa que o pipeline usa o leito extracao dentro do blender
+    params["generation_backend"] = normalize_generation_backend(data.get("generation_backend"))
     return params
 
 
@@ -217,6 +242,30 @@ def patch_compiled_json_export(
         if key in wexp:
             exp[key] = wexp[key]
     data["export"] = exp
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def patch_compiled_json_metadata(
+    json_path: Path, wizard_params: Dict[str, Any]
+) -> None:
+    # grava generation_backend e packing_mode na raiz para consumo do motor pure python
+    # este patch e necessario porque o compilador antlr
+    # trabalha com a gramatica do arquivo bed
+    # e essa gramatica nao necessariamente serializa campos novos como generation_backend
+    # entao garantimos que os motores downstream tenham os metadados necessarios
+    gb = wizard_params.get("generation_backend")
+    pm = wizard_params.get("packing_mode") or (wizard_params.get("packing") or {}).get(
+        "method"
+    )
+    if gb is None and not pm:
+        return
+    with json_path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    if gb is not None:
+        data["generation_backend"] = gb
+    if pm:
+        data["packing_mode"] = str(pm)
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 

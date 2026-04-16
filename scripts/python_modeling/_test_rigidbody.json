@@ -1,9 +1,10 @@
 {
   "packing_mode": "rigid_body",
+  "generation_backend": "pure_python",
   "bed": {
-    "diameter": 0.05,
+    "r_outer": 0.025,
+    "r_inner": 0.023,
     "height": 0.1,
-    "wall_thickness": 0.002,
     "clearance": 0.01,
     "material": "steel",
     "roughness": 0.0
@@ -31,6 +32,8 @@
   },
   "packing": {
     "method": "rigid_body",
+    "gap": 0.0001,
+    "strict_validation": false,
     "gravity": -9.81,
     "substeps": 10,
     "iterations": 10,
