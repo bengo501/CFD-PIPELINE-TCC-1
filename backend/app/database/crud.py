@@ -8,9 +8,12 @@ import math
 class BedCRUD:
     # crud para tabela beds
     @staticmethod
-    def create(db: Session, bed: schemas.BedCreate) -> models.Bed:
-        # instancia orm a partir do pydantic depois persiste
-        db_bed = models.Bed(**bed.dict())
+    def create(db: Session, bed: schemas.BedCreate, user_id: int = 1) -> models.Bed:
+        # converte o schema pydantic em dict compativel com o modelo sqlalchemy
+        # injeta user id depois do dump para o cliente nunca fingir outro dono
+        data = bed.model_dump() if hasattr(bed, "model_dump") else bed.dict()
+        data["user_id"] = user_id
+        db_bed = models.Bed(**data)
         db.add(db_bed)
         db.commit()
         db.refresh(db_bed)
@@ -27,13 +30,30 @@ class BedCRUD:
         return db.query(models.Bed).filter(models.Bed.name == name).first()
 
     @staticmethod
+    def get_by_name_for_user(
+        db: Session, name: str, user_id: int
+    ) -> Optional[models.Bed]:
+        # o mesmo nome pode existir para outro utilizador
+        # por isso o filtro inclui sempre user id
+        return (
+            db.query(models.Bed)
+            .filter(models.Bed.name == name, models.Bed.user_id == user_id)
+            .first()
+        )
+
+    @staticmethod
     def get_all(
         db: Session,
         skip: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        user_id: Optional[int] = None,
     ) -> Tuple[List[models.Bed], int]:
         # conta total para paginas depois aplica offset e limit
+        # comeca com select geral sobre beds
         query = db.query(models.Bed)
+        # se user id vier preenchido restringe ao dono
+        if user_id is not None:
+            query = query.filter(models.Bed.user_id == user_id)
         total = query.count()
         beds = query.order_by(models.Bed.created_at.desc()).offset(skip).limit(limit).all()
         return beds, total
@@ -73,13 +93,16 @@ class BedCRUD:
         db: Session,
         query: str,
         skip: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        user_id: Optional[int] = None,
     ) -> Tuple[List[models.Bed], int]:
         # ilike com wildcards nos dois lados para nome ou descricao
         search_query = db.query(models.Bed).filter(
             (models.Bed.name.ilike(f"%{query}%")) |
             (models.Bed.description.ilike(f"%{query}%"))
         )
+        if user_id is not None:
+            search_query = search_query.filter(models.Bed.user_id == user_id)
         total = search_query.count()
         beds = search_query.order_by(models.Bed.created_at.desc()).offset(skip).limit(limit).all()
         return beds, total
@@ -88,8 +111,22 @@ class BedCRUD:
 class SimulationCRUD:
     # crud para tabela simulations
     @staticmethod
-    def create(db: Session, simulation: schemas.SimulationCreate) -> models.Simulation:
-        db_simulation = models.Simulation(**simulation.dict())
+    def create(
+        db: Session,
+        simulation: schemas.SimulationCreate,
+        user_id: int = 1,
+        **extra_fields,
+    ) -> models.Simulation:
+        # extra fields permite preencher colunas que nao estao no schema minimo
+        # por exemplo status inicial e pasta do caso openfoam criado por servicos
+        data = (
+            simulation.model_dump()
+            if hasattr(simulation, "model_dump")
+            else simulation.dict()
+        )
+        data["user_id"] = user_id
+        data.update(extra_fields)
+        db_simulation = models.Simulation(**data)
         db.add(db_simulation)
         db.commit()
         db.refresh(db_simulation)
@@ -105,9 +142,12 @@ class SimulationCRUD:
     def get_all(
         db: Session,
         skip: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        user_id: Optional[int] = None,
     ) -> Tuple[List[models.Simulation], int]:
         query = db.query(models.Simulation)
+        if user_id is not None:
+            query = query.filter(models.Simulation.user_id == user_id)
         total = query.count()
         simulations = query.order_by(
             models.Simulation.created_at.desc()
@@ -119,10 +159,13 @@ class SimulationCRUD:
         db: Session,
         bed_id: int,
         skip: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        user_id: Optional[int] = None,
     ) -> Tuple[List[models.Simulation], int]:
         # filtra fk bed_id mantem ordenacao por data
         query = db.query(models.Simulation).filter(models.Simulation.bed_id == bed_id)
+        if user_id is not None:
+            query = query.filter(models.Simulation.user_id == user_id)
         total = query.count()
         simulations = query.order_by(
             models.Simulation.created_at.desc()
@@ -134,9 +177,12 @@ class SimulationCRUD:
         db: Session,
         status: str,
         skip: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        user_id: Optional[int] = None,
     ) -> Tuple[List[models.Simulation], int]:
         query = db.query(models.Simulation).filter(models.Simulation.status == status)
+        if user_id is not None:
+            query = query.filter(models.Simulation.user_id == user_id)
         total = query.count()
         simulations = query.order_by(
             models.Simulation.created_at.desc()

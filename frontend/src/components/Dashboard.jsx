@@ -5,10 +5,12 @@ import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
 import './Dashboard.css';
 import { getSimulationsSummary, listRecentSimulations } from '../services/api';
+import { useActiveUser } from '../context/UserContext';
 
 function Dashboard() {
   const { language, t } = useLanguage();
   const { theme } = useTheme();
+  const { activeUserId } = useActiveUser();
   const [dashboardData, setDashboardData] = useState({
     totalSimulations: 0,
     completedSimulations: 0,
@@ -98,7 +100,7 @@ function Dashboard() {
     };
 
     loadData();
-  }, []);
+  }, [activeUserId]);
 
   return (
     <div className="dashboard">

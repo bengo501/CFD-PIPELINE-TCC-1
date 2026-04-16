@@ -124,7 +124,7 @@ class BedService:
                     created_by='api'
                 )
                 
-                db_bed = crud.BedCRUD.create(db_session, bed_data)
+                db_bed = crud.BedCRUD.create(db_session, bed_data, user_id=1)
                 result["bed_id"] = db_bed.id
             except Exception as db_error:
                 # Falha graciosamente - banco não é obrigatório para compilação

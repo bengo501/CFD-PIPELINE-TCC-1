@@ -148,9 +148,15 @@ function App() {
 
   const handleLogout = useCallback(() => {
     sessionStorage.clear();
-    ['app_simple_mode', 'app_dev_mode', 'jobsPollIntervalSec', 'theme', 'themeMode', 'language'].forEach((k) =>
-      localStorage.removeItem(k)
-    );
+    [
+      'app_simple_mode',
+      'app_dev_mode',
+      'jobsPollIntervalSec',
+      'theme',
+      'themeMode',
+      'language',
+      'cfd_active_user_id',
+    ].forEach((k) => localStorage.removeItem(k));
     setSimpleMode(false);
     setDevMode(false);
     setThemeMode('system');

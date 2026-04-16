@@ -17,6 +17,45 @@ const api = axios.create({
   },
 });
 
+// chave fixa no local storage do browser para o id escolhido
+const ACTIVE_USER_STORAGE = 'cfd_active_user_id';
+
+// copia o id do storage para o cabecalho default do axios
+// todas as chamadas api get post etc passam a incluir x user id
+export function syncAxiosUserHeader() {
+  try {
+    const raw = localStorage.getItem(ACTIVE_USER_STORAGE);
+    const n = parseInt(raw, 10);
+    const id = Number.isFinite(n) && n >= 1 ? n : 1;
+    api.defaults.headers.common['X-User-Id'] = String(id);
+  } catch (_) {
+    api.defaults.headers.common['X-User-Id'] = '1';
+  }
+}
+
+// grava novo id e refresca o cabecalho imediatamente
+export function setStoredActiveUserId(id) {
+  const n = parseInt(String(id), 10);
+  const v = Number.isFinite(n) && n >= 1 ? n : 1;
+  localStorage.setItem(ACTIVE_USER_STORAGE, String(v));
+  syncAxiosUserHeader();
+  return v;
+}
+
+// le o id atual ou devolve 1 se nada estiver guardado
+export function getStoredActiveUserId() {
+  try {
+    const raw = localStorage.getItem(ACTIVE_USER_STORAGE);
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 1 ? n : 1;
+  } catch (_) {
+    return 1;
+  }
+}
+
+// arranque do modulo garante cabecalho antes do primeiro pedido
+syncAxiosUserHeader();
+
 export function parseApiError(err) {
   if (err == null) return 'erro desconhecido';
   const data = err.response?.data;
@@ -238,7 +277,13 @@ export const removeReportAttachment = async (reportId, attachmentId) => {
   await api.delete(`/api/reports/${reportId}/attachments/${attachmentId}`);
 };
 
-// perfil unico local sem fluxo oauth completo
+// pede get api users sem corpo json so precisa do cabecalho x user id para consistencia
+export const listUsers = async () => {
+  const response = await api.get('/api/users');
+  return response.data;
+};
+
+// perfil do utilizador ativo (cabeçalho x-user-id)
 export const getProfile = async () => {
   const response = await api.get('/api/profile');
   return response.data;

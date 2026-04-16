@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.database.connection import get_db
 from backend.app.database.models import BedTemplate
+from backend.app.api.deps_user import get_active_user_id
 from backend.app.api.models import (
     TemplateCreate,
     TemplateResponse,
@@ -52,7 +53,11 @@ def _to_response(row: BedTemplate) -> TemplateResponse:
 
 
 @router.post("/templates/save", response_model=TemplateResponse, tags=["templates"])
-async def save_template(template_data: TemplateCreate, db: Session = Depends(get_db)):
+async def save_template(
+    template_data: TemplateCreate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """salvar um novo template"""
     # uuid4 string evita colisao sem servico central
     template_id = str(uuid.uuid4())
@@ -63,6 +68,7 @@ async def save_template(template_data: TemplateCreate, db: Session = Depends(get
         content=template_data.content,
         tag=(template_data.tag or "bed").strip()[:50] or "bed",
         source=(template_data.source or "editor").strip()[:50] or "editor",
+        user_id=user_id,
         created_at=now,
         updated_at=now,
     )
@@ -73,10 +79,14 @@ async def save_template(template_data: TemplateCreate, db: Session = Depends(get
 
 
 @router.get("/templates/list", response_model=List[TemplateSummary], tags=["templates"])
-async def list_templates(db: Session = Depends(get_db)):
+async def list_templates(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """listar templates (sem conteúdo .bed)"""
     rows = (
         db.query(BedTemplate)
+        .filter(BedTemplate.user_id == user_id)
         .order_by(BedTemplate.updated_at.desc(), BedTemplate.created_at.desc())
         .all()
     )
@@ -84,10 +94,16 @@ async def list_templates(db: Session = Depends(get_db)):
 
 
 @router.get("/templates/{template_id}", response_model=TemplateResponse, tags=["templates"])
-async def get_template(template_id: str, db: Session = Depends(get_db)):
+async def get_template(
+    template_id: str,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """buscar um template específico com conteúdo"""
     row = db.query(BedTemplate).filter(BedTemplate.id == template_id).first()
     if not row:
+        raise HTTPException(status_code=404, detail="template não encontrado")
+    if row.user_id != user_id:
         raise HTTPException(status_code=404, detail="template não encontrado")
     return _to_response(row)
 
@@ -97,10 +113,13 @@ async def update_template(
     template_id: str,
     template_data: TemplateCreate,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """atualizar um template existente"""
     row = db.query(BedTemplate).filter(BedTemplate.id == template_id).first()
     if not row:
+        raise HTTPException(status_code=404, detail="template não encontrado")
+    if row.user_id != user_id:
         raise HTTPException(status_code=404, detail="template não encontrado")
 
     row.name = template_data.name.strip()
@@ -115,10 +134,16 @@ async def update_template(
 
 
 @router.post("/templates/{template_id}/duplicate", response_model=TemplateResponse, tags=["templates"])
-async def duplicate_template(template_id: str, db: Session = Depends(get_db)):
+async def duplicate_template(
+    template_id: str,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """duplicar template existente"""
     orig = db.query(BedTemplate).filter(BedTemplate.id == template_id).first()
     if not orig:
+        raise HTTPException(status_code=404, detail="template não encontrado")
+    if orig.user_id != user_id:
         raise HTTPException(status_code=404, detail="template não encontrado")
 
     new_id = str(uuid.uuid4())
@@ -130,6 +155,7 @@ async def duplicate_template(template_id: str, db: Session = Depends(get_db)):
         content=orig.content,
         tag=orig.tag or "bed",
         source="duplicate",
+        user_id=user_id,
         created_at=now,
         updated_at=now,
     )
@@ -140,10 +166,16 @@ async def duplicate_template(template_id: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/templates/{template_id}", tags=["templates"])
-async def delete_template(template_id: str, db: Session = Depends(get_db)):
+async def delete_template(
+    template_id: str,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """deletar um template"""
     row = db.query(BedTemplate).filter(BedTemplate.id == template_id).first()
     if not row:
+        raise HTTPException(status_code=404, detail="template não encontrado")
+    if row.user_id != user_id:
         raise HTTPException(status_code=404, detail="template não encontrado")
 
     db.delete(row)

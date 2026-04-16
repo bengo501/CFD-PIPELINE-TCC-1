@@ -11,6 +11,7 @@ from pathlib import Path
 
 from backend.app.database.connection import get_db, DATABASE_URL
 from backend.app.database import crud, schemas, models
+from backend.app.api.deps_user import get_active_user_id
 from backend.app.api.models import (
     AdminPanelEventCreate,
     DatabasePanelCounts,
@@ -26,13 +27,17 @@ results_service = ResultsService()
 # ==================== ENDPOINTS BEDS ====================
 
 @router.post("/beds", response_model=schemas.BedResponse, tags=["database", "beds"])
-async def create_bed(bed: schemas.BedCreate, db: Session = Depends(get_db)):
+async def create_bed(
+    bed: schemas.BedCreate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     criar novo leito no banco de dados
     """
     # nome e chave humana entao rejeitamos duplicado cedo
     # verificar se ja existe leito com esse nome
-    existing = crud.BedCRUD.get_by_name(db, bed.name)
+    existing = crud.BedCRUD.get_by_name_for_user(db, bed.name, user_id)
     if existing:
         raise HTTPException(
             status_code=400,
@@ -40,7 +45,7 @@ async def create_bed(bed: schemas.BedCreate, db: Session = Depends(get_db)):
         )
     
     try:
-        db_bed = crud.BedCRUD.create(db, bed)
+        db_bed = crud.BedCRUD.create(db, bed, user_id=user_id)
         return db_bed
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao criar leito: {str(e)}")
@@ -51,7 +56,8 @@ async def list_beds(
     page: int = Query(1, ge=1, description="numero da pagina"),
     per_page: int = Query(50, ge=1, le=100, description="items por pagina"),
     search: Optional[str] = Query(None, description="buscar por nome ou descricao"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     listar leitos com paginacao e busca opcional
@@ -60,9 +66,9 @@ async def list_beds(
         skip, limit, _ = crud.paginate(0, page, per_page)
         
         if search:
-            beds, total = crud.BedCRUD.search(db, search, skip, limit)
+            beds, total = crud.BedCRUD.search(db, search, skip, limit, user_id=user_id)
         else:
-            beds, total = crud.BedCRUD.get_all(db, skip, limit)
+            beds, total = crud.BedCRUD.get_all(db, skip, limit, user_id=user_id)
         
         import math
         pages = math.ceil(total / per_page) if total > 0 else 1
@@ -79,12 +85,18 @@ async def list_beds(
 
 
 @router.get("/beds/{bed_id}", response_model=schemas.BedResponse, tags=["database", "beds"])
-async def get_bed(bed_id: int, db: Session = Depends(get_db)):
+async def get_bed(
+    bed_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     obter detalhes de um leito especifico
     """
     db_bed = crud.BedCRUD.get(db, bed_id)
     if not db_bed:
+        raise HTTPException(status_code=404, detail="leito nao encontrado")
+    if db_bed.user_id != user_id:
         raise HTTPException(status_code=404, detail="leito nao encontrado")
     return db_bed
 
@@ -93,11 +105,15 @@ async def get_bed(bed_id: int, db: Session = Depends(get_db)):
 async def update_bed(
     bed_id: int,
     bed_update: schemas.BedUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     atualizar leito (parcial)
     """
+    b0 = crud.BedCRUD.get(db, bed_id)
+    if not b0 or b0.user_id != user_id:
+        raise HTTPException(status_code=404, detail="leito nao encontrado")
     db_bed = crud.BedCRUD.update(db, bed_id, bed_update)
     if not db_bed:
         raise HTTPException(status_code=404, detail="leito nao encontrado")
@@ -105,10 +121,17 @@ async def update_bed(
 
 
 @router.delete("/beds/{bed_id}", tags=["database", "beds"])
-async def delete_bed(bed_id: int, db: Session = Depends(get_db)):
+async def delete_bed(
+    bed_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     deletar leito (e todas simulacoes relacionadas em cascade)
     """
+    b0 = crud.BedCRUD.get(db, bed_id)
+    if not b0 or b0.user_id != user_id:
+        raise HTTPException(status_code=404, detail="leito nao encontrado")
     success = crud.BedCRUD.delete(db, bed_id)
     if not success:
         raise HTTPException(status_code=404, detail="leito nao encontrado")
@@ -120,7 +143,8 @@ async def delete_bed(bed_id: int, db: Session = Depends(get_db)):
 @router.post("/simulations", response_model=schemas.SimulationResponse, tags=["database", "simulations"])
 async def create_simulation(
     simulation: schemas.SimulationCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     criar nova simulacao no banco de dados
@@ -129,9 +153,11 @@ async def create_simulation(
     bed = crud.BedCRUD.get(db, simulation.bed_id)
     if not bed:
         raise HTTPException(status_code=404, detail=f"leito {simulation.bed_id} nao encontrado")
+    if bed.user_id != user_id:
+        raise HTTPException(status_code=404, detail=f"leito {simulation.bed_id} nao encontrado")
     
     try:
-        db_simulation = crud.SimulationCRUD.create(db, simulation)
+        db_simulation = crud.SimulationCRUD.create(db, simulation, user_id=user_id)
         return db_simulation
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao criar simulacao: {str(e)}")
@@ -143,7 +169,8 @@ async def list_simulations(
     per_page: int = Query(50, ge=1, le=100),
     bed_id: Optional[int] = Query(None, description="filtrar por leito"),
     status: Optional[str] = Query(None, description="filtrar por status"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     listar simulacoes com paginacao e filtros
@@ -152,11 +179,17 @@ async def list_simulations(
         skip, limit, _ = crud.paginate(0, page, per_page)
         
         if bed_id:
-            simulations, total = crud.SimulationCRUD.get_by_bed(db, bed_id, skip, limit)
+            simulations, total = crud.SimulationCRUD.get_by_bed(
+                db, bed_id, skip, limit, user_id=user_id
+            )
         elif status:
-            simulations, total = crud.SimulationCRUD.get_by_status(db, status, skip, limit)
+            simulations, total = crud.SimulationCRUD.get_by_status(
+                db, status, skip, limit, user_id=user_id
+            )
         else:
-            simulations, total = crud.SimulationCRUD.get_all(db, skip, limit)
+            simulations, total = crud.SimulationCRUD.get_all(
+                db, skip, limit, user_id=user_id
+            )
         
         import math
         pages = math.ceil(total / per_page) if total > 0 else 1
@@ -173,12 +206,18 @@ async def list_simulations(
 
 
 @router.get("/simulations/{simulation_id}", response_model=schemas.SimulationResponse, tags=["database", "simulations"])
-async def get_simulation(simulation_id: int, db: Session = Depends(get_db)):
+async def get_simulation(
+    simulation_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     obter detalhes de uma simulacao especifica
     """
     db_simulation = crud.SimulationCRUD.get(db, simulation_id)
     if not db_simulation:
+        raise HTTPException(status_code=404, detail="simulacao nao encontrada")
+    if db_simulation.user_id != user_id:
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
     return db_simulation
 
@@ -187,11 +226,15 @@ async def get_simulation(simulation_id: int, db: Session = Depends(get_db)):
 async def update_simulation(
     simulation_id: int,
     simulation_update: schemas.SimulationUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     atualizar simulacao (ex: status, progress, metricas)
     """
+    s0 = crud.SimulationCRUD.get(db, simulation_id)
+    if not s0 or s0.user_id != user_id:
+        raise HTTPException(status_code=404, detail="simulacao nao encontrada")
     db_simulation = crud.SimulationCRUD.update(db, simulation_id, simulation_update)
     if not db_simulation:
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
@@ -199,10 +242,17 @@ async def update_simulation(
 
 
 @router.delete("/simulations/{simulation_id}", tags=["database", "simulations"])
-async def delete_simulation(simulation_id: int, db: Session = Depends(get_db)):
+async def delete_simulation(
+    simulation_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     deletar simulacao (e todos resultados relacionados em cascade)
     """
+    s0 = crud.SimulationCRUD.get(db, simulation_id)
+    if not s0 or s0.user_id != user_id:
+        raise HTTPException(status_code=404, detail="simulacao nao encontrada")
     success = crud.SimulationCRUD.delete(db, simulation_id)
     if not success:
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
@@ -212,13 +262,22 @@ async def delete_simulation(simulation_id: int, db: Session = Depends(get_db)):
 # ==================== ENDPOINTS RESULTS ====================
 
 @router.post("/results", response_model=schemas.ResultResponse, tags=["database", "results"])
-async def create_result(result: schemas.ResultCreate, db: Session = Depends(get_db)):
+async def create_result(
+    result: schemas.ResultCreate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     criar novo resultado
     """
     # verificar se simulacao existe
     simulation = crud.SimulationCRUD.get(db, result.simulation_id)
     if not simulation:
+        raise HTTPException(
+            status_code=404,
+            detail=f"simulacao {result.simulation_id} nao encontrada"
+        )
+    if simulation.user_id != user_id:
         raise HTTPException(
             status_code=404,
             detail=f"simulacao {result.simulation_id} nao encontrada"
@@ -234,12 +293,20 @@ async def create_result(result: schemas.ResultCreate, db: Session = Depends(get_
 @router.post("/results/bulk", response_model=List[schemas.ResultResponse], tags=["database", "results"])
 async def create_results_bulk(
     results: List[schemas.ResultCreate],
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     criar multiplos resultados em batch (para pos-processamento)
     """
     try:
+        for r in results:
+            sim = crud.SimulationCRUD.get(db, r.simulation_id)
+            if not sim or sim.user_id != user_id:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"simulacao {r.simulation_id} nao encontrada",
+                )
         db_results = crud.ResultCRUD.create_bulk(db, results)
         return db_results
     except Exception as e:
@@ -250,7 +317,8 @@ async def create_results_bulk(
 async def get_simulation_results(
     simulation_id: int,
     result_type: Optional[str] = Query(None, description="filtrar por tipo"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     listar resultados de uma simulacao especifica
@@ -259,18 +327,27 @@ async def get_simulation_results(
     simulation = crud.SimulationCRUD.get(db, simulation_id)
     if not simulation:
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
+    if simulation.user_id != user_id:
+        raise HTTPException(status_code=404, detail="simulacao nao encontrada")
     
     results = crud.ResultCRUD.get_by_simulation(db, simulation_id, result_type)
     return results
 
 
 @router.get("/results/{result_id}", response_model=schemas.ResultResponse, tags=["database", "results"])
-async def get_result(result_id: int, db: Session = Depends(get_db)):
+async def get_result(
+    result_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     obter resultado especifico
     """
     db_result = crud.ResultCRUD.get(db, result_id)
     if not db_result:
+        raise HTTPException(status_code=404, detail="resultado nao encontrado")
+    sim = crud.SimulationCRUD.get(db, db_result.simulation_id)
+    if not sim or sim.user_id != user_id:
         raise HTTPException(status_code=404, detail="resultado nao encontrado")
     return db_result
 
@@ -285,6 +362,7 @@ async def get_result(result_id: int, db: Session = Depends(get_db)):
 async def ingest_results_for_simulation(
     simulation_id: int,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     ler generated/cfd/NOME_CASO/results.json e atualizar Simulation/Result.
@@ -293,6 +371,8 @@ async def ingest_results_for_simulation(
     """
     sim = crud.SimulationCRUD.get(db, simulation_id)
     if not sim:
+        raise HTTPException(status_code=404, detail="simulacao nao encontrada")
+    if sim.user_id != user_id:
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
 
     try:
@@ -310,14 +390,19 @@ async def ingest_results_for_simulation(
     "/simulations/summary",
     tags=["database", "simulations"],
 )
-async def get_simulations_summary(db: Session = Depends(get_db)):
+async def get_simulations_summary(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     resumo agregado de simulacoes para o dashboard.
 
     retorna contagens por status, taxa de sucesso e medias basicas
     de algumas metricas (pressure_drop, reynolds_number).
     """
-    sims: list[models.Simulation] = db.query(models.Simulation).all()
+    sims: list[models.Simulation] = (
+        db.query(models.Simulation).filter(models.Simulation.user_id == user_id).all()
+    )
     total = len(sims)
     by_status = {
         "pending": 0,
@@ -360,16 +445,19 @@ async def get_simulations_summary(db: Session = Depends(get_db)):
 async def list_recent_simulations(
     limit: int = Query(8, ge=1, le=100, description="numero maximo de simulacoes"),
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     listar as simulacoes mais recentes (para o dashboard).
     """
     try:
-        sims_query = db.query(models.Simulation).order_by(
-            models.Simulation.created_at.desc()
+        sims_query = (
+            db.query(models.Simulation)
+            .filter(models.Simulation.user_id == user_id)
+            .order_by(models.Simulation.created_at.desc())
         )
-        simulations = sims_query.limit(limit).all()
         total = sims_query.count()
+        simulations = sims_query.limit(limit).all()
         # reusar schema de lista com uma 'pagina' unica
         return schemas.SimulationListResponse(
             total=total,
@@ -383,10 +471,20 @@ async def list_recent_simulations(
 
 
 @router.delete("/results/{result_id}", tags=["database", "results"])
-async def delete_result(result_id: int, db: Session = Depends(get_db)):
+async def delete_result(
+    result_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     deletar resultado
     """
+    db_result = crud.ResultCRUD.get(db, result_id)
+    if not db_result:
+        raise HTTPException(status_code=404, detail="resultado nao encontrado")
+    sim = crud.SimulationCRUD.get(db, db_result.simulation_id)
+    if not sim or sim.user_id != user_id:
+        raise HTTPException(status_code=404, detail="resultado nao encontrado")
     success = crud.ResultCRUD.delete(db, result_id)
     if not success:
         raise HTTPException(status_code=404, detail="resultado nao encontrado")
@@ -400,7 +498,8 @@ async def get_bed_simulations(
     bed_id: int,
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     listar todas simulacoes de um leito especifico
@@ -409,9 +508,13 @@ async def get_bed_simulations(
     bed = crud.BedCRUD.get(db, bed_id)
     if not bed:
         raise HTTPException(status_code=404, detail="leito nao encontrado")
+    if bed.user_id != user_id:
+        raise HTTPException(status_code=404, detail="leito nao encontrado")
     
     skip, limit, _ = crud.paginate(0, page, per_page)
-    simulations, total = crud.SimulationCRUD.get_by_bed(db, bed_id, skip, limit)
+    simulations, total = crud.SimulationCRUD.get_by_bed(
+        db, bed_id, skip, limit, user_id=user_id
+    )
     
     import math
     pages = math.ceil(total / per_page) if total > 0 else 1
@@ -426,12 +529,18 @@ async def get_bed_simulations(
 
 
 @router.get("/beds/{bed_id}/summary", tags=["database", "beds"])
-async def get_bed_summary(bed_id: int, db: Session = Depends(get_db)):
+async def get_bed_summary(
+    bed_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     obter resumo de um leito (com estatisticas de simulacoes)
     """
     bed = crud.BedCRUD.get(db, bed_id)
     if not bed:
+        raise HTTPException(status_code=404, detail="leito nao encontrado")
+    if bed.user_id != user_id:
         raise HTTPException(status_code=404, detail="leito nao encontrado")
     
     # contar simulacoes por status
@@ -442,7 +551,8 @@ async def get_bed_summary(bed_id: int, db: Session = Depends(get_db)):
         Simulation.status,
         func.count(Simulation.id)
     ).filter(
-        Simulation.bed_id == bed_id
+        Simulation.bed_id == bed_id,
+        Simulation.user_id == user_id,
     ).group_by(Simulation.status).all()
     
     status_counts = {status: count for status, count in stats}
@@ -456,6 +566,7 @@ async def get_bed_summary(bed_id: int, db: Session = Depends(get_db)):
         sql_func.avg(Simulation.execution_time).label('avg_execution_time')
     ).filter(
         Simulation.bed_id == bed_id,
+        Simulation.user_id == user_id,
         Simulation.status == 'completed'
     ).first()
     
@@ -473,29 +584,47 @@ async def get_bed_summary(bed_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/stats/overview", tags=["database", "stats"])
-async def get_overview_stats(db: Session = Depends(get_db)):
+async def get_overview_stats(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     obter estatisticas gerais do sistema
     """
     from sqlalchemy import func
     from backend.app.database.models import Bed, Simulation, Result
     
-    total_beds = db.query(func.count(Bed.id)).scalar()
-    total_simulations = db.query(func.count(Simulation.id)).scalar()
-    total_results = db.query(func.count(Result.id)).scalar()
+    total_beds = (
+        db.query(func.count(Bed.id)).filter(Bed.user_id == user_id).scalar()
+    )
+    total_simulations = (
+        db.query(func.count(Simulation.id))
+        .filter(Simulation.user_id == user_id)
+        .scalar()
+    )
+    total_results = (
+        db.query(func.count(Result.id))
+        .join(Simulation, Result.simulation_id == Simulation.id)
+        .filter(Simulation.user_id == user_id)
+        .scalar()
+    )
     
     # simulacoes por status
     sim_stats = db.query(
         Simulation.status,
         func.count(Simulation.id)
-    ).group_by(Simulation.status).all()
+    ).filter(Simulation.user_id == user_id).group_by(Simulation.status).all()
     
     simulations_by_status = {status: count for status, count in sim_stats}
     
     # ultimas simulacoes
-    recent_simulations = db.query(Simulation).order_by(
-        Simulation.created_at.desc()
-    ).limit(5).all()
+    recent_simulations = (
+        db.query(Simulation)
+        .filter(Simulation.user_id == user_id)
+        .order_by(Simulation.created_at.desc())
+        .limit(5)
+        .all()
+    )
     
     return {
         "total_beds": total_beds,
@@ -528,7 +657,10 @@ def _dt_iso(v) -> str:
     response_model=DatabasePanelResponse,
     tags=["database", "admin"],
 )
-async def get_database_panel(db: Session = Depends(get_db)):
+async def get_database_panel(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """
     dados agregados para a página "banco de dados" no frontend:
     motor sql (sem expor credenciais), contagens de tabelas e últimos eventos do painel.
@@ -541,10 +673,34 @@ async def get_database_panel(db: Session = Depends(get_db)):
     }
 
     try:
-        beds = db.query(func.count(models.Bed.id)).scalar() or 0
-        sims = db.query(func.count(models.Simulation.id)).scalar() or 0
-        res = db.query(func.count(models.Result.id)).scalar() or 0
-        tmpl = db.query(func.count(models.BedTemplate.id)).scalar() or 0
+        beds = (
+            db.query(func.count(models.Bed.id))
+            .filter(models.Bed.user_id == user_id)
+            .scalar()
+            or 0
+        )
+        sims = (
+            db.query(func.count(models.Simulation.id))
+            .filter(models.Simulation.user_id == user_id)
+            .scalar()
+            or 0
+        )
+        res = (
+            db.query(func.count(models.Result.id))
+            .join(
+                models.Simulation,
+                models.Result.simulation_id == models.Simulation.id,
+            )
+            .filter(models.Simulation.user_id == user_id)
+            .scalar()
+            or 0
+        )
+        tmpl = (
+            db.query(func.count(models.BedTemplate.id))
+            .filter(models.BedTemplate.user_id == user_id)
+            .scalar()
+            or 0
+        )
 
         ev_rows = (
             db.query(models.AdminPanelEvent)

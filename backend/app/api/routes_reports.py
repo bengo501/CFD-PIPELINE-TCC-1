@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.app.database.connection import get_db
 from backend.app.database import models as M
+from backend.app.api.deps_user import get_active_user_id
 from backend.app.api.models import (
     ReportAttachmentCreate,
     ReportAttachmentOut,
@@ -92,16 +93,21 @@ def _build_detail(db: Session, r: M.Report) -> ReportDetail:
     response_model=ReportCatalogResponse,
     tags=["reports"],
 )
-async def reports_meta_catalog(db: Session = Depends(get_db)):
+async def reports_meta_catalog(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     """listas compactas para selects no frontend (simulações e templates .bed)."""
     sims = (
         db.query(M.Simulation)
+        .filter(M.Simulation.user_id == user_id)
         .order_by(M.Simulation.created_at.desc())
         .limit(60)
         .all()
     )
     tmpl = (
         db.query(M.BedTemplate)
+        .filter(M.BedTemplate.user_id == user_id)
         .order_by(M.BedTemplate.updated_at.desc())
         .limit(100)
         .all()
@@ -124,10 +130,13 @@ async def reports_meta_catalog(db: Session = Depends(get_db)):
 async def reports_meta_results(
     simulation_id: int = Query(..., ge=1),
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """resultados orm de uma simulação (para anexar ao relatório)."""
     sim = db.query(M.Simulation).filter(M.Simulation.id == simulation_id).first()
     if not sim:
+        raise HTTPException(status_code=404, detail="simulação não encontrada")
+    if sim.user_id != user_id:
         raise HTTPException(status_code=404, detail="simulação não encontrada")
     rows = (
         db.query(M.Result)
@@ -149,9 +158,13 @@ async def reports_meta_results(
 
 
 @router.get("/reports", response_model=List[ReportSummary], tags=["reports"])
-async def list_reports(db: Session = Depends(get_db)):
+async def list_reports(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     rows = (
         db.query(M.Report)
+        .filter(M.Report.user_id == user_id)
         .options(selectinload(M.Report.attachments))
         .order_by(M.Report.updated_at.desc())
         .all()
@@ -170,11 +183,16 @@ async def list_reports(db: Session = Depends(get_db)):
 
 
 @router.post("/reports", response_model=ReportDetail, tags=["reports"])
-async def create_report(body: ReportCreate, db: Session = Depends(get_db)):
+async def create_report(
+    body: ReportCreate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     row = M.Report(
         title=body.title.strip(),
         body=body.body or "",
         status=body.status,
+        user_id=user_id,
     )
     db.add(row)
     db.commit()
@@ -188,7 +206,11 @@ async def create_report(body: ReportCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/reports/{report_id}", response_model=ReportDetail, tags=["reports"])
-async def get_report(report_id: int, db: Session = Depends(get_db)):
+async def get_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     r = (
         db.query(M.Report)
         .options(selectinload(M.Report.attachments))
@@ -196,6 +218,8 @@ async def get_report(report_id: int, db: Session = Depends(get_db)):
         .first()
     )
     if not r:
+        raise HTTPException(status_code=404, detail="relatório não encontrado")
+    if r.user_id != user_id:
         raise HTTPException(status_code=404, detail="relatório não encontrado")
     return _build_detail(db, r)
 
@@ -205,9 +229,12 @@ async def update_report(
     report_id: int,
     body: ReportUpdate,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     r = db.query(M.Report).filter(M.Report.id == report_id).first()
     if not r:
+        raise HTTPException(status_code=404, detail="relatório não encontrado")
+    if r.user_id != user_id:
         raise HTTPException(status_code=404, detail="relatório não encontrado")
     if body.title is not None:
         r.title = body.title.strip()
@@ -228,9 +255,15 @@ async def update_report(
 
 
 @router.delete("/reports/{report_id}", tags=["reports"])
-async def delete_report(report_id: int, db: Session = Depends(get_db)):
+async def delete_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
     r = db.query(M.Report).filter(M.Report.id == report_id).first()
     if not r:
+        raise HTTPException(status_code=404, detail="relatório não encontrado")
+    if r.user_id != user_id:
         raise HTTPException(status_code=404, detail="relatório não encontrado")
     db.delete(r)
     db.commit()
@@ -246,9 +279,12 @@ async def add_report_attachment(
     report_id: int,
     body: ReportAttachmentCreate,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     r = db.query(M.Report).filter(M.Report.id == report_id).first()
     if not r:
+        raise HTTPException(status_code=404, detail="relatório não encontrado")
+    if r.user_id != user_id:
         raise HTTPException(status_code=404, detail="relatório não encontrado")
 
     ref = body.ref_id.strip() if body.ref_id else None
@@ -261,13 +297,19 @@ async def add_report_attachment(
             sid = int(ref)
         except ValueError:
             raise HTTPException(status_code=400, detail="ref_id de simulação inválido")
-        if not db.query(M.Simulation).filter(M.Simulation.id == sid).first():
+        sim = db.query(M.Simulation).filter(M.Simulation.id == sid).first()
+        if not sim:
+            raise HTTPException(status_code=400, detail="simulação não encontrada")
+        if sim.user_id != user_id:
             raise HTTPException(status_code=400, detail="simulação não encontrada")
         ref = str(sid)
     elif k == "template":
         if not ref:
             raise HTTPException(status_code=400, detail="ref_id do template obrigatório")
-        if not db.query(M.BedTemplate).filter(M.BedTemplate.id == ref).first():
+        tpl = db.query(M.BedTemplate).filter(M.BedTemplate.id == ref).first()
+        if not tpl:
+            raise HTTPException(status_code=400, detail="template não encontrado")
+        if tpl.user_id != user_id:
             raise HTTPException(status_code=400, detail="template não encontrado")
     elif k == "result":
         if not ref:
@@ -276,7 +318,15 @@ async def add_report_attachment(
             rid = int(ref)
         except ValueError:
             raise HTTPException(status_code=400, detail="ref_id de resultado inválido")
-        if not db.query(M.Result).filter(M.Result.id == rid).first():
+        res_row = db.query(M.Result).filter(M.Result.id == rid).first()
+        if not res_row:
+            raise HTTPException(status_code=400, detail="resultado não encontrado")
+        sim_own = (
+            db.query(M.Simulation)
+            .filter(M.Simulation.id == res_row.simulation_id)
+            .first()
+        )
+        if not sim_own or sim_own.user_id != user_id:
             raise HTTPException(status_code=400, detail="resultado não encontrado")
         ref = str(rid)
     elif k == "data_note":
@@ -309,6 +359,7 @@ async def remove_report_attachment(
     report_id: int,
     attachment_id: int,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     att = (
         db.query(M.ReportAttachment)
@@ -321,6 +372,8 @@ async def remove_report_attachment(
     if not att:
         raise HTTPException(status_code=404, detail="anexo não encontrado")
     r = db.query(M.Report).filter(M.Report.id == report_id).first()
+    if not r or r.user_id != user_id:
+        raise HTTPException(status_code=404, detail="anexo não encontrado")
     db.delete(att)
     if r:
         r.updated_at = datetime.now(timezone.utc)

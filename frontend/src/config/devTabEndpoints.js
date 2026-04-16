@@ -109,7 +109,7 @@ export const TAB_DEV_INFO = {
     persistence: ['reports', 'report_attachments'],
   },
   profile: {
-    api: ['GET /api/profile', 'PATCH /api/profile'],
+    api: ['GET /api/users', 'GET /api/profile', 'PATCH /api/profile'],
     persistence: ['user_profiles'],
   },
   settings: {

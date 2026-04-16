@@ -43,6 +43,9 @@ class Bed(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_by = Column(String(100), nullable=True)  # origem api ou utilizador
 
+    # isolamento por utilizador local (cabecalho x-user-id)
+    user_id = Column(Integer, ForeignKey("user_profiles.id"), nullable=False, default=1, index=True)
+
     # apagar leito apaga simulacoes filhas em cascade
     simulations = relationship("Simulation", back_populates="bed", cascade="all, delete-orphan")
 
@@ -101,6 +104,8 @@ class Simulation(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_by = Column(String(100), nullable=True)
 
+    user_id = Column(Integer, ForeignKey("user_profiles.id"), nullable=False, default=1, index=True)
+
     bed = relationship("Bed", back_populates="simulations")
     results = relationship("Result", back_populates="simulation", cascade="all, delete-orphan")
 
@@ -147,6 +152,8 @@ class BedTemplate(Base):
     tag = Column(String(50), nullable=False, default="bed")
     source = Column(String(50), nullable=False, default="editor")
 
+    user_id = Column(Integer, ForeignKey("user_profiles.id"), nullable=False, default=1, index=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -175,6 +182,8 @@ class Report(Base):
     title = Column(String(500), nullable=False)
     body = Column(Text, nullable=False, default="")
     status = Column(String(32), nullable=False, default="draft")
+
+    user_id = Column(Integer, ForeignKey("user_profiles.id"), nullable=False, default=1, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

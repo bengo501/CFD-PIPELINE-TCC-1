@@ -5,6 +5,7 @@ import App from './App'
 import { LanguageProvider } from './context/LanguageContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { AppUiProvider } from './context/AppUiContext'
+import { UserProvider } from './context/UserContext'
 import './styles/App.css'
 
 // create root liga o react a um elemento dom existente
@@ -17,7 +18,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <LanguageProvider>
         {/* app ui sincroniza modo simples modo dev e timeout axios com settings */}
         <AppUiProvider>
-          <App />
+          <UserProvider>
+            <App />
+          </UserProvider>
         </AppUiProvider>
       </LanguageProvider>
     </ThemeProvider>

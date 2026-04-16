@@ -119,14 +119,19 @@ class OpenFOAMService:
                     solver='simpleFoam',
                     max_iterations=params.get('cfd', {}).get('max_iterations', 1000),
                     convergence_criteria=params.get('cfd', {}).get('convergence_criteria', 1e-4),
-                    case_directory=str(case_dir.relative_to(self.project_root)),
-                    status='completed' if not run_simulation else 'running',
-                    progress=100 if not run_simulation else 50,
                     parameters_json=params,
                     created_by='api'
                 )
-                
-                db_simulation = crud.SimulationCRUD.create(db_session, sim_data)
+                bed_row = crud.BedCRUD.get(db_session, bed_id)
+                scope_uid = bed_row.user_id if bed_row else 1
+                db_simulation = crud.SimulationCRUD.create(
+                    db_session,
+                    sim_data,
+                    user_id=scope_uid,
+                    case_directory=str(case_dir.relative_to(self.project_root)),
+                    status='completed' if not run_simulation else 'running',
+                    progress=100 if not run_simulation else 50,
+                )
                 simulation_id = db_simulation.id
             
             # atualizar job com sucesso

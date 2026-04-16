@@ -25,6 +25,11 @@ class BedCreate(BedBase):
     """schema para criar leito"""
     parameters_json: Optional[Dict[str, Any]] = None
     created_by: Optional[str] = None
+    # caminhos opcionais usados quando o leito e gerado pela api compile
+    bed_file_path: Optional[str] = None
+    json_file_path: Optional[str] = None
+    blend_file_path: Optional[str] = None
+    stl_file_path: Optional[str] = None
 
 
 class BedUpdate(BaseModel):
@@ -42,6 +47,7 @@ class BedUpdate(BaseModel):
 class BedResponse(BedBase):
     """schema de resposta para leito"""
     id: int
+    user_id: int = 1
     bed_file_path: Optional[str]
     json_file_path: Optional[str]
     blend_file_path: Optional[str]
@@ -110,6 +116,7 @@ class SimulationUpdate(BaseModel):
 class SimulationResponse(SimulationBase):
     """schema de resposta para simulacao"""
     id: int
+    user_id: int = 1
     status: str
     progress: int
     mesh_cells_count: Optional[int]

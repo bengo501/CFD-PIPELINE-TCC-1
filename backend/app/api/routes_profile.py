@@ -1,5 +1,8 @@
-# perfil singleton sem autenticacao multi conta id fixo igual a um
+# router fastapi para perfis locais
+# nao existe password nem oauth nesta versao
+# o isolamento de dados vem do cabecalho x user id lido em deps user
 from datetime import datetime, timezone
+from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -7,15 +10,19 @@ from sqlalchemy.orm import Session
 from backend.app.database.connection import get_db
 from backend.app.database import models as M
 from backend.app.api.models import UserProfileResponse, UserProfileUpdate
+from backend.app.api.deps_user import get_active_user_id
+from backend.app.database.user_seed import (
+    DEFAULT_PROFILE_IDS,
+    ensure_default_profiles,
+    ensure_profile_by_id,
+)
 
 router = APIRouter()
 
-# constante centraliza o id esperado pela ui e por migracoes manuais
-PROFILE_ROW_ID = 1
-
 
 def _iso(v) -> str:
-    # converte datetime sql para string iso ou devolve vazio
+    # converte valores datetime do sql alchemy para texto iso
+    # v pode ser none se a coluna veio vazia
     if v is None:
         return ""
     if hasattr(v, "isoformat"):
@@ -24,7 +31,8 @@ def _iso(v) -> str:
 
 
 def _to_response(row: M.UserProfile) -> UserProfileResponse:
-    # mapeia colunas orm para modelo pydantic de resposta http
+    # copia campos do orm para o modelo pydantic da resposta json
+    # o pydantic valida tipos antes de serializar
     return UserProfileResponse(
         id=row.id,
         display_name=row.display_name or "",
@@ -38,39 +46,43 @@ def _to_response(row: M.UserProfile) -> UserProfileResponse:
     )
 
 
-def _ensure_profile(db: Session) -> M.UserProfile:
-    # select por chave primaria
-    row = db.query(M.UserProfile).filter(M.UserProfile.id == PROFILE_ROW_ID).first()
-    if row:
-        return row
-    # primeira execucao cria linha demo coerente com textos do frontend
-    row = M.UserProfile(
-        id=PROFILE_ROW_ID,
-        display_name="ana silva",
-        email="ana.silva@exemplo.edu",
-        organization="laboratório de engenharia — demo",
-        role="researcher",
-        bio=None,
-        preferred_language="pt",
+def _ensure_profile(db: Session, user_id: int) -> M.UserProfile:
+    # delega para user seed que cria linha em falta
+    return ensure_profile_by_id(db, user_id)
+
+
+@router.get("/users", response_model=List[UserProfileResponse], tags=["profile"])
+async def list_users(db: Session = Depends(get_db)):
+    # lista apenas ids em default profile ids ordenados
+    # o frontend usa isto para preencher o menu de troca de utilizador
+    ensure_default_profiles(db)
+    rows = (
+        db.query(M.UserProfile)
+        .filter(M.UserProfile.id.in_(DEFAULT_PROFILE_IDS))
+        .order_by(M.UserProfile.id)
+        .all()
     )
-    db.add(row)
-    db.commit()
-    db.refresh(row)
-    return row
+    return [_to_response(r) for r in rows]
 
 
 @router.get("/profile", response_model=UserProfileResponse, tags=["profile"])
-async def get_profile(db: Session = Depends(get_db)):
-    """obter perfil; cria linha por defeito na primeira chamada."""
-    row = _ensure_profile(db)
+async def get_profile(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    # le o perfil associado ao id do cabecalho atual
+    row = _ensure_profile(db, user_id)
     return _to_response(row)
 
 
 @router.patch("/profile", response_model=UserProfileResponse, tags=["profile"])
-async def update_profile(body: UserProfileUpdate, db: Session = Depends(get_db)):
-    """atualizar campos do perfil singleton."""
-    row = _ensure_profile(db)
-    # cada if so altera colunas explicitamente enviadas no patch
+async def update_profile(
+    body: UserProfileUpdate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    # patch parcial so campos enviados no json mudam
+    row = _ensure_profile(db, user_id)
     if body.display_name is not None:
         row.display_name = body.display_name.strip()
     if body.email is not None:

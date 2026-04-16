@@ -104,7 +104,8 @@ coverage/
 .pytest_cache/
 htmlcov/
 
-# banco de dados local
+# banco de dados local e pasta dedicada (sqlite em local_data)
+local_data/
 *.db
 *.sqlite
 *.sqlite3

@@ -1,30 +1,33 @@
 # nucleo de geracao geometrica stl em python puro
-# entrada cli em packed_bed_stl.py
+# o ficheiro packed bed stl chama este modulo depois de validar o json
 #
-# dois grandes caminhos conforme packing method no json
-# caminho cientifico spherical packing ou hexagonal 3d usa packed bed science e pure bed mesh
-# caminho legacy rigid body usa simulacao de queda em modelo cilindro
+# ha dois grandes caminhos conforme o campo packing method no ficheiro json
+# caminho um chamado cientifico usa spherical packing ou hexagonal 3d
+# caminho dois chamado legacy usa rigid body com simulacao de queda
 #
-# modelagem em python puro no caminho cientifico
-# o cilindro oco vem de create hollow cylinder geometry com quatro aneis de vertices
-# as tampas sao cilindros curtos solidos create cap geometry
-# as esferas sao malhas uv sphere fundidas com merge mesh
+# no caminho cientifico nao ha motor fisico blender dentro deste ficheiro
+# as posicoes das esferas vem de funcoes em packed bed science
+# depois pure bed mesh constroi o cilindro tampas e esferas como malha triangular
+# no fim exportamos stl binario e um json lateral com metadados
 #
-# validacao geometrica reutiliza validate configuration do pacote packed bed science
-# o dominio e AnnulusBedDomain igual ao script blender leito extracao
+# o dominio geometrico chama se annulus bed domain
+# ele descreve o anel entre raio interno e externo e a faixa vertical entre tampas
+# validate configuration verifica se cada centro respeita paredes e se pares nao colidem
 #
-# integracao com o backend
-# o servico blender service chama este script quando modeling profile e python ou pure python
-# aliases blender python e blender apontam para o motor blender
-# ver funcao normalize modeling profile em blender service
+# modo spherical packing em palavras simples
+# imagina lancar pontos aleatorios dentro do volume permitido
+# cada novo ponto so fica se estiver longe o suficiente dos anteriores
+# longe significa distancia entre centros maior ou igual a soma dos raios mais gap
+# se falhar muitas vezes seguidas o algoritmo pode parar antes do numero pedido
 #
-# modo spherical packing
-# coloca esferas por sorteio com rejeicao ate preencher pedido ou esgotar tentativas
-# respeita gap minimo entre centros e limites do dominio anular
+# modo hexagonal 3d em palavras simples
+# imagina uma grade regular tipo favo cortada pelo cilindro
+# os centros validos sao os nos da grade que caem dentro do dominio
+# o passo horizontal opcional step x mexe na densidade horizontal da grade
 #
-# modo hexagonal 3d
-# usa grade hexagonal filtrada ao dominio anular e altura util
-# opcao step x ajusta espacamento horizontal da grade
+# integracao backend
+# quando o utilizador escolhe motor python no api o servico corre este script
+# quando escolhe blender outro caminho usa leito extracao dentro do blender
 #
 from __future__ import annotations
 
@@ -34,19 +37,19 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-# diretorio deste ficheiro para importar stl mesh utils e pure bed mesh no mesmo nivel
+# diretorio deste ficheiro serve para imports relativos sem instalar pacote
 _PMDIR = Path(__file__).resolve().parent
 if str(_PMDIR) not in sys.path:
     sys.path.insert(0, str(_PMDIR))
 
-# raiz do projeto dois niveis acima deste script
+# raiz do repositorio sobe dois niveis a partir de scripts python modeling
 _ROOT = Path(__file__).resolve().parents[2]
-# vis cilindro opcional para outras ferramentas
+# ferramenta opcional de visualizacao noutra pasta
 _VIS_CIL = _ROOT / "tools" / "vis_cilindro"
 if str(_VIS_CIL) not in sys.path:
     sys.path.insert(0, str(_VIS_CIL))
 
-# pasta scripts um nivel acima para importar packed bed science e blender scripts
+# pasta scripts contem o pacote packed bed science como codigo fonte local
 _SCRIPTS = Path(__file__).resolve().parents[1]
 _BLENDER_SCRIPTS_DIR = _SCRIPTS / "blender_scripts"
 if str(_BLENDER_SCRIPTS_DIR) not in sys.path:
@@ -85,14 +88,12 @@ tri = Tuple[int, int, int]
 
 def _to_float(v: Any, default: float = 0.0) -> float:
     # converte entrada solta do json para float seguro
-    # aceita int float ou string com virgula trocada por ponto
-    # v valor vindo do json pode ser none
-    # default retorno se none
-    # detalhes
-    # json quase sempre vem sem controle de tipo
-    # por isso esse helper e usado em varios campos
-    # ele reduz erros por exemplo quando alguem escreve numero como texto
-    # ele tambem aceita formato com virgula decimal comum em alguns formatos
+    # v e o valor bruto que pode ser none numero ou texto
+    # default e o numero de recurso quando v e invalido ou none
+    # passo um none devolve default
+    # passo dois tipos numericos nativos viram float direto
+    # passo tres texto limpa virgula europeia e chama float de novo
+    # isto evita falhas quando o wizard grava numeros como string
     if v is None:
         return float(default)
     if isinstance(v, (int, float)):
@@ -101,11 +102,8 @@ def _to_float(v: Any, default: float = 0.0) -> float:
 
 
 def _to_int(v: Any, default: int = 0) -> int:
-    # converte entrada para inteiro
-    # trunca float e parseia strings numericas
-    # detalhes
-    # campos como contagem e numero de tentativas devem ser inteiros
-    # o json pode vir como string entao fazemos conversao explicita
+    # igual ao float mas o resultado final e inteiro
+    # contagens e seeds devem ser inteiros para os geradores
     if v is None:
         return int(default)
     if isinstance(v, int):
@@ -120,8 +118,8 @@ def _packing_method_name(packing: Dict[str, Any]) -> str:
 
 
 def _coerce_bool(v: Any, default: bool = True) -> bool:
-    # interpreta texto como booleano para flags do json
-    # aceita varias palavras em portugues e ingles
+    # strict validation e outros flags chegam como texto ou booleano
+    # normalizamos para nao depender do tipo exato vindo do json
     if v is None:
         return default
     if isinstance(v, bool):
@@ -135,20 +133,11 @@ def _coerce_bool(v: Any, default: bool = True) -> bool:
 
 
 def load_bed_json(path: Path) -> Dict[str, Any]:
-    # le o ficheiro json completo e devolve um dicionario plano com chaves fixas
-    # path caminho absoluto ou relativo ao cwd
-    # secao bed tem diametro altura espessura de parede
-    # secao particles tem contagem diametro e seed opcional
-    # secao lids tem espessuras de tampas
-    # secao packing tem metodo gravidade gap seeds e malha
-    # detalhes
-    # este loader e o contrato central do gerador
-    # ele transforma a estrutura json do wizard em um conjunto de valores diretos
-    # para que a geracao e o export possam ser escritos sem ficar percorrendo chaves aninhadas
-    # tambem aplicamos normalizacao de modos
-    # por exemplo generation_backend pode vir como texto informal
-    # ou os raios do cilindro podem vir como r outer e r inner
-    # e neste caso resolvemos para diameter e wall_thickness
+    # le o ficheiro json e devolve um dicionario unico com chaves fixas
+    # path e o caminho para o ficheiro gerado pelo wizard ou editado a mao
+    # o objetivo e esconder a estrutura aninhada do json do resto do codigo
+    # aplicamos merge de packing e generation no topo antes de ler seccoes
+    # resolve bed geometry numbers aceita diameter ou r outer r inner
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     if isinstance(data, dict):
@@ -159,11 +148,7 @@ def load_bed_json(path: Path) -> Dict[str, Any]:
     lids = data.get("lids") or {}
     packing = data.get("packing") or {}
 
-    # diametro altura parede a partir de diameter wall ou r_outer r_inner
-    # detalhes de geometria
-    # diameter e a medida total do cilindro exterior em torno do eixo z
-    # wall thickness e a espessura da parede do cilindro oco
-    # height e a faixa vertical entre tampas
+    # diameter altura e parede ja normalizados em metros
     diameter, height, wall = resolve_bed_geometry_numbers(bed)
 
     # count numero pedido de particulas pode vir como string
@@ -185,8 +170,7 @@ def load_bed_json(path: Path) -> Dict[str, Any]:
     bottom_t = _to_float(lids.get("bottom_thickness"), 0.003)
     top_t = _to_float(lids.get("top_thickness"), 0.003)
 
-    # gap minimo extra entre superficies das esferas
-    # preferimos chave gap se existir senao collision margin
+    # gap e folga minima entre superficies de duas esferas vizinhas
     gap = packing.get("gap")
     if gap is not None:
         gap_f = _to_float(gap, 0.0)
@@ -195,7 +179,7 @@ def load_bed_json(path: Path) -> Dict[str, Any]:
     # gap e o valor que define a folga minima entre esferas
     # ele entra tanto na geracao como na validacao
 
-    # dicionario unificado usado por toda a geracao
+    # chaves abaixo alimentam tanto o modo cientifico como o legacy
     return {
         "diameter": diameter,
         "height": height,
@@ -223,24 +207,22 @@ def load_bed_json(path: Path) -> Dict[str, Any]:
 
 
 def _mesh_to_lists(m: mesh) -> Tuple[List[vec3], List[tri]]:
-    # converte objeto mesh do modelo cilindro legacy para listas deste script
-    # m tem atributos vertices e indices
+    # traduz o tipo mesh do modelo cilindro legado para listas python simples
+    # vertices sao pontos xyz
+    # indices agrupam tres inteiros por triangulo
     return list(m.vertices), list(m.indices)
 
 
 def _legacy_generate_stl(p: Dict[str, Any], out_stl: Path, max_passos: int) -> None:
-    # caminho legacy rigid body
-    # simula particulas em queda ate estabilizar depois funde tubo e esferas
-    # p dicionario vindo de load bed json
-    # out stl destino
-    # max passos limite de iteracao da simulacao fisica simples
-    # r ext raio externo metade do diametro
-    # detalhes
-    # este modo e chamado de legacy porque a colocacao nao e puramente matematica
-    # ele tenta aproximar o comportamento fisico com um simulador simplificado
-    # mesmo assim no final rodamos validate configuration como checagem
-    # isso garante em modo strict que nao exista violacao de parede
-    # e reduz o risco de atravessar a casca do cilindro
+    # modo legacy rigid body
+    # p e o dicionario devolvido por load bed json
+    # out stl e o caminho de escrita do ficheiro final
+    # max passos limita o loop da simulacao simples de queda
+    # primeiro calculamos raios do tubo e altura
+    # depois geramos malha do tubo com tampas
+    # depois simulamos particulas ate parar
+    # depois validamos com packed bed science se strict pedir
+    # por fim fundimos esferas uv ao tubo e escrevemos stl
     r_ext = p["diameter"] / 2.0
     # r int raio interno nunca menor que um pouco mais que raio da particula para nao ficar impossivel
     r_int = max(r_ext - p["wall_thickness"], p["particle_diameter"] * 0.51)
@@ -302,21 +284,13 @@ def _legacy_generate_stl(p: Dict[str, Any], out_stl: Path, max_passos: int) -> N
 
 
 def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
-    # caminho cientifico spherical packing ou hexagonal 3d
-    # usa o mesmo nucleo matematico que o blender para posicoes
-    # depois monta geometria com pure bed mesh e exporta stl mais json lateral
-    # p dicionario normalizado
-    # out stl ficheiro stl de saida
-    # r ext raio externo do tubo
-    # detalhes
-    # neste modo nao existe simulacao fisica
-    # a colocacao e determinada por algoritmos de distribuicao
-    # spherical packing sorteia centros dentro do cilindro oco com rejeicao
-    # hexagonal 3d cria uma grade regular e filtra os centros que caem no dominio
-    # em ambos os casos a garantia de nao colidir e obtida com validate configuration
-    # validate configuration verifica dois conjuntos de regras
-    # primeiro cada centro deve estar dentro do dominio com folga
-    # segundo cada par de centros deve respeitar distancia minima entre superficies
+    # modo cientifico sem fisica tipo blender
+    # passo um calcula raios e altura e monta annulus bed domain
+    # passo dois escolhe gerador conforme packing method
+    # passo tres valida centros e estima porosidade
+    # passo quatro constroi malha com pure bed mesh e exporta
+    # colisao entre esferas e checagem de paredes usam validate configuration
+    # a ideia e distancia entre centros maior ou igual soma raios mais gap
     r_ext = p["diameter"] / 2.0
     # r int raio interno parede menos espessura
     r_int = r_ext - p["wall_thickness"]
@@ -333,15 +307,8 @@ def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
     tb = p["bottom_thickness"]
     tt = p["top_thickness"]
 
-    # dominio geometrico compartilhado com validacao e geradores
-    # define regiao anular em xy e faixa vertical entre tampas
-    # detalhes do dominio
-    # o dominio annulus bed domain descreve a regiao onde o centro de uma esfera pode ficar
-    # ele usa r int e r ext para limites radiais
-    # e usa thickness das tampas para limites em z
-    # e inclui gap junto com o raio da esfera
-    # isso significa que mesmo quando o centro esta dentro do dominio
-    # a esfera nao atravessa as paredes nem penetra as tampas
+    # domain encapsula limites radiais em xy e limites em z com tampas
+    # o pacote packed bed science usa a mesma definicao no blender e aqui
     domain = AnnulusBedDomain(
         r_int=r_int,
         r_ext=r_ext,
@@ -352,19 +319,20 @@ def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
         gap=gap,
     )
 
-    # method nome canonico ja normalizado
+    # method ja veio normalizado pelo loader
     method = p["packing_method"]
-    # medir tempo de geracao para metadados
+    # medimos tempo de cpu para o json lateral
     t0 = time.perf_counter()
     if method == "spherical_packing":
-        # modo sorteio com rejeicao
-        # tenta colocar cada nova esfera sem sobrepor anteriores nem violar paredes
-        # random seed pode vir de packing ou de particles seed
+        # ramo spherical packing
+        # o gerador interno tenta varias vezes ate aceitar cada centro
+        # seed controla repetibilidade dos sorteios
         seed = p.get("random_seed")
         if seed is None:
             seed = p.get("particles_seed")
-        # se ainda none o gerador interno pode usar default proprio
+        # seed none deixa o gerador escolher comportamento proprio
         seed_i = _to_int(seed, 42) if seed is not None else None
+        # generate spherical packing devolve dict com centros e estatisticas
         gen = generate_spherical_packing(
             domain,
             p["particle_count"],
@@ -374,14 +342,15 @@ def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
             max_placement_attempts=p["max_placement_attempts"],
         )
     else:
-        # modo hexagonal 3d
-        # preenche espaco com padrao tipo empilhamento compacto depois corta ao dominio
-        # step x opcional afina distancia horizontal entre centros de camadas
+        # ramo hexagonal 3d
+        # a grade e deterministica e rapida comparada ao sorteio
+        # step x controla distancia horizontal entre colunas
         step_x_opt = p.get("step_x")
         step_x_f = _to_float(step_x_opt, 0.0) if step_x_opt is not None else None
-        # zero ou negativo significa deixar o gerador escolher automatico
+        # valor zero ou negativo vira none para automatico
         if step_x_f is not None and step_x_f <= 0:
             step_x_f = None
+        # generate hexagonal packing devolve dict parecido ao spherical
         gen = generate_hexagonal_packing(
             domain,
             p["particle_count"],
@@ -392,29 +361,25 @@ def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
     # tempo decorrido em segundos
     elapsed = time.perf_counter() - t0
 
-    # centros devolvidos pelo gerador
+    # centers e lista de tuplos xyz em metros
     centers = gen["centers"]
-    # lista de raios iguais para o validador
+    # radii repete o mesmo raio porque todas as esferas sao iguais neste fluxo
     radii = [r_s] * len(centers)
-    # validate configuration verifica sobreposicao e limites segundo convencao de gap
-    # gap convention aqui e distancia entre centros maior ou igual soma raios mais gap
-    # detalhes de colisao
-    # validate configuration calcula distancia euclidiana entre centros
-    # e compara com uma distancia minima calculada por sphere center clearance
-    # se a distancia real for menor do que a minima entao ha interpenetracao
-    # ou ha violacao da folga gap
+    # validate configuration percorre pares e dominio
+    # para cada par compara distancia com soma raios mais gap
+    # para cada centro verifica se ainda esta dentro do volume permitido para a esfera inteira
     report_val = validate_configuration(centers, radii, domain, gap)
-    # porosidade estimada por volume excluido das esferas
+    # porosidade aproximada por volume
     poros = estimate_porosity(domain, centers, r_s)
 
-    # strict validation se true falha com erro quando relatorio nao ok
+    # strict true transforma avisos de validacao em excecao
     strict = p["strict_validation"]
     if not report_val.get("ok", False):
         if strict:
             raise RuntimeError(
                 "validacao geometrica falhou: " + str(report_val.get("messages", []))[:500]
             )
-    # no modo spherical tambem exige contagem se strict
+    # spherical pode falhar em atingir o numero pedido por esgotar tentativas
     if method == "spherical_packing" and len(centers) < p["particle_count"] and strict:
         raise RuntimeError(
             f"spherical packing so colocou {len(centers)} de {p['particle_count']}"
@@ -455,30 +420,24 @@ def _science_generate_stl(p: Dict[str, Any], out_stl: Path) -> None:
 def generate_packed_bed_stl(
     bed_json: Path, out_stl: Path, max_passos: int = 12000
 ) -> None:
-    # funcao publica usada pelo backend e por linha de comando
-    # carrega json escolhe ramo cientifico ou legacy
-    # bed json entrada
-    # out stl saida
-    # max passos so legacy
-    # detalhes de despacho
-    # packing method determina qual gerador usaremos
-    # se o metodo for spherical packing ou hexagonal 3d usamos o caminho cientifico
-    # se o metodo for outro usamos o modo legacy rigid body
+    # entrada publica unica para testes e para o servico fastapi
+    # bed json e o ficheiro de parametros
+    # out stl e o destino do triangulos
+    # max passos so entra no fluxo legacy
     p = load_bed_json(bed_json)
+    # despacho simples por nome do metodo
     if p["packing_method"] in ("spherical_packing", "hexagonal_3d"):
         _science_generate_stl(p, out_stl)
     else:
         _legacy_generate_stl(p, out_stl, max_passos)
 
 
-# bloco final didatico leia antes de alterar
-# modelagem o tubo oco e malha de quatro aneis de vertices mais faces triangulares
-# tampas sao cilindros curtos solidos com disco em cada base
-# esferas sao esferas uv discretizadas
-# spherical packing sorteia posicoes e rejeita colisoes ate cumprir meta ou parar
-# hexagonal 3d usa grade hexagonal filtrada ao volume util
-# validacao e validate configuration sobre AnnulusBedDomain com lista de mensagens
-# colisao entre esferas usa distancia entre centros comparada com soma raios mais gap
-# limites usam r int r ext z min z max derivados das tampas no dominio
-# usuario escolhe motor na api modeling profile python ou pure python para este script
-# usuario escolhe blender ou blender python para leito extracao no blender
+# resumo final para quem le o ficheiro inteiro
+# tubo oco vem de malha parametrizada por segmentos
+# tampas sao volumes curtos
+# esferas sao uv sphere com lat e lon controlaveis
+# spherical e aleatorio com rejeicao
+# hexagonal e grade cortada ao cilindro
+# validate configuration fecha o ciclo de seguranca geometrica
+# motor python escolhido na api aponta para este script
+# motor blender escolhido na api aponta para o projeto blender

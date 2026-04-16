@@ -1,0 +1,7 @@
+{
+  "extraPaths": [
+    "scripts/blender_scripts",
+    "scripts/python_modeling"
+  ],
+  "reportMissingImports": true
+}
