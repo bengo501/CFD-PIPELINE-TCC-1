@@ -100,12 +100,19 @@ class OpenFOAMService:
             
             # criar/atualizar simulacao no banco se fornecido
             simulation_id = None
-            if bed_id and db_session:
+            if bed_id:
                 from backend.app.database import crud, schemas
+                from backend.app.database.connection import DatabaseConnection
                 
                 # ler parametros do json
                 with open(json_path, 'r', encoding='utf-8') as f:
                     params = json.load(f)
+
+                own_session = None
+                session = db_session
+                if session is None:
+                    own_session = DatabaseConnection.get_session()
+                    session = own_session
                 
                 # criar simulacao no banco
                 sim_data = schemas.SimulationCreate(
@@ -122,10 +129,10 @@ class OpenFOAMService:
                     parameters_json=params,
                     created_by='api'
                 )
-                bed_row = crud.BedCRUD.get(db_session, bed_id)
+                bed_row = crud.BedCRUD.get(session, bed_id)
                 scope_uid = bed_row.user_id if bed_row else 1
                 db_simulation = crud.SimulationCRUD.create(
-                    db_session,
+                    session,
                     sim_data,
                     user_id=scope_uid,
                     case_directory=str(case_dir.relative_to(self.project_root)),
@@ -133,6 +140,8 @@ class OpenFOAMService:
                     progress=100 if not run_simulation else 50,
                 )
                 simulation_id = db_simulation.id
+                if own_session is not None:
+                    own_session.close()
             
             # atualizar job com sucesso
             job.status = JobStatus.COMPLETED

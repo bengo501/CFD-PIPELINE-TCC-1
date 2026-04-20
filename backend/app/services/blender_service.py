@@ -193,12 +193,28 @@ class BlenderService:
                 job.metadata["blend_file"] = rel
             
             # atualizar bed no banco se fornecido
-            if bed_id and db_session:
+            if bed_id:
                 from backend.app.database import crud, schemas
-                
+                from backend.app.database.connection import DatabaseConnection
+
+                own_session = None
+                session = db_session
+                if session is None:
+                    own_session = DatabaseConnection.get_session()
+                    session = own_session
+
                 geom_rel = job.metadata.get("geometry_file") or job.metadata.get("blend_file")
-                update_data = schemas.BedUpdate(blend_file_path=geom_rel)
-                crud.BedCRUD.update(db_session, bed_id, update_data)
+                update_kwargs = {}
+                if geom_rel:
+                    if str(geom_rel).lower().endswith(".stl"):
+                        update_kwargs["stl_file_path"] = geom_rel
+                    else:
+                        update_kwargs["blend_file_path"] = geom_rel
+                if update_kwargs:
+                    update_data = schemas.BedUpdate(**update_kwargs)
+                    crud.BedCRUD.update(session, bed_id, update_data)
+                if own_session is not None:
+                    own_session.close()
             
             if profile == "blender" and open_blender:
                 bp = self.project_root / (job.metadata.get("blend_file") or "")

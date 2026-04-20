@@ -58,7 +58,8 @@ class BedService:
         parameters: Dict[str, Any],
         filename: Optional[str] = None,
         save_to_db: bool = False,
-        db_session = None
+        db_session = None,
+        user_id: int = 1,
     ) -> Dict[str, Any]:
         """
         compila parâmetros em arquivo .bed e .bed.json
@@ -100,9 +101,10 @@ class BedService:
         }
         
         # salvar no banco se solicitado (opcional - falha graciosamente se banco não disponível)
-        if save_to_db and db_session:
+        if save_to_db:
             try:
                 from backend.app.database import crud, schemas
+                from backend.app.database.connection import DatabaseConnection
                 
                 p_bed = parameters.get("bed") or {}
                 p_part = parameters.get("particles") or {}
@@ -123,9 +125,17 @@ class BedService:
                     parameters_json=parameters,
                     created_by='api'
                 )
-                
-                db_bed = crud.BedCRUD.create(db_session, bed_data, user_id=1)
+
+                own_session = None
+                session = db_session
+                if session is None:
+                    own_session = DatabaseConnection.get_session()
+                    session = own_session
+
+                db_bed = crud.BedCRUD.create(session, bed_data, user_id=user_id)
                 result["bed_id"] = db_bed.id
+                if own_session is not None:
+                    own_session.close()
             except Exception as db_error:
                 # Falha graciosamente - banco não é obrigatório para compilação
                 # Log do erro mas continua o processo

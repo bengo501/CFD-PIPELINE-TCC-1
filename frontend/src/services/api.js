@@ -144,6 +144,24 @@ export const getSystemStatus = async () => {
   return response.data;
 };
 
+// transforma um caminho relativo dentro de generated em url publica do backend
+export const buildGeneratedFileUrl = (relativePath) => {
+  if (!relativePath) return null;
+  const normalized = String(relativePath).replace(/\\/g, '/').replace(/^\/+/, '');
+  const withoutGenerated = normalized.startsWith('generated/')
+    ? normalized.slice('generated/'.length)
+    : normalized;
+  return `${getApiBase()}/files/${withoutGenerated}`;
+};
+
+// endpoint consolidado do dashboard com metricas e listas recentes
+export const getDashboardSummary = async (recent_limit = 8) => {
+  const response = await api.get('/api/dashboard/summary', {
+    params: { recent_limit }
+  });
+  return response.data;
+};
+
 // agregados para graficos do dashboard contagens medias etc
 export const getSimulationsSummary = async () => {
   const response = await api.get('/api/simulations/summary');
@@ -169,6 +187,43 @@ export const listSimulations = async ({
   if (bed_id != null && bed_id !== '') params.bed_id = bed_id;
   if (status != null && status !== '') params.status = status;
   const response = await api.get('/api/simulations', { params });
+  return response.data;
+};
+
+// lista unificada de modelos 3d persistidos na tabela beds
+export const listModels3D = async ({
+  page = 1,
+  per_page = 100
+} = {}) => {
+  const response = await api.get('/api/models-3d', {
+    params: { page, per_page }
+  });
+  return response.data;
+};
+
+// feed agregado para a pagina de historico
+export const getHistoryFeed = async (limit = 100) => {
+  const response = await api.get('/api/history', {
+    params: { limit }
+  });
+  return response.data;
+};
+
+// detalhes completos de uma simulacao pelo id
+export const getSimulation = async (simulationId) => {
+  const response = await api.get(`/api/simulations/${simulationId}`);
+  return response.data;
+};
+
+// remover simulacao do banco
+export const deleteSimulation = async (simulationId) => {
+  const response = await api.delete(`/api/simulations/${simulationId}`);
+  return response.data;
+};
+
+// criar novo registo de simulacao na base a partir de um payload
+export const createSimulationRecord = async (payload) => {
+  const response = await api.post('/api/simulations', payload);
   return response.data;
 };
 

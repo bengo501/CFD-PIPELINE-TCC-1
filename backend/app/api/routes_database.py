@@ -19,9 +19,11 @@ from backend.app.api.models import (
     DatabasePanelResponse,
 )
 from backend.app.services.results_service import ResultsService
+from backend.app.services.unified_data_service import UnifiedDataService
 
 router = APIRouter()
 results_service = ResultsService()
+unified_data_service = UnifiedDataService()
 
 
 # ==================== ENDPOINTS BEDS ====================
@@ -205,6 +207,109 @@ async def list_simulations(
         raise HTTPException(status_code=500, detail=f"erro ao listar simulacoes: {str(e)}")
 
 
+@router.get(
+    "/simulations/summary",
+    tags=["database", "simulations"],
+)
+async def get_simulations_summary(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    """
+    resumo agregado de simulacoes.
+    """
+    summary = unified_data_service.get_dashboard_summary(db, user_id, recent_limit=8)
+    return {
+        "total": summary.total_simulations,
+        "by_status": summary.by_status,
+        "success_rate": summary.success_rate,
+        "average_execution_time": summary.average_execution_time,
+        "average_pressure_drop": summary.average_pressure_drop,
+        "average_reynolds_number": summary.average_reynolds_number,
+    }
+
+
+@router.get(
+    "/simulations/recent",
+    response_model=schemas.SimulationListResponse,
+    tags=["database", "simulations"],
+)
+async def list_recent_simulations(
+    limit: int = Query(8, ge=1, le=100, description="numero maximo de simulacoes"),
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    """
+    listar as simulacoes mais recentes.
+    """
+    try:
+        sims_query = (
+            db.query(models.Simulation)
+            .filter(models.Simulation.user_id == user_id)
+            .order_by(models.Simulation.created_at.desc())
+        )
+        total = sims_query.count()
+        simulations = sims_query.limit(limit).all()
+        return schemas.SimulationListResponse(
+            total=total,
+            page=1,
+            per_page=limit,
+            pages=1,
+            items=simulations,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"erro ao listar simulacoes recentes: {str(e)}")
+
+
+@router.get(
+    "/models-3d",
+    response_model=schemas.Model3DListResponse,
+    tags=["database", "models-3d"],
+)
+async def list_models_3d(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    """
+    lista modelos 3d persistidos no sqlite a partir da tabela beds.
+    """
+    return unified_data_service.list_models_3d(db, user_id, page=page, per_page=per_page)
+
+
+@router.get(
+    "/history",
+    response_model=schemas.HistoryResponse,
+    tags=["database", "history"],
+)
+async def get_history(
+    limit: int = Query(100, ge=1, le=500),
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    """
+    feed agregado de simulacoes e modelos 3d.
+    """
+    return unified_data_service.get_history(db, user_id, limit=limit)
+
+
+@router.get(
+    "/dashboard/summary",
+    response_model=schemas.DashboardSummaryResponse,
+    tags=["database", "dashboard"],
+)
+async def get_dashboard_summary(
+    recent_limit: int = Query(8, ge=1, le=50),
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
+):
+    """
+    resumo consolidado do dashboard com simulacoes e modelos 3d.
+    """
+    return unified_data_service.get_dashboard_summary(db, user_id, recent_limit=recent_limit)
+
+
 @router.get("/simulations/{simulation_id}", response_model=schemas.SimulationResponse, tags=["database", "simulations"])
 async def get_simulation(
     simulation_id: int,
@@ -384,90 +489,6 @@ async def ingest_results_for_simulation(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao ingerir resultados: {str(e)}")
-
-
-@router.get(
-    "/simulations/summary",
-    tags=["database", "simulations"],
-)
-async def get_simulations_summary(
-    db: Session = Depends(get_db),
-    user_id: int = Depends(get_active_user_id),
-):
-    """
-    resumo agregado de simulacoes para o dashboard.
-
-    retorna contagens por status, taxa de sucesso e medias basicas
-    de algumas metricas (pressure_drop, reynolds_number).
-    """
-    sims: list[models.Simulation] = (
-        db.query(models.Simulation).filter(models.Simulation.user_id == user_id).all()
-    )
-    total = len(sims)
-    by_status = {
-        "pending": 0,
-        "running": 0,
-        "completed": 0,
-        "failed": 0,
-    }
-
-    pressures: list[float] = []
-    reynolds: list[float] = []
-
-    for s in sims:
-        if s.status in by_status:
-            by_status[s.status] += 1
-        if s.pressure_drop is not None:
-            pressures.append(s.pressure_drop)
-        if s.reynolds_number is not None:
-            reynolds.append(s.reynolds_number)
-
-    completed = by_status["completed"]
-    success_rate = (completed / total * 100.0) if total > 0 else 0.0
-
-    avg_pressure = sum(pressures) / len(pressures) if pressures else None
-    avg_reynolds = sum(reynolds) / len(reynolds) if reynolds else None
-
-    return {
-        "total": total,
-        "by_status": by_status,
-        "success_rate": success_rate,
-        "average_pressure_drop": avg_pressure,
-        "average_reynolds_number": avg_reynolds,
-    }
-
-
-@router.get(
-    "/simulations/recent",
-    response_model=schemas.SimulationListResponse,
-    tags=["database", "simulations"],
-)
-async def list_recent_simulations(
-    limit: int = Query(8, ge=1, le=100, description="numero maximo de simulacoes"),
-    db: Session = Depends(get_db),
-    user_id: int = Depends(get_active_user_id),
-):
-    """
-    listar as simulacoes mais recentes (para o dashboard).
-    """
-    try:
-        sims_query = (
-            db.query(models.Simulation)
-            .filter(models.Simulation.user_id == user_id)
-            .order_by(models.Simulation.created_at.desc())
-        )
-        total = sims_query.count()
-        simulations = sims_query.limit(limit).all()
-        # reusar schema de lista com uma 'pagina' unica
-        return schemas.SimulationListResponse(
-            total=total,
-            page=1,
-            per_page=limit,
-            pages=1,
-            items=simulations,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"erro ao listar simulacoes recentes: {str(e)}")
 
 
 @router.delete("/results/{result_id}", tags=["database", "results"])

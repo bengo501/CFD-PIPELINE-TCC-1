@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from backend.app.database.connection import get_db
+from backend.app.api.deps_user import get_active_user_id
 from backend.app.api.models import (
     BedParameters, BedParametersNested,
     JobResponse, JobStatus, JobType,
@@ -39,6 +40,7 @@ async def create_bed_full(
     background_tasks: BackgroundTasks,
     parameters: BedParameters,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
     modeling_profile: str | None = Query(
         None,
         description=(
@@ -90,6 +92,7 @@ async def create_bed_full(
         run_simulation=run_simulation,
         modeling_profile=modeling_profile,
         db_session=db,
+        user_id=user_id,
         jobs_store=jobs_store_integrated,
     )
     
@@ -107,6 +110,7 @@ async def _execute_full_pipeline(
     run_simulation: bool,
     modeling_profile: str | None,
     db_session: Session,
+    user_id: int,
     jobs_store: dict
 ):
     """
@@ -123,7 +127,8 @@ async def _execute_full_pipeline(
         result = await bed_service.compile_bed(
             parameters=parameters,
             save_to_db=True,
-            db_session=db_session
+            db_session=db_session,
+            user_id=user_id,
         )
         
         job.progress = 30
@@ -234,6 +239,7 @@ async def execute_full_pipeline_with_simulation(
         ),
     ),
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_active_user_id),
 ):
     """
     pipeline completo end-to-end com execucao da simulacao cfd no wsl
@@ -295,6 +301,7 @@ async def execute_full_pipeline_with_simulation(
         db,
         jobs_store_integrated,
         modeling_profile,
+        user_id,
     )
 
     return JobResponse(
@@ -310,6 +317,7 @@ async def _execute_full_pipeline_with_simulation(
     db_session: Session,
     jobs_store: dict,
     modeling_profile: str | None = None,
+    user_id: int = 1,
 ):
     """
     executa pipeline completo com simulacao cfd em background
@@ -350,7 +358,8 @@ async def _execute_full_pipeline_with_simulation(
             result = await bed_service.compile_bed(
                 parameters=parameters,
                 save_to_db=True,
-                db_session=db_session
+                db_session=db_session,
+                user_id=user_id,
             )
 
         bed_file = result["bed_file"]

@@ -138,6 +138,78 @@ class SimulationResponse(SimulationBase):
         from_attributes = True
 
 
+class Model3DResponse(BaseModel):
+    """representa um modelo 3d persistido a partir de um leito"""
+    id: int
+    user_id: int = 1
+    name: str
+    description: Optional[str] = None
+    diameter: float
+    height: float
+    wall_thickness: float
+    particle_count: int
+    particle_diameter: float
+    particle_kind: str
+    packing_method: str
+    porosity: Optional[float] = None
+    bed_file_path: Optional[str] = None
+    json_file_path: Optional[str] = None
+    blend_file_path: Optional[str] = None
+    stl_file_path: Optional[str] = None
+    blend_file_url: Optional[str] = None
+    stl_file_url: Optional[str] = None
+    preview_model_url: Optional[str] = None
+    has_model_files: bool = False
+    parameters_json: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+
+
+class Model3DListResponse(BaseModel):
+    """lista paginada de modelos 3d persistidos"""
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    items: List[Model3DResponse]
+
+
+class HistoryEntryResponse(BaseModel):
+    """evento agregado para a pagina de historico"""
+    entry_type: str
+    source_id: int
+    title: str
+    description: Optional[str] = None
+    status: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    simulation_id: Optional[int] = None
+    model_3d_id: Optional[int] = None
+    bed_id: Optional[int] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class HistoryResponse(BaseModel):
+    """feed agregado usado pelo historico"""
+    simulations: List[SimulationResponse]
+    models_3d: List[Model3DResponse]
+    items: List[HistoryEntryResponse]
+
+
+class DashboardSummaryResponse(BaseModel):
+    """resumo consolidado para dashboard"""
+    total_simulations: int
+    total_models_3d: int
+    by_status: Dict[str, int]
+    success_rate: float
+    average_execution_time: Optional[float] = None
+    average_pressure_drop: Optional[float] = None
+    average_reynolds_number: Optional[float] = None
+    recent_simulations: List[SimulationResponse]
+    recent_models_3d: List[Model3DResponse]
+
+
 # schemas para Result
 
 class ResultBase(BaseModel):
