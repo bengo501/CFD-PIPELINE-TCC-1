@@ -1,5 +1,5 @@
 // contexto de idioma pt en com persistencia e funcao t de traducao
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from '../i18n/translations';
 
 // sem valor default forcando uso dentro do provider
@@ -21,20 +21,25 @@ export const LanguageProvider = ({ children }) => {
     document.documentElement.lang = language;
   }, [language]);
 
-  const toggleLanguage = () => {
+  const toggleLanguage = useCallback(() => {
     // alternancia simples entre duas linguas suportadas pelo bundle
     setLanguageState((prev) => (prev === 'pt' ? 'en' : 'pt'));
-  };
+  }, []);
 
-  const setLanguage = (lang) => {
+  const setLanguage = useCallback((lang) => {
     // filtra codigos desconhecidos para nao quebrar o hook de i18n
     if (lang === 'pt' || lang === 'en') {
       setLanguageState(lang);
     }
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ language, toggleLanguage, setLanguage, t }),
+    [language, toggleLanguage, setLanguage, t]
+  );
 
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

@@ -44,6 +44,7 @@ function App() {
   const { simpleMode, devMode, applySettingsFromApi, setSimpleMode, setDevMode } = useAppUi();
   const { activeUserId, setActiveUserId } = useActiveUser();
   const [activeTab, setActiveTab] = useState('dashboard') // dashboard, create, wizard, pipeline, cfd, jobs, results
+  const [wizardResetKey, setWizardResetKey] = useState(0)
   const [systemStatus, setSystemStatus] = useState(null)
   const [backendUnreachable, setBackendUnreachable] = useState(false)
   const [currentJob, setCurrentJob] = useState(null)
@@ -55,6 +56,7 @@ function App() {
   const [showUserSwitcher, setShowUserSwitcher] = useState(false)
   const [expandedSections, setExpandedSections] = useState({})
   const mainContentRef = useRef(null)
+  const settingsAppliedRef = useRef(false)
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -96,6 +98,8 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (settingsAppliedRef.current) return;
+    settingsAppliedRef.current = true;
     let cancelled = false;
     getSettings()
       .then((s) => {
@@ -238,7 +242,7 @@ function App() {
     navigateToTab('jobs')
   }
 
-  const goToCreationMode = () => {
+  const resetToCreationHome = () => {
     setExpandedSections((prev) => {
       const newState = {};
       Object.keys(prev).forEach((key) => {
@@ -247,6 +251,11 @@ function App() {
       return newState;
     });
     setActiveTab('wizard');
+    setWizardResetKey((k) => k + 1);
+  };
+
+  const goToCreationMode = () => {
+    resetToCreationHome();
   };
 
   const toggleSection = (section) => {
@@ -276,7 +285,13 @@ function App() {
       <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
         <div className="header-content">
           <div className="header-left">
-            <div className="logo-container">
+            <button
+              type="button"
+              className="logo-container logo-container-btn"
+              onClick={resetToCreationHome}
+              title={language === 'pt' ? 'ir para criar' : 'go to create'}
+              aria-label={language === 'pt' ? 'ir para criar' : 'go to create'}
+            >
               <img 
                 src="/image/cfdPipelineLight.png" 
                 alt="cfd pipeline logo" 
@@ -286,7 +301,7 @@ function App() {
                 <h1>{t('appCreativeTitle')}</h1>
                 <span className="subtitle">{t('appTagline')}</span>
               </div>
-            </div>
+            </button>
           </div>
           
           <div className="header-right">
@@ -326,7 +341,7 @@ function App() {
             <button 
               type="button"
               className="theme-toggle" 
-              onClick={(e) => { e.stopPropagation(); toggleTheme(); }} 
+              onClick={toggleTheme} 
               title={theme === 'light' ? (language === 'pt' ? 'modo escuro' : 'dark mode') : (language === 'pt' ? 'modo claro' : 'light mode')}
               aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
             >
@@ -362,7 +377,7 @@ function App() {
               <button 
                 type="button"
                 className="language-toggle" 
-                onClick={(e) => { e.stopPropagation(); toggleLanguage(); }} 
+                onClick={toggleLanguage} 
                 title={language === 'pt' ? 'switch to english' : 'mudar para português'}
                 aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
               >
@@ -647,7 +662,7 @@ function App() {
           {devMode && <DevModePanel activeTab={activeTab} />}
           {activeTab === 'wizard' && (
             <div className="tab-content">
-              <BedWizard />
+              <BedWizard key={wizardResetKey} />
             </div>
           )}
 

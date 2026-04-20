@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import JSZip from 'jszip';
 import { useLanguage } from '../context/LanguageContext';
 import {
   listReports,
@@ -43,6 +44,144 @@ function kindLabel(kind, pt) {
   return m[kind] || kind;
 }
 
+function slugify(s) {
+  return String(s || 'relatorio')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'relatorio';
+}
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function buildPreviewHtml(detail, pt) {
+  const title = escapeHtml(detail.title || (pt ? 'relatório' : 'report'));
+  const statusTxt = escapeHtml(detail.status || 'draft');
+  const created = detail.created_at
+    ? new Date(detail.created_at).toLocaleString(pt ? 'pt-PT' : 'en-GB')
+    : '—';
+  const updated = detail.updated_at
+    ? new Date(detail.updated_at).toLocaleString(pt ? 'pt-PT' : 'en-GB')
+    : '—';
+  const body = escapeHtml(detail.body || '');
+  const atts = Array.isArray(detail.attachments) ? detail.attachments : [];
+  const attachmentsHtml = atts.length
+    ? atts
+        .map((a) => {
+          const k = escapeHtml(kindLabel(a.kind, pt));
+          const ref = escapeHtml(a.display_ref || a.ref_id || '');
+          const note = a.note
+            ? a.kind === 'data_note'
+              ? `<pre class="att-data">${escapeHtml(a.note)}</pre>`
+              : `<div class="att-note">${escapeHtml(a.note)}</div>`
+            : '';
+          return `<li class="att"><div class="att-head"><span class="att-kind">${k}</span><span class="att-ref">${ref}</span></div>${note}</li>`;
+        })
+        .join('')
+    : `<li class="att empty">${escapeHtml(pt ? 'sem anexos.' : 'no attachments.')}</li>`;
+
+  const labels = {
+    status: pt ? 'estado' : 'status',
+    created: pt ? 'criado' : 'created',
+    updated: pt ? 'atualizado' : 'updated',
+    body: pt ? 'conteúdo' : 'body',
+    attachments: pt ? 'anexos' : 'attachments',
+    generated: pt ? 'gerado em' : 'generated at',
+  };
+  const now = new Date().toLocaleString(pt ? 'pt-PT' : 'en-GB');
+
+  return `<!doctype html>
+<html lang="${pt ? 'pt' : 'en'}">
+<head>
+<meta charset="utf-8" />
+<title>${title}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: #1a1a1a; background: #fff; margin: 2rem; line-height: 1.5; }
+  h1 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+  .meta { color: #555; font-size: 0.85rem; margin-bottom: 1.25rem; }
+  .meta span { margin-right: 1rem; }
+  .pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; background: #eef; color: #224; font-size: 0.75rem; font-weight: 600; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+  .body { white-space: pre-wrap; font-family: inherit; font-size: 0.95rem; border: 1px solid #e5e5e5; padding: 1rem; border-radius: 6px; background: #fafafa; }
+  ul.atts { list-style: none; padding: 0; margin: 0; }
+  .att { border: 1px solid #e5e5e5; border-radius: 6px; padding: 0.75rem; margin-bottom: 0.5rem; }
+  .att.empty { color: #666; font-style: italic; }
+  .att-head { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.25rem; }
+  .att-kind { font-weight: 600; color: #335; font-size: 0.8rem; text-transform: uppercase; }
+  .att-ref { color: #222; }
+  .att-note { font-size: 0.9rem; color: #333; margin-top: 0.25rem; }
+  .att-data { background: #f3f3f3; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; white-space: pre-wrap; overflow-x: auto; }
+  footer { margin-top: 2rem; color: #888; font-size: 0.75rem; text-align: right; }
+  @media print {
+    body { margin: 1rem; }
+    h2 { page-break-after: avoid; }
+    .att { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <div class="meta">
+    <span><strong>${escapeHtml(labels.status)}:</strong> <span class="pill">${statusTxt}</span></span>
+    <span><strong>${escapeHtml(labels.created)}:</strong> ${escapeHtml(created)}</span>
+    <span><strong>${escapeHtml(labels.updated)}:</strong> ${escapeHtml(updated)}</span>
+  </div>
+  <h2>${escapeHtml(labels.body)}</h2>
+  <div class="body">${body || '—'}</div>
+  <h2>${escapeHtml(labels.attachments)} (${atts.length})</h2>
+  <ul class="atts">${attachmentsHtml}</ul>
+  <footer>${escapeHtml(labels.generated)}: ${escapeHtml(now)}</footer>
+</body>
+</html>`;
+}
+
+function buildReportMd(detail, pt) {
+  const atts = Array.isArray(detail.attachments) ? detail.attachments : [];
+  const lines = [];
+  lines.push(`# ${detail.title || (pt ? 'relatório' : 'report')}`);
+  lines.push('');
+  lines.push(`- **${pt ? 'estado' : 'status'}**: ${detail.status || 'draft'}`);
+  if (detail.created_at) lines.push(`- **${pt ? 'criado' : 'created'}**: ${detail.created_at}`);
+  if (detail.updated_at) lines.push(`- **${pt ? 'atualizado' : 'updated'}**: ${detail.updated_at}`);
+  lines.push('');
+  lines.push(`## ${pt ? 'conteúdo' : 'body'}`);
+  lines.push('');
+  lines.push(detail.body || '—');
+  lines.push('');
+  lines.push(`## ${pt ? 'anexos' : 'attachments'} (${atts.length})`);
+  lines.push('');
+  if (!atts.length) {
+    lines.push(`_${pt ? 'sem anexos.' : 'no attachments.'}_`);
+  } else {
+    for (const a of atts) {
+      lines.push(`### ${kindLabel(a.kind, pt)} — ${a.display_ref || a.ref_id || ''}`);
+      if (a.note) {
+        if (a.kind === 'data_note') {
+          lines.push('');
+          lines.push('```');
+          lines.push(a.note);
+          lines.push('```');
+        } else {
+          lines.push('');
+          lines.push(a.note);
+        }
+      }
+      lines.push('');
+    }
+  }
+  return lines.join('\n');
+}
+
 /**
  * relatórios persistidos (reports + report_attachments); modal para editar e anexar entidades.
  */
@@ -54,6 +193,8 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
   const [opError, setOpError] = useState(null);
+  const [opSuccess, setOpSuccess] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [activeReportId, setActiveReportId] = useState(null);
@@ -247,6 +388,11 @@ export default function ReportsPage() {
     };
   }, [pickSimForResult]);
 
+  const flashSuccess = useCallback((msg) => {
+    setOpSuccess(msg);
+    setTimeout(() => setOpSuccess(null), 2500);
+  }, []);
+
   const attachSimulation = async () => {
     if (!activeReportId || !addSimId) return;
     setAttBusy(true);
@@ -260,6 +406,7 @@ export default function ReportsPage() {
       setAddSimId('');
       await refreshDetail();
       await loadReports();
+      flashSuccess(pt ? 'simulação anexada' : 'simulation attached');
     } catch (err) {
       if (isConnectionError(err)) setConnectionError(t('backendConnectionError'));
       else setOpError(err.response?.data?.detail || (pt ? 'falha no anexo' : 'attach failed'));
@@ -281,6 +428,7 @@ export default function ReportsPage() {
       setAddTmplId('');
       await refreshDetail();
       await loadReports();
+      flashSuccess(pt ? 'template anexado' : 'template attached');
     } catch (err) {
       if (isConnectionError(err)) setConnectionError(t('backendConnectionError'));
       else setOpError(err.response?.data?.detail || (pt ? 'falha no anexo' : 'attach failed'));
@@ -302,6 +450,7 @@ export default function ReportsPage() {
       setAddResultId('');
       await refreshDetail();
       await loadReports();
+      flashSuccess(pt ? 'resultado anexado' : 'result attached');
     } catch (err) {
       if (isConnectionError(err)) setConnectionError(t('backendConnectionError'));
       else setOpError(err.response?.data?.detail || (pt ? 'falha no anexo' : 'attach failed'));
@@ -323,6 +472,7 @@ export default function ReportsPage() {
       setDataNoteText('');
       await refreshDetail();
       await loadReports();
+      flashSuccess(pt ? 'nota anexada' : 'note attached');
     } catch (err) {
       if (isConnectionError(err)) setConnectionError(t('backendConnectionError'));
       else setOpError(err.response?.data?.detail || (pt ? 'falha no anexo' : 'attach failed'));
@@ -340,11 +490,95 @@ export default function ReportsPage() {
       await removeReportAttachment(activeReportId, attachmentId);
       await refreshDetail();
       await loadReports();
+      flashSuccess(pt ? 'anexo removido' : 'attachment removed');
     } catch (err) {
       if (isConnectionError(err)) setConnectionError(t('backendConnectionError'));
       else setOpError(err.response?.data?.detail || (pt ? 'falha ao remover' : 'remove failed'));
     } finally {
       setAttBusy(false);
+    }
+  };
+
+  const handlePreviewPdf = () => {
+    setOpError(null);
+    if (!detail) {
+      setOpError(pt ? 'abra um relatório primeiro.' : 'open a report first.');
+      return;
+    }
+    try {
+      const html = buildPreviewHtml(detail, pt);
+      const w = window.open('', '_blank');
+      if (!w) {
+        setOpError(
+          pt
+            ? 'o navegador bloqueou a janela de pré-visualização. permita pop-ups para este site.'
+            : 'browser blocked the preview window. allow pop-ups for this site.'
+        );
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      w.onload = () => {
+        try {
+          w.print();
+        } catch {
+          // o usuario pode imprimir manualmente via ctrl+p
+        }
+      };
+    } catch (err) {
+      setOpError(err.message || (pt ? 'falha ao gerar pré-visualização' : 'preview failed'));
+    }
+  };
+
+  const handleExportBundle = async () => {
+    setOpError(null);
+    if (!detail) {
+      setOpError(pt ? 'abra um relatório primeiro.' : 'open a report first.');
+      return;
+    }
+    setExporting(true);
+    try {
+      const zip = new JSZip();
+      const reportMeta = {
+        id: detail.id,
+        title: detail.title,
+        status: detail.status,
+        created_at: detail.created_at,
+        updated_at: detail.updated_at,
+        body: detail.body || '',
+        exported_at: new Date().toISOString(),
+      };
+      zip.file('report.json', JSON.stringify(reportMeta, null, 2));
+      zip.file('report.md', buildReportMd(detail, pt));
+      const atts = Array.isArray(detail.attachments) ? detail.attachments : [];
+      zip.file('attachments.json', JSON.stringify(atts, null, 2));
+
+      if (atts.some((a) => a.kind === 'data_note' && a.note)) {
+        const notesFolder = zip.folder('notes');
+        atts
+          .filter((a) => a.kind === 'data_note' && a.note)
+          .forEach((a) => {
+            notesFolder.file(`nota_${a.id}.txt`, a.note);
+          });
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const filename = `relatorio_${detail.id}_${slugify(detail.title)}.zip`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      flashSuccess(pt ? 'pacote exportado' : 'bundle exported');
+    } catch (err) {
+      setOpError(err.message || (pt ? 'falha ao exportar pacote' : 'export failed'));
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -356,6 +590,12 @@ export default function ReportsPage() {
         {opError && (
           <div className="reports-op-error" role="alert">
             {opError}
+          </div>
+        )}
+
+        {opSuccess && (
+          <div className="reports-op-success" role="status">
+            {opSuccess}
           </div>
         )}
 
@@ -413,14 +653,6 @@ export default function ReportsPage() {
               </ul>
             )}
 
-            <div className="reports-actions-mock">
-              <button type="button" disabled title={pt ? 'em breve' : 'coming soon'}>
-                {pt ? 'pré-visualizar pdf' : 'preview pdf'}
-              </button>
-              <button type="button" disabled title={pt ? 'em breve' : 'coming soon'}>
-                {pt ? 'exportar pacote' : 'export bundle'}
-              </button>
-            </div>
           </section>
         </div>
 
@@ -493,6 +725,17 @@ export default function ReportsPage() {
                       onClick={handleDeleteReport}
                     >
                       {pt ? 'eliminar relatório' : 'delete report'}
+                    </button>
+                  </div>
+
+                  <div className="reports-actions-mock">
+                    <button type="button" onClick={handlePreviewPdf}>
+                      {pt ? 'pré-visualizar pdf' : 'preview pdf'}
+                    </button>
+                    <button type="button" onClick={handleExportBundle} disabled={exporting}>
+                      {exporting
+                        ? (pt ? 'a exportar…' : 'exporting…')
+                        : (pt ? 'exportar pacote' : 'export bundle')}
                     </button>
                   </div>
 

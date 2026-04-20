@@ -371,6 +371,36 @@ input, textarea, select {
   padding-left: 0;
 }
 
+.logo-container-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-left: -0.2rem;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border-radius: 8px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.logo-container-btn:hover {
+  opacity: 0.85;
+}
+
+.logo-container-btn:active {
+  transform: scale(0.98);
+}
+
+.logo-container-btn:focus {
+  outline: none;
+}
+
+.logo-container-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 3px;
+}
+
 .logo-icon {
   width: 80px;
   height: 80px;

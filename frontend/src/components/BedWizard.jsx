@@ -1170,7 +1170,6 @@ const BedWizard = () => {
           <button 
             className="btn btn-secondary" 
             onClick={handlePrev}
-            disabled={step === 1}
           >
             ← voltar
           </button>
