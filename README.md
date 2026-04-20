@@ -1,4 +1,4 @@
-# CFD-PIPELINE-TCC-1
+BEDFLOW-ATLAS-TCC-2
 
 pipeline automatizado para simulacao cfd de leitos empacotados usando dsl, blender e openfoam.
 
