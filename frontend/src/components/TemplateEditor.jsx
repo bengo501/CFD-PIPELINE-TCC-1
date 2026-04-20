@@ -42,8 +42,8 @@ function TemplateEditor() {
 
   const loadSavedTemplates = async () => {
     try {
-      const data = await listTemplates()
-      setSavedTemplates(Array.isArray(data) ? data : data.templates || [])
+      const data = await listTemplates({ page: 1, limit: 100 })
+      setSavedTemplates(Array.isArray(data) ? data : data.items || data.templates || [])
     } catch (error) {
       console.error('erro ao carregar templates salvos:', error)
       setConnectionError(t('backendConnectionError'))

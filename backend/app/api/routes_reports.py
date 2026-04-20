@@ -1,7 +1,7 @@
 # relatorios com anexos fracos a simulacao template ou result
 # anexos guardam ref id string para nao forcar fk rigida a todas entidades
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, selectinload
@@ -14,12 +14,19 @@ from backend.app.api.models import (
     ReportAttachmentOut,
     ReportCatalogResponse,
     ReportCatalogSimulation,
+    PaginatedReportSummary,
     ReportCatalogTemplate,
     ReportCreate,
     ReportDetail,
     ReportMetaResultItem,
     ReportSummary,
     ReportUpdate,
+)
+from backend.app.utils.pagination import (
+    build_paginated_payload,
+    clean_filters,
+    parse_datetime_filter,
+    resolve_page_limit,
 )
 
 router = APIRouter()
@@ -157,19 +164,40 @@ async def reports_meta_results(
     ]
 
 
-@router.get("/reports", response_model=List[ReportSummary], tags=["reports"])
+@router.get("/reports", response_model=PaginatedReportSummary, tags=["reports"])
 async def list_reports(
+    page: int = Query(1, ge=1),
+    limit: Optional[int] = Query(None, ge=1, le=100),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="alias legado de limit"),
+    search: Optional[str] = Query(None, description="buscar por título ou conteúdo"),
+    status: Optional[str] = Query(None, description="filtrar por estado"),
+    created_from: Optional[str] = Query(None, description="filtrar por data inicial"),
+    created_to: Optional[str] = Query(None, description="filtrar por data final"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
+    page, limit, skip = resolve_page_limit(page=page, limit=limit, per_page=per_page)
+    parsed_from = parse_datetime_filter(created_from)
+    parsed_to = parse_datetime_filter(created_to, end_of_day=True)
+    query = db.query(M.Report).filter(M.Report.user_id == user_id)
+    if search:
+        like = f"%{search.strip()}%"
+        query = query.filter((M.Report.title.ilike(like)) | (M.Report.body.ilike(like)))
+    if status:
+        query = query.filter(M.Report.status == status)
+    if parsed_from:
+        query = query.filter(M.Report.updated_at >= parsed_from)
+    if parsed_to:
+        query = query.filter(M.Report.updated_at <= parsed_to)
+    total = query.count()
     rows = (
-        db.query(M.Report)
-        .filter(M.Report.user_id == user_id)
-        .options(selectinload(M.Report.attachments))
-        .order_by(M.Report.updated_at.desc())
+        query.options(selectinload(M.Report.attachments))
+        .order_by(M.Report.updated_at.desc(), M.Report.created_at.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
-    return [
+    items = [
         ReportSummary(
             id=r.id,
             title=r.title,
@@ -180,6 +208,20 @@ async def list_reports(
         )
         for r in rows
     ]
+    return PaginatedReportSummary(
+        **build_paginated_payload(
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            applied_filters=clean_filters(
+                search=search,
+                status=status,
+                created_from=created_from,
+                created_to=created_to,
+            ),
+        )
+    )
 
 
 @router.post("/reports", response_model=ReportDetail, tags=["reports"])

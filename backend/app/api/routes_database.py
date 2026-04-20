@@ -20,6 +20,12 @@ from backend.app.api.models import (
 )
 from backend.app.services.results_service import ResultsService
 from backend.app.services.unified_data_service import UnifiedDataService
+from backend.app.utils.pagination import (
+    build_paginated_payload,
+    clean_filters,
+    parse_datetime_filter,
+    resolve_page_limit,
+)
 
 router = APIRouter()
 results_service = ResultsService()
@@ -56,8 +62,12 @@ async def create_bed(
 @router.get("/beds", response_model=schemas.BedListResponse, tags=["database", "beds"])
 async def list_beds(
     page: int = Query(1, ge=1, description="numero da pagina"),
-    per_page: int = Query(50, ge=1, le=100, description="items por pagina"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="items por pagina"),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="alias legado de limit"),
     search: Optional[str] = Query(None, description="buscar por nome ou descricao"),
+    packing_method: Optional[str] = Query(None, description="filtrar por metodo de geracao"),
+    created_from: Optional[str] = Query(None, description="filtrar por data inicial"),
+    created_to: Optional[str] = Query(None, description="filtrar por data final"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
@@ -65,22 +75,32 @@ async def list_beds(
     listar leitos com paginacao e busca opcional
     """
     try:
-        skip, limit, _ = crud.paginate(0, page, per_page)
-        
-        if search:
-            beds, total = crud.BedCRUD.search(db, search, skip, limit, user_id=user_id)
-        else:
-            beds, total = crud.BedCRUD.get_all(db, skip, limit, user_id=user_id)
-        
-        import math
-        pages = math.ceil(total / per_page) if total > 0 else 1
-        
+        page, limit, skip = resolve_page_limit(page=page, limit=limit, per_page=per_page)
+        parsed_from = parse_datetime_filter(created_from)
+        parsed_to = parse_datetime_filter(created_to, end_of_day=True)
+        beds, total = crud.BedCRUD.list_filtered(
+            db,
+            skip=skip,
+            limit=limit,
+            user_id=user_id,
+            search=search,
+            packing_method=packing_method,
+            created_from=parsed_from,
+            created_to=parsed_to,
+        )
         return schemas.BedListResponse(
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=pages,
-            items=beds
+            **build_paginated_payload(
+                items=beds,
+                total=total,
+                page=page,
+                limit=limit,
+                applied_filters=clean_filters(
+                    search=search,
+                    packing_method=packing_method,
+                    created_from=created_from,
+                    created_to=created_to,
+                ),
+            )
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao listar leitos: {str(e)}")
@@ -168,9 +188,15 @@ async def create_simulation(
 @router.get("/simulations", response_model=schemas.SimulationListResponse, tags=["database", "simulations"])
 async def list_simulations(
     page: int = Query(1, ge=1),
-    per_page: int = Query(50, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=100),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="alias legado de limit"),
     bed_id: Optional[int] = Query(None, description="filtrar por leito"),
     status: Optional[str] = Query(None, description="filtrar por status"),
+    search: Optional[str] = Query(None, description="filtrar por nome ou descricao"),
+    regime: Optional[str] = Query(None, description="filtrar por regime"),
+    solver: Optional[str] = Query(None, description="filtrar por solver"),
+    created_from: Optional[str] = Query(None, description="filtrar por data inicial"),
+    created_to: Optional[str] = Query(None, description="filtrar por data final"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
@@ -178,30 +204,39 @@ async def list_simulations(
     listar simulacoes com paginacao e filtros
     """
     try:
-        skip, limit, _ = crud.paginate(0, page, per_page)
-        
-        if bed_id:
-            simulations, total = crud.SimulationCRUD.get_by_bed(
-                db, bed_id, skip, limit, user_id=user_id
-            )
-        elif status:
-            simulations, total = crud.SimulationCRUD.get_by_status(
-                db, status, skip, limit, user_id=user_id
-            )
-        else:
-            simulations, total = crud.SimulationCRUD.get_all(
-                db, skip, limit, user_id=user_id
-            )
-        
-        import math
-        pages = math.ceil(total / per_page) if total > 0 else 1
-        
+        page, limit, skip = resolve_page_limit(page=page, limit=limit, per_page=per_page)
+        parsed_from = parse_datetime_filter(created_from)
+        parsed_to = parse_datetime_filter(created_to, end_of_day=True)
+        simulations, total = crud.SimulationCRUD.list_filtered(
+            db,
+            skip=skip,
+            limit=limit,
+            user_id=user_id,
+            bed_id=bed_id,
+            status=status,
+            search=search,
+            regime=regime,
+            solver=solver,
+            created_from=parsed_from,
+            created_to=parsed_to,
+        )
+
         return schemas.SimulationListResponse(
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=pages,
-            items=simulations
+            **build_paginated_payload(
+                items=simulations,
+                total=total,
+                page=page,
+                limit=limit,
+                applied_filters=clean_filters(
+                    bed_id=bed_id,
+                    status=status,
+                    search=search,
+                    regime=regime,
+                    solver=solver,
+                    created_from=created_from,
+                    created_to=created_to,
+                ),
+            )
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao listar simulacoes: {str(e)}")
@@ -236,6 +271,8 @@ async def get_simulations_summary(
 )
 async def list_recent_simulations(
     limit: int = Query(8, ge=1, le=100, description="numero maximo de simulacoes"),
+    status: Optional[str] = Query(None, description="filtrar por status"),
+    search: Optional[str] = Query(None, description="filtrar por nome ou descricao"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
@@ -243,19 +280,22 @@ async def list_recent_simulations(
     listar as simulacoes mais recentes.
     """
     try:
-        sims_query = (
-            db.query(models.Simulation)
-            .filter(models.Simulation.user_id == user_id)
-            .order_by(models.Simulation.created_at.desc())
+        simulations, total = crud.SimulationCRUD.list_filtered(
+            db,
+            skip=0,
+            limit=limit,
+            user_id=user_id,
+            status=status,
+            search=search,
         )
-        total = sims_query.count()
-        simulations = sims_query.limit(limit).all()
         return schemas.SimulationListResponse(
-            total=total,
-            page=1,
-            per_page=limit,
-            pages=1,
-            items=simulations,
+            **build_paginated_payload(
+                items=simulations,
+                total=total,
+                page=1,
+                limit=limit,
+                applied_filters=clean_filters(status=status, search=search, recent=True),
+            )
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"erro ao listar simulacoes recentes: {str(e)}")
@@ -268,14 +308,35 @@ async def list_recent_simulations(
 )
 async def list_models_3d(
     page: int = Query(1, ge=1),
-    per_page: int = Query(50, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=100),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="alias legado de limit"),
+    search: Optional[str] = Query(None, description="filtrar por nome ou descricao"),
+    packing_method: Optional[str] = Query(None, description="filtrar por metodo de geracao"),
+    has_blend: Optional[bool] = Query(None, description="filtrar por ficheiro blend"),
+    has_stl: Optional[bool] = Query(None, description="filtrar por ficheiro stl"),
+    created_from: Optional[str] = Query(None, description="filtrar por data inicial"),
+    created_to: Optional[str] = Query(None, description="filtrar por data final"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
     """
     lista modelos 3d persistidos no sqlite a partir da tabela beds.
     """
-    return unified_data_service.list_models_3d(db, user_id, page=page, per_page=per_page)
+    page, limit, _ = resolve_page_limit(page=page, limit=limit, per_page=per_page)
+    parsed_from = parse_datetime_filter(created_from)
+    parsed_to = parse_datetime_filter(created_to, end_of_day=True)
+    return unified_data_service.list_models_3d(
+        db,
+        user_id,
+        page=page,
+        limit=limit,
+        search=search,
+        packing_method=packing_method,
+        has_blend=has_blend,
+        has_stl=has_stl,
+        created_from=parsed_from,
+        created_to=parsed_to,
+    )
 
 
 @router.get(
@@ -284,14 +345,34 @@ async def list_models_3d(
     tags=["database", "history"],
 )
 async def get_history(
-    limit: int = Query(100, ge=1, le=500),
+    page: int = Query(1, ge=1),
+    limit: Optional[int] = Query(None, ge=1, le=200),
+    per_page: Optional[int] = Query(None, ge=1, le=200, description="alias legado de limit"),
+    entry_type: str = Query("all", pattern="^(all|simulation|model_3d)$"),
+    search: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    packing_method: Optional[str] = Query(None),
+    created_from: Optional[str] = Query(None),
+    created_to: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
     """
     feed agregado de simulacoes e modelos 3d.
     """
-    return unified_data_service.get_history(db, user_id, limit=limit)
+    page, limit, _ = resolve_page_limit(page=page, limit=limit, per_page=per_page, max_limit=200)
+    return unified_data_service.get_history(
+        db,
+        user_id,
+        page=page,
+        limit=limit,
+        entry_type=entry_type,
+        search=search,
+        status=status,
+        packing_method=packing_method,
+        created_from=parse_datetime_filter(created_from),
+        created_to=parse_datetime_filter(created_to, end_of_day=True),
+    )
 
 
 @router.get(
@@ -418,10 +499,14 @@ async def create_results_bulk(
         raise HTTPException(status_code=500, detail=f"erro ao criar resultados: {str(e)}")
 
 
-@router.get("/results/simulation/{simulation_id}", response_model=List[schemas.ResultResponse], tags=["database", "results"])
+@router.get("/results/simulation/{simulation_id}", response_model=schemas.ResultListResponse, tags=["database", "results"])
 async def get_simulation_results(
     simulation_id: int,
     result_type: Optional[str] = Query(None, description="filtrar por tipo"),
+    search: Optional[str] = Query(None, description="filtrar por nome"),
+    page: int = Query(1, ge=1),
+    limit: Optional[int] = Query(None, ge=1, le=100),
+    per_page: Optional[int] = Query(None, ge=1, le=100, description="alias legado de limit"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
@@ -434,9 +519,29 @@ async def get_simulation_results(
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
     if simulation.user_id != user_id:
         raise HTTPException(status_code=404, detail="simulacao nao encontrada")
-    
-    results = crud.ResultCRUD.get_by_simulation(db, simulation_id, result_type)
-    return results
+
+    page, limit, skip = resolve_page_limit(page=page, limit=limit, per_page=per_page)
+    results, total = crud.ResultCRUD.list_filtered_by_simulation(
+        db,
+        simulation_id,
+        result_type=result_type,
+        search=search,
+        skip=skip,
+        limit=limit,
+    )
+    return schemas.ResultListResponse(
+        **build_paginated_payload(
+            items=results,
+            total=total,
+            page=page,
+            limit=limit,
+            applied_filters=clean_filters(
+                simulation_id=simulation_id,
+                result_type=result_type,
+                search=search,
+            ),
+        )
+    )
 
 
 @router.get("/results/{result_id}", response_model=schemas.ResultResponse, tags=["database", "results"])

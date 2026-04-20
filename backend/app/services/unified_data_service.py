@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
-from math import ceil
 from typing import Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.app.database import models, schemas
+from backend.app.utils.pagination import build_paginated_payload, clean_filters, resolve_page_limit
 
 
 class UnifiedDataService:
@@ -51,11 +52,53 @@ class UnifiedDataService:
             created_by=bed.created_by,
         )
 
-    def _simulation_query(self, db: Session, user_id: int):
-        return db.query(models.Simulation).filter(models.Simulation.user_id == user_id)
+    def _simulation_query(
+        self,
+        db: Session,
+        user_id: int,
+        *,
+        search: Optional[str] = None,
+        status: Optional[str] = None,
+        bed_id: Optional[int] = None,
+        regime: Optional[str] = None,
+        solver: Optional[str] = None,
+        created_from: Optional[datetime] = None,
+        created_to: Optional[datetime] = None,
+    ):
+        query = db.query(models.Simulation).filter(models.Simulation.user_id == user_id)
+        if bed_id is not None:
+            query = query.filter(models.Simulation.bed_id == bed_id)
+        if status:
+            query = query.filter(models.Simulation.status == status)
+        if regime:
+            query = query.filter(models.Simulation.regime == regime)
+        if solver:
+            query = query.filter(models.Simulation.solver == solver)
+        if search:
+            like = f"%{search.strip()}%"
+            query = query.filter(
+                (models.Simulation.name.ilike(like))
+                | (models.Simulation.description.ilike(like))
+            )
+        if created_from:
+            query = query.filter(models.Simulation.created_at >= created_from)
+        if created_to:
+            query = query.filter(models.Simulation.created_at <= created_to)
+        return query
 
-    def _models_query(self, db: Session, user_id: int):
-        return (
+    def _models_query(
+        self,
+        db: Session,
+        user_id: int,
+        *,
+        search: Optional[str] = None,
+        packing_method: Optional[str] = None,
+        has_blend: Optional[bool] = None,
+        has_stl: Optional[bool] = None,
+        created_from: Optional[datetime] = None,
+        created_to: Optional[datetime] = None,
+    ):
+        query = (
             db.query(models.Bed)
             .filter(models.Bed.user_id == user_id)
             .filter(
@@ -63,44 +106,123 @@ class UnifiedDataService:
                 | (models.Bed.stl_file_path.isnot(None))
             )
         )
+        if search:
+            like = f"%{search.strip()}%"
+            query = query.filter(
+                (models.Bed.name.ilike(like)) | (models.Bed.description.ilike(like))
+            )
+        if packing_method:
+            query = query.filter(models.Bed.packing_method == packing_method)
+        if has_blend is not None:
+            if has_blend:
+                query = query.filter(models.Bed.blend_file_path.isnot(None))
+            else:
+                query = query.filter(models.Bed.blend_file_path.is_(None))
+        if has_stl is not None:
+            if has_stl:
+                query = query.filter(models.Bed.stl_file_path.isnot(None))
+            else:
+                query = query.filter(models.Bed.stl_file_path.is_(None))
+        if created_from:
+            query = query.filter(models.Bed.created_at >= created_from)
+        if created_to:
+            query = query.filter(models.Bed.created_at <= created_to)
+        return query
 
     def list_models_3d(
         self,
         db: Session,
         user_id: int,
         page: int = 1,
-        per_page: int = 50,
+        limit: int = 50,
+        *,
+        search: Optional[str] = None,
+        packing_method: Optional[str] = None,
+        has_blend: Optional[bool] = None,
+        has_stl: Optional[bool] = None,
+        created_from: Optional[datetime] = None,
+        created_to: Optional[datetime] = None,
     ) -> schemas.Model3DListResponse:
-        query = self._models_query(db, user_id).order_by(models.Bed.created_at.desc())
+        page, limit, skip = resolve_page_limit(page=page, limit=limit)
+        applied_filters = clean_filters(
+            search=search,
+            packing_method=packing_method,
+            has_blend=has_blend,
+            has_stl=has_stl,
+            created_from=created_from.isoformat() if created_from else None,
+            created_to=created_to.isoformat() if created_to else None,
+        )
+        query = self._models_query(
+            db,
+            user_id,
+            search=search,
+            packing_method=packing_method,
+            has_blend=has_blend,
+            has_stl=has_stl,
+            created_from=created_from,
+            created_to=created_to,
+        ).order_by(models.Bed.updated_at.desc().nullslast(), models.Bed.created_at.desc())
         total = query.count()
-        page = max(1, page)
-        per_page = min(max(1, per_page), 100)
-        skip = (page - 1) * per_page
-        items = query.offset(skip).limit(per_page).all()
+        items = query.offset(skip).limit(limit).all()
         return schemas.Model3DListResponse(
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=ceil(total / per_page) if total > 0 else 1,
-            items=[self._bed_to_model_3d(bed) for bed in items],
+            **build_paginated_payload(
+                items=[self._bed_to_model_3d(bed) for bed in items],
+                total=total,
+                page=page,
+                limit=limit,
+                applied_filters=applied_filters,
+            )
         )
 
     def get_history(
         self,
         db: Session,
         user_id: int,
+        page: int = 1,
         limit: int = 100,
+        *,
+        entry_type: str = "all",
+        search: Optional[str] = None,
+        status: Optional[str] = None,
+        packing_method: Optional[str] = None,
+        created_from: Optional[datetime] = None,
+        created_to: Optional[datetime] = None,
     ) -> schemas.HistoryResponse:
+        page, limit, skip = resolve_page_limit(page=page, limit=limit, max_limit=200)
+        applied_filters = clean_filters(
+            entry_type=entry_type if entry_type != "all" else None,
+            search=search,
+            status=status,
+            packing_method=packing_method,
+            created_from=created_from.isoformat() if created_from else None,
+            created_to=created_to.isoformat() if created_to else None,
+        )
         simulations = (
-            self._simulation_query(db, user_id)
+            []
+            if entry_type == "model_3d"
+            else self._simulation_query(
+                db,
+                user_id,
+                search=search,
+                status=status,
+                created_from=created_from,
+                created_to=created_to,
+            )
             .order_by(models.Simulation.created_at.desc())
-            .limit(limit)
             .all()
         )
         model_beds = (
-            self._models_query(db, user_id)
+            []
+            if entry_type == "simulation"
+            else self._models_query(
+                db,
+                user_id,
+                search=search,
+                packing_method=packing_method,
+                created_from=created_from,
+                created_to=created_to,
+            )
             .order_by(models.Bed.updated_at.desc().nullslast(), models.Bed.created_at.desc())
-            .limit(limit)
             .all()
         )
 
@@ -154,10 +276,27 @@ class UnifiedDataService:
             return dt
 
         history_items.sort(key=sort_key, reverse=True)
-        if limit > 0:
-            history_items = history_items[:limit]
+        total = len(history_items)
+        history_items = history_items[skip : skip + limit]
 
         return schemas.HistoryResponse(
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=build_paginated_payload(
+                items=[],
+                total=total,
+                page=page,
+                limit=limit,
+            )["total_pages"],
+            applied_filters=applied_filters,
+            per_page=limit,
+            pages=build_paginated_payload(
+                items=[],
+                total=total,
+                page=page,
+                limit=limit,
+            )["pages"],
             simulations=[schemas.SimulationResponse.model_validate(sim) for sim in simulations],
             models_3d=[self._bed_to_model_3d(bed) for bed in model_beds],
             items=history_items,
@@ -169,12 +308,20 @@ class UnifiedDataService:
         user_id: int,
         recent_limit: int = 8,
     ) -> schemas.DashboardSummaryResponse:
-        simulations = self._simulation_query(db, user_id).all()
-        recent_simulations = (
-            self._simulation_query(db, user_id)
-            .order_by(models.Simulation.created_at.desc())
-            .limit(recent_limit)
+        sim_query = self._simulation_query(db, user_id)
+        counts_by_status = dict(
+            sim_query.with_entities(models.Simulation.status, func.count(models.Simulation.id))
+            .group_by(models.Simulation.status)
             .all()
+        )
+        metrics_row = sim_query.with_entities(
+            func.count(models.Simulation.id),
+            func.avg(models.Simulation.execution_time),
+            func.avg(models.Simulation.pressure_drop),
+            func.avg(models.Simulation.reynolds_number),
+        ).first()
+        recent_simulations = (
+            sim_query.order_by(models.Simulation.created_at.desc()).limit(recent_limit).all()
         )
         recent_models = (
             self._models_query(db, user_id)
@@ -189,21 +336,10 @@ class UnifiedDataService:
             "completed": 0,
             "failed": 0,
         }
-        execution_times: list[float] = []
-        pressure_drops: list[float] = []
-        reynolds_numbers: list[float] = []
+        for key in by_status:
+            by_status[key] = int(counts_by_status.get(key, 0))
 
-        for sim in simulations:
-            if sim.status in by_status:
-                by_status[sim.status] += 1
-            if sim.execution_time is not None:
-                execution_times.append(sim.execution_time)
-            if sim.pressure_drop is not None:
-                pressure_drops.append(sim.pressure_drop)
-            if sim.reynolds_number is not None:
-                reynolds_numbers.append(sim.reynolds_number)
-
-        total = len(simulations)
+        total = int(metrics_row[0] or 0)
         completed = by_status["completed"]
         success_rate = (completed / total * 100.0) if total > 0 else 0.0
 
@@ -212,15 +348,9 @@ class UnifiedDataService:
             total_models_3d=self._models_query(db, user_id).count(),
             by_status=by_status,
             success_rate=success_rate,
-            average_execution_time=(
-                sum(execution_times) / len(execution_times) if execution_times else None
-            ),
-            average_pressure_drop=(
-                sum(pressure_drops) / len(pressure_drops) if pressure_drops else None
-            ),
-            average_reynolds_number=(
-                sum(reynolds_numbers) / len(reynolds_numbers) if reynolds_numbers else None
-            ),
+            average_execution_time=float(metrics_row[1]) if metrics_row and metrics_row[1] is not None else None,
+            average_pressure_drop=float(metrics_row[2]) if metrics_row and metrics_row[2] is not None else None,
+            average_reynolds_number=float(metrics_row[3]) if metrics_row and metrics_row[3] is not None else None,
             recent_simulations=[
                 schemas.SimulationResponse.model_validate(sim) for sim in recent_simulations
             ],

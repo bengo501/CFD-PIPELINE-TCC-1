@@ -13,6 +13,7 @@ import {
   removeReportAttachment,
 } from '../services/api';
 import BackendConnectionError from './BackendConnectionError';
+import PaginationControls from './PaginationControls';
 import './ReportsPage.css';
 
 function isConnectionError(err) {
@@ -190,6 +191,16 @@ export default function ReportsPage() {
   const pt = language === 'pt';
 
   const [reports, setReports] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(8);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    created_from: '',
+    created_to: '',
+  });
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
   const [opError, setOpError] = useState(null);
@@ -219,8 +230,17 @@ export default function ReportsPage() {
     setConnectionError(null);
     setOpError(null);
     try {
-      const data = await listReports();
-      setReports(Array.isArray(data) ? data : []);
+      const data = await listReports({
+        page,
+        limit,
+        search: filters.search,
+        status: filters.status || null,
+        created_from: filters.created_from || null,
+        created_to: filters.created_to || null,
+      });
+      setReports(Array.isArray(data?.items) ? data.items : []);
+      setTotal(data?.total || 0);
+      setTotalPages(data?.total_pages || data?.pages || 1);
     } catch (err) {
       console.error(err);
       if (isConnectionError(err)) {
@@ -232,11 +252,13 @@ export default function ReportsPage() {
             err.message ||
             (pt ? 'falha ao carregar relatórios' : 'failed to load reports')
         );
+        setReports([]);
+        setTotal(0);
       }
     } finally {
       setLoading(false);
     }
-  }, [pt, t]);
+  }, [filters, limit, page, pt, t]);
 
   useEffect(() => {
     loadReports();
@@ -614,9 +636,64 @@ export default function ReportsPage() {
             </p>
 
             <div className="reports-toolbar">
-              <button type="button" onClick={() => loadReports()} disabled={loading}>
-                {pt ? 'atualizar lista' : 'refresh list'}
-              </button>
+              <div className="reports-toolbar-grid">
+                <input
+                  type="search"
+                  className="reports-filter-input"
+                  value={filters.search}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFilters((prev) => ({ ...prev, search: e.target.value }));
+                  }}
+                  placeholder={pt ? 'buscar por título ou conteúdo…' : 'search by title or body…'}
+                />
+                <select
+                  className="reports-filter-input"
+                  value={filters.status}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFilters((prev) => ({ ...prev, status: e.target.value }));
+                  }}
+                >
+                  <option value="">{pt ? 'todos os estados' : 'all statuses'}</option>
+                  <option value="draft">{pt ? 'rascunho' : 'draft'}</option>
+                  <option value="planned">{pt ? 'planeado' : 'planned'}</option>
+                  <option value="published">{pt ? 'publicado' : 'published'}</option>
+                </select>
+                <input
+                  type="date"
+                  className="reports-filter-input"
+                  value={filters.created_from}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFilters((prev) => ({ ...prev, created_from: e.target.value }));
+                  }}
+                />
+                <input
+                  type="date"
+                  className="reports-filter-input"
+                  value={filters.created_to}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFilters((prev) => ({ ...prev, created_to: e.target.value }));
+                  }}
+                />
+              </div>
+              <div className="reports-toolbar-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage(1);
+                    setFilters({ search: '', status: '', created_from: '', created_to: '' });
+                  }}
+                  disabled={loading}
+                >
+                  {pt ? 'limpar filtros' : 'clear filters'}
+                </button>
+                <button type="button" onClick={() => loadReports()} disabled={loading}>
+                  {pt ? 'atualizar lista' : 'refresh list'}
+                </button>
+              </div>
             </div>
 
             {loading ? (
@@ -652,6 +729,21 @@ export default function ReportsPage() {
                 ))}
               </ul>
             )}
+
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              limit={limit}
+              loading={loading}
+              onPageChange={setPage}
+              onLimitChange={(value) => {
+                setPage(1);
+                setLimit(value);
+              }}
+              label={pt ? 'relatórios' : 'reports'}
+              pt={pt}
+            />
 
           </section>
         </div>

@@ -3,16 +3,23 @@ from datetime import datetime, timezone
 from typing import List
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from backend.app.database.connection import get_db
 from backend.app.database.models import BedTemplate
 from backend.app.api.deps_user import get_active_user_id
 from backend.app.api.models import (
+    PaginatedTemplateSummary,
     TemplateCreate,
     TemplateResponse,
     TemplateSummary,
+)
+from backend.app.utils.pagination import (
+    build_paginated_payload,
+    clean_filters,
+    parse_datetime_filter,
+    resolve_page_limit,
 )
 
 router = APIRouter()
@@ -78,19 +85,57 @@ async def save_template(
     return _to_response(row)
 
 
-@router.get("/templates/list", response_model=List[TemplateSummary], tags=["templates"])
+@router.get("/templates/list", response_model=PaginatedTemplateSummary, tags=["templates"])
 async def list_templates(
+    page: int = Query(1, ge=1),
+    limit: int | None = Query(None, ge=1, le=100),
+    per_page: int | None = Query(None, ge=1, le=100, description="alias legado de limit"),
+    search: str | None = Query(None, description="buscar por nome"),
+    tag: str | None = Query(None, description="filtrar por tag"),
+    source: str | None = Query(None, description="filtrar por origem"),
+    created_from: str | None = Query(None, description="filtrar por data inicial"),
+    created_to: str | None = Query(None, description="filtrar por data final"),
     db: Session = Depends(get_db),
     user_id: int = Depends(get_active_user_id),
 ):
     """listar templates (sem conteúdo .bed)"""
+    page, limit, skip = resolve_page_limit(page=page, limit=limit, per_page=per_page)
+    parsed_from = parse_datetime_filter(created_from)
+    parsed_to = parse_datetime_filter(created_to, end_of_day=True)
+    query = db.query(BedTemplate).filter(BedTemplate.user_id == user_id)
+    if search:
+        like = f"%{search.strip()}%"
+        query = query.filter(BedTemplate.name.ilike(like))
+    if tag:
+        query = query.filter(BedTemplate.tag == tag)
+    if source:
+        query = query.filter(BedTemplate.source == source)
+    if parsed_from:
+        query = query.filter(BedTemplate.updated_at >= parsed_from)
+    if parsed_to:
+        query = query.filter(BedTemplate.updated_at <= parsed_to)
+    total = query.count()
     rows = (
-        db.query(BedTemplate)
-        .filter(BedTemplate.user_id == user_id)
-        .order_by(BedTemplate.updated_at.desc(), BedTemplate.created_at.desc())
+        query.order_by(BedTemplate.updated_at.desc(), BedTemplate.created_at.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
-    return [_to_summary(r) for r in rows]
+    return PaginatedTemplateSummary(
+        **build_paginated_payload(
+            items=[_to_summary(r) for r in rows],
+            total=total,
+            page=page,
+            limit=limit,
+            applied_filters=clean_filters(
+                search=search,
+                tag=tag,
+                source=source,
+                created_from=created_from,
+                created_to=created_to,
+            ),
+        )
+    )
 
 
 @router.get("/templates/{template_id}", response_model=TemplateResponse, tags=["templates"])

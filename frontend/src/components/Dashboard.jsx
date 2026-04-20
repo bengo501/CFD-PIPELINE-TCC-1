@@ -3,8 +3,9 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
+import PaginationControls from './PaginationControls';
 import './Dashboard.css';
-import { getDashboardSummary } from '../services/api';
+import { getDashboardSummary, listSimulations } from '../services/api';
 import { useActiveUser } from '../context/UserContext';
 
 function formatDurationSeconds(sec) {
@@ -37,16 +38,12 @@ function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [simulations, setSimulations] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(8);
+  const [totalSimulationsList, setTotalSimulationsList] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
-
-  const filteredSimulations = simulations.filter((sim) => {
-    const matchesSearch =
-      sim.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(sim.id).includes(searchTerm);
-    const matchesFilter = activeFilter === 'all' || sim.status === activeFilter;
-    return matchesSearch && matchesFilter;
-  });
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -81,7 +78,15 @@ function Dashboard() {
     try {
       setLoading(true);
       setConnectionError(null);
-      const summary = await getDashboardSummary(8);
+      const [summary, simData] = await Promise.all([
+        getDashboardSummary(8),
+        listSimulations({
+          page,
+          limit,
+          search: searchTerm || null,
+          status: activeFilter === 'all' ? null : activeFilter,
+        }),
+      ]);
 
       setDashboardData({
         totalSimulations: summary.total_simulations || 0,
@@ -96,7 +101,7 @@ function Dashboard() {
         averageReynoldsNumber: summary.average_reynolds_number,
       });
 
-      const recentItems = Array.isArray(summary?.recent_simulations) ? summary.recent_simulations : [];
+      const recentItems = Array.isArray(simData?.items) ? simData.items : [];
       setSimulations(
         recentItems.map((sim) => ({
           id: sim.id,
@@ -109,14 +114,17 @@ function Dashboard() {
           bedId: sim.bed_id,
         }))
       );
+      setTotalSimulationsList(simData?.total || 0);
+      setTotalPages(simData?.total_pages || simData?.pages || 1);
     } catch (error) {
       console.error('erro ao carregar dados do dashboard:', error);
       setConnectionError(t('backendConnectionError'));
       setSimulations([]);
+      setTotalSimulationsList(0);
     } finally {
       setLoading(false);
     }
-  }, [language, t]);
+  }, [activeFilter, language, limit, page, searchTerm, t]);
 
   useEffect(() => {
     loadData();
@@ -235,7 +243,10 @@ function Dashboard() {
             type="text"
             placeholder={language === 'pt' ? 'buscar simulações...' : 'search simulations...'}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setPage(1);
+              setSearchTerm(e.target.value);
+            }}
             className="search-input"
           />
         </div>
@@ -243,49 +254,64 @@ function Dashboard() {
         <div className="filter-section">
           <button
             className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('all')}
+            onClick={() => {
+              setPage(1);
+              setActiveFilter('all');
+            }}
           >
-            {language === 'pt' ? 'todas' : 'all'} ({simulations.length})
+            {language === 'pt' ? 'todas' : 'all'} ({totalSimulationsList})
           </button>
           <button
             className={`filter-btn ${activeFilter === 'completed' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('completed')}
+            onClick={() => {
+              setPage(1);
+              setActiveFilter('completed');
+            }}
           >
             <ThemeIcon light="correctLight.png" dark="correctDark.png" alt="completed" className="filter-icon" />
-            {language === 'pt' ? 'concluídas' : 'completed'} ({simulations.filter((s) => s.status === 'completed').length})
+            {language === 'pt' ? 'concluídas' : 'completed'}
           </button>
           <button
             className={`filter-btn ${activeFilter === 'running' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('running')}
+            onClick={() => {
+              setPage(1);
+              setActiveFilter('running');
+            }}
           >
             <ThemeIcon light="runLight.png" dark="runDark.png" alt="running" className="filter-icon" />
-            {language === 'pt' ? 'executando' : 'running'} ({simulations.filter((s) => s.status === 'running').length})
+            {language === 'pt' ? 'executando' : 'running'}
           </button>
           <button
             className={`filter-btn ${activeFilter === 'pending' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('pending')}
+            onClick={() => {
+              setPage(1);
+              setActiveFilter('pending');
+            }}
           >
             <ThemeIcon light="refreshLight.png" dark="refreshDark.png" alt="pending" className="filter-icon" />
-            {language === 'pt' ? 'pendentes' : 'pending'} ({simulations.filter((s) => s.status === 'pending').length})
+            {language === 'pt' ? 'pendentes' : 'pending'}
           </button>
           <button
             className={`filter-btn ${activeFilter === 'failed' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('failed')}
+            onClick={() => {
+              setPage(1);
+              setActiveFilter('failed');
+            }}
           >
             <ThemeIcon light="cancelLight.png" dark="cancelDark.png" alt="failed" className="filter-icon" />
-            {language === 'pt' ? 'falharam' : 'failed'} ({simulations.filter((s) => s.status === 'failed').length})
+            {language === 'pt' ? 'falharam' : 'failed'}
           </button>
         </div>
       </div>
 
       <div className="simulations-list">
-        <h3>{language === 'pt' ? 'simulações recentes' : 'recent simulations'}</h3>
+        <h3>{language === 'pt' ? 'simulações' : 'simulations'}</h3>
         <div className="simulations-grid">
           {loading && <p>{language === 'pt' ? 'carregando...' : 'loading...'}</p>}
-          {!loading && filteredSimulations.length === 0 && (
-            <p>{language === 'pt' ? 'nenhuma simulação recente encontrada' : 'no recent simulations found'}</p>
+          {!loading && simulations.length === 0 && (
+            <p>{language === 'pt' ? 'nenhuma simulação encontrada' : 'no simulations found'}</p>
           )}
-          {filteredSimulations.map((simulation) => (
+          {simulations.map((simulation) => (
             <div key={simulation.id} className="simulation-card">
               <div className="simulation-header">
                 <div className="simulation-name">{simulation.name}</div>
@@ -301,6 +327,20 @@ function Dashboard() {
             </div>
           ))}
         </div>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          total={totalSimulationsList}
+          limit={limit}
+          loading={loading}
+          onPageChange={setPage}
+          onLimitChange={(value) => {
+            setPage(1);
+            setLimit(value);
+          }}
+          label={language === 'pt' ? 'lista do dashboard' : 'dashboard list'}
+          pt={language === 'pt'}
+        />
       </div>
     </div>
   );

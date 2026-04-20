@@ -3,13 +3,15 @@ import { useLanguage } from '../context/LanguageContext';
 import ThemeIcon from './ThemeIcon';
 import BackendConnectionError from './BackendConnectionError';
 import {
-  getHistoryFeed,
+  listSimulations,
+  listModels3D,
   getSimulation,
   deleteSimulation,
   createSimulationRecord,
   buildGeneratedFileUrl,
 } from '../services/api';
 import { useActiveUser } from '../context/UserContext';
+import PaginationControls from './PaginationControls';
 import './SimulationHistory.css';
 
 function isConnectionError(err) {
@@ -63,10 +65,31 @@ function SimulationHistory() {
   const { language, t } = useLanguage();
   const { activeUserId } = useActiveUser();
   const pt = language === 'pt';
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
   const [simulations, setSimulations] = useState([]);
   const [models3d, setModels3d] = useState([]);
+  const [simPage, setSimPage] = useState(1);
+  const [simLimit, setSimLimit] = useState(8);
+  const [simTotal, setSimTotal] = useState(0);
+  const [simTotalPages, setSimTotalPages] = useState(1);
+  const [simFilters, setSimFilters] = useState({
+    search: '',
+    status: '',
+    regime: '',
+    created_from: '',
+    created_to: '',
+  });
+  const [modelPage, setModelPage] = useState(1);
+  const [modelLimit, setModelLimit] = useState(8);
+  const [modelTotal, setModelTotal] = useState(0);
+  const [modelTotalPages, setModelTotalPages] = useState(1);
+  const [modelFilters, setModelFilters] = useState({
+    search: '',
+    packing_method: '',
+    has_blend: '',
+    has_stl: '',
+    created_from: '',
+    created_to: '',
+  });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [opError, setOpError] = useState(null);
@@ -76,15 +99,39 @@ function SimulationHistory() {
   const [viewDetail, setViewDetail] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
 
-  const loadSimulations = useCallback(async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const data = await getHistoryFeed(100);
-      const items = Array.isArray(data?.simulations) ? data.simulations : [];
-      const modelItems = Array.isArray(data?.models_3d) ? data.models_3d : [];
-      setSimulations(items.map((row) => mapApiSimulation(row, language)));
+      const [simData, modelData] = await Promise.all([
+        listSimulations({
+          page: simPage,
+          limit: simLimit,
+          search: simFilters.search,
+          status: simFilters.status || null,
+          regime: simFilters.regime || null,
+          created_from: simFilters.created_from || null,
+          created_to: simFilters.created_to || null,
+        }),
+        listModels3D({
+          page: modelPage,
+          limit: modelLimit,
+          search: modelFilters.search,
+          packing_method: modelFilters.packing_method || null,
+          has_blend: modelFilters.has_blend === '' ? null : modelFilters.has_blend === 'true',
+          has_stl: modelFilters.has_stl === '' ? null : modelFilters.has_stl === 'true',
+          created_from: modelFilters.created_from || null,
+          created_to: modelFilters.created_to || null,
+        }),
+      ]);
+      const simItems = Array.isArray(simData?.items) ? simData.items : [];
+      const modelItems = Array.isArray(modelData?.items) ? modelData.items : [];
+      setSimulations(simItems.map((row) => mapApiSimulation(row, language)));
       setModels3d(modelItems);
+      setSimTotal(simData?.total || 0);
+      setSimTotalPages(simData?.total_pages || simData?.pages || 1);
+      setModelTotal(modelData?.total || 0);
+      setModelTotalPages(modelData?.total_pages || modelData?.pages || 1);
     } catch (err) {
       console.error('simulation history:', err);
       if (isConnectionError(err)) {
@@ -101,16 +148,18 @@ function SimulationHistory() {
       }
       setSimulations([]);
       setModels3d([]);
+      setSimTotal(0);
+      setModelTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [language, t]);
+  }, [language, modelFilters, modelLimit, modelPage, simFilters, simLimit, simPage, t]);
 
   useEffect(() => {
-    loadSimulations();
-    const timer = window.setInterval(loadSimulations, 5000);
+    loadData();
+    const timer = window.setInterval(loadData, 5000);
     return () => window.clearInterval(timer);
-  }, [activeUserId, loadSimulations]);
+  }, [activeUserId, loadData]);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -140,23 +189,6 @@ function SimulationHistory() {
       default:
         return status;
     }
-  };
-
-  const filteredSimulations = simulations.filter((sim) => {
-    const desc = (sim.description || '').toLowerCase();
-    const matchesSearch =
-      sim.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      desc.includes(searchTerm.toLowerCase()) ||
-      sim.id.toString().includes(searchTerm);
-
-    const matchesFilter = activeFilter === 'all' || sim.status === activeFilter;
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const getFilterCount = (filter) => {
-    if (filter === 'all') return simulations.length;
-    return simulations.filter((sim) => sim.status === filter).length;
   };
 
   const flashSuccess = useCallback((msg) => {
@@ -234,7 +266,7 @@ function SimulationHistory() {
     try {
       await deleteSimulation(id);
       flashSuccess(pt ? 'simulação eliminada' : 'simulation deleted');
-      await loadSimulations();
+      await loadData();
     } catch (err) {
       console.error('erro ao deletar:', err);
       if (isConnectionError(err)) setOpError(t('backendConnectionError'));
@@ -270,7 +302,7 @@ function SimulationHistory() {
       };
       const created = await createSimulationRecord(payload);
       flashSuccess(pt ? `nova simulação criada #${created.id}` : `new simulation created #${created.id}`);
-      await loadSimulations();
+      await loadData();
     } catch (err) {
       console.error('erro ao reexecutar:', err);
       if (isConnectionError(err)) setOpError(t('backendConnectionError'));
@@ -280,9 +312,7 @@ function SimulationHistory() {
     }
   };
 
-  const emptyNoData = !loading && !loadError && simulations.length === 0;
-  const emptyFiltered =
-    !loading && !loadError && simulations.length > 0 && filteredSimulations.length === 0;
+  const emptyNoData = !loading && !loadError && simTotal === 0 && modelTotal === 0;
 
   return (
     <div className="simulation-history">
@@ -299,64 +329,9 @@ function SimulationHistory() {
       </div>
 
       <div className="history-controls">
-        <button type="button" className="refresh-btn" onClick={loadSimulations} disabled={loading}>
+        <button type="button" className="refresh-btn" onClick={loadData} disabled={loading}>
           <ThemeIcon light="refreshLigh.png" dark="refreshDark.png" alt="atualizar" className="refresh-icon" />
           {language === 'pt' ? 'atualizar' : 'refresh'}
-        </button>
-
-        <div className="search-container">
-          <ThemeIcon light="triangle_white_outline.png" dark="triangle_black_outline.png" alt="buscar" className="search-icon" />
-          <input
-            type="text"
-            placeholder={
-              language === 'pt' ? 'buscar por nome, descrição ou id…' : 'search by name, description or id…'
-            }
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-      </div>
-
-      <div className="filter-tabs">
-        <button
-          type="button"
-          className={`filter-tab ${activeFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('all')}
-        >
-          {language === 'pt' ? 'todas' : 'all'} ({getFilterCount('all')})
-        </button>
-        <button
-          type="button"
-          className={`filter-tab ${activeFilter === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('completed')}
-        >
-          <ThemeIcon light="correctLight.png" dark="correctDark.png" alt="concluídas" className="filter-icon" />
-          {language === 'pt' ? 'concluídas' : 'completed'} ({getFilterCount('completed')})
-        </button>
-        <button
-          type="button"
-          className={`filter-tab ${activeFilter === 'running' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('running')}
-        >
-          <ThemeIcon light="runLight.png" dark="runDark.png" alt="executando" className="filter-icon" />
-          {language === 'pt' ? 'em execução' : 'running'} ({getFilterCount('running')})
-        </button>
-        <button
-          type="button"
-          className={`filter-tab ${activeFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('pending')}
-        >
-          <ThemeIcon light="job_monitor_clock_white.png" dark="job_monitor_clock_white.png" alt="pendentes" className="filter-icon" />
-          {language === 'pt' ? 'pendentes' : 'pending'} ({getFilterCount('pending')})
-        </button>
-        <button
-          type="button"
-          className={`filter-tab ${activeFilter === 'failed' ? 'active' : ''}`}
-          onClick={() => setActiveFilter('failed')}
-        >
-          <ThemeIcon light="cancelLight.png" dark="cancelDark.png" alt="falharam" className="filter-icon" />
-          {language === 'pt' ? 'falharam' : 'failed'} ({getFilterCount('failed')})
         </button>
       </div>
 
@@ -391,132 +366,349 @@ function SimulationHistory() {
         </div>
       )}
 
-      {!loading && !loadError && emptyFiltered && (
-        <div className="sim-history-empty">
-          <p>{language === 'pt' ? 'nenhum resultado para os filtros atuais' : 'no results for current filters'}</p>
-          <p className="sim-history-empty-hint">
-            {language === 'pt' ? 'ajuste a busca ou as abas de estado' : 'adjust search or status tabs'}
-          </p>
+      <section className="history-section">
+        <div className="history-section-header">
+          <h2 className="history-subtitle">{pt ? 'simulações' : 'simulations'}</h2>
         </div>
-      )}
 
-      {!loading && models3d.length > 0 && (
-        <div className="simulations-list">
+        <div className="history-filter-grid">
+          <div className="search-container">
+            <ThemeIcon light="triangle_white_outline.png" dark="triangle_black_outline.png" alt="buscar" className="search-icon" />
+            <input
+              type="text"
+              placeholder={pt ? 'buscar por nome, descrição ou id…' : 'search by name, description or id…'}
+              value={simFilters.search}
+              onChange={(e) => {
+                setSimPage(1);
+                setSimFilters((prev) => ({ ...prev, search: e.target.value }));
+              }}
+              className="search-input"
+            />
+          </div>
+
+          <select
+            className="history-select"
+            value={simFilters.status}
+            onChange={(e) => {
+              setSimPage(1);
+              setSimFilters((prev) => ({ ...prev, status: e.target.value }));
+            }}
+          >
+            <option value="">{pt ? 'todos os estados' : 'all statuses'}</option>
+            <option value="completed">{pt ? 'concluída' : 'completed'}</option>
+            <option value="running">{pt ? 'em execução' : 'running'}</option>
+            <option value="pending">{pt ? 'pendente' : 'pending'}</option>
+            <option value="failed">{pt ? 'falhou' : 'failed'}</option>
+          </select>
+
+          <select
+            className="history-select"
+            value={simFilters.regime}
+            onChange={(e) => {
+              setSimPage(1);
+              setSimFilters((prev) => ({ ...prev, regime: e.target.value }));
+            }}
+          >
+            <option value="">{pt ? 'todos os regimes' : 'all regimes'}</option>
+            <option value="laminar">laminar</option>
+            <option value="turbulent">turbulent</option>
+          </select>
+
+          <input
+            type="date"
+            className="history-date-input"
+            value={simFilters.created_from}
+            onChange={(e) => {
+              setSimPage(1);
+              setSimFilters((prev) => ({ ...prev, created_from: e.target.value }));
+            }}
+          />
+          <input
+            type="date"
+            className="history-date-input"
+            value={simFilters.created_to}
+            onChange={(e) => {
+              setSimPage(1);
+              setSimFilters((prev) => ({ ...prev, created_to: e.target.value }));
+            }}
+          />
+
+          <button
+            type="button"
+            className="history-clear-btn"
+            onClick={() => {
+              setSimPage(1);
+              setSimFilters({
+                search: '',
+                status: '',
+                regime: '',
+                created_from: '',
+                created_to: '',
+              });
+            }}
+          >
+            {pt ? 'limpar filtros' : 'clear filters'}
+          </button>
+        </div>
+
+        {!loading && simTotal === 0 ? (
+          <div className="sim-history-empty">
+            <p>{pt ? 'nenhuma simulação encontrada com os filtros atuais' : 'no simulations found for current filters'}</p>
+          </div>
+        ) : (
+          <>
+            <div className="simulations-list">
+              {simulations.map((simulation) => (
+                <div key={simulation.id} className="simulation-card">
+                  <div className="sim-card-row sim-card-row-top">
+                    <div className="simulation-status">
+                      {getStatusIcon(simulation.status)}
+                      <span className="status-text">{getStatusText(simulation.status)}</span>
+                    </div>
+                    <span className="simulation-id">id {simulation.id}</span>
+                  </div>
+
+                  <div className="simulation-info">
+                    <h3 className="simulation-name">{simulation.name}</h3>
+                    {simulation.description ? (
+                      <p className="simulation-description">{simulation.description}</p>
+                    ) : null}
+                    <div className="simulation-meta">
+                      <span className="simulation-date">{simulation.createdDate}</span>
+                      <span className="simulation-duration">{simulation.duration}</span>
+                      {simulation.status === 'running' ? (
+                        <span className="simulation-progress">{simulation.progress}%</span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="simulation-actions">
+                    <button
+                      type="button"
+                      className="action-btn view-btn"
+                      onClick={() => handleViewSimulation(simulation.id)}
+                      title={language === 'pt' ? 'visualizar' : 'view'}
+                      disabled={actionBusyId === simulation.id}
+                    >
+                      <ThemeIcon light="viewLight-removebg-preview.png" dark="viewDark-removebg-preview.png" alt="" className="action-icon" />
+                    </button>
+                    <button
+                      type="button"
+                      className="action-btn download-btn"
+                      onClick={() => handleDownloadResults(simulation.id)}
+                      title={language === 'pt' ? 'baixar' : 'download'}
+                      disabled={actionBusyId === simulation.id}
+                    >
+                      <ThemeIcon light="downloadLight-removebg-preview.png" dark="donwloadDark-removebg-preview.png" alt="" className="action-icon" />
+                    </button>
+                    <button
+                      type="button"
+                      className="action-btn delete-btn"
+                      onClick={() => handleDeleteSimulation(simulation.id)}
+                      title={language === 'pt' ? 'deletar' : 'delete'}
+                      disabled={actionBusyId === simulation.id}
+                    >
+                      <ThemeIcon light="cancelLight.png" dark="cancelDark.png" alt="" className="action-icon" />
+                    </button>
+                    <button
+                      type="button"
+                      className="action-btn rerun-btn"
+                      onClick={() => handleRerunSimulation(simulation.id)}
+                      title={language === 'pt' ? 'reexecutar' : 'rerun'}
+                      disabled={actionBusyId === simulation.id}
+                    >
+                      <ThemeIcon light="runLight.png" dark="runDark.png" alt="" className="action-icon" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <PaginationControls
+              page={simPage}
+              totalPages={simTotalPages}
+              total={simTotal}
+              limit={simLimit}
+              loading={loading}
+              onPageChange={setSimPage}
+              onLimitChange={(value) => {
+                setSimPage(1);
+                setSimLimit(value);
+              }}
+              label={pt ? 'histórico de simulações' : 'simulation history'}
+              pt={pt}
+            />
+          </>
+        )}
+      </section>
+
+      <section className="history-section">
+        <div className="history-section-header">
           <h2 className="history-subtitle">{pt ? 'modelos 3d persistidos' : 'persisted 3d models'}</h2>
-          {models3d.map((model) => (
-            <div key={`model-${model.id}`} className="simulation-card">
-              <div className="sim-card-row sim-card-row-top">
-                <div className="simulation-status">
-                  <ThemeIcon light="modelLight-removebg-preview.png" dark="modelDark-removebg-preview.png" alt="model" className="status-icon" />
-                  <span className="status-text">{pt ? 'modelo 3d' : '3d model'}</span>
-                </div>
-                <span className="simulation-id">id {model.id}</span>
-              </div>
-
-              <div className="simulation-info">
-                <h3 className="simulation-name">{model.name}</h3>
-                {model.description ? (
-                  <p className="simulation-description">{model.description}</p>
-                ) : null}
-                <div className="simulation-meta">
-                  <span className="simulation-date">
-                    {model.created_at
-                      ? new Date(model.created_at).toLocaleString(pt ? 'pt-BR' : 'en-US')
-                      : '—'}
-                  </span>
-                  <span className="simulation-duration">
-                    {model.blend_file_path ? '.blend ' : ''}{model.stl_file_path ? '.stl' : ''}
-                  </span>
-                </div>
-              </div>
-
-              <div className="simulation-actions">
-                <button
-                  type="button"
-                  className="action-btn download-btn"
-                  onClick={() => {
-                    const url = buildGeneratedFileUrl(model.blend_file_path || model.stl_file_path);
-                    if (url) window.open(url, '_blank');
-                  }}
-                  title={pt ? 'baixar modelo' : 'download model'}
-                  disabled={!buildGeneratedFileUrl(model.blend_file_path || model.stl_file_path)}
-                >
-                  <ThemeIcon light="downloadLight-removebg-preview.png" dark="donwloadDark-removebg-preview.png" alt="" className="action-icon" />
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
-      )}
 
-      {!loading && filteredSimulations.length > 0 && (
-        <div className="simulations-list">
-          {filteredSimulations.map((simulation) => (
-            <div key={simulation.id} className="simulation-card">
-              <div className="sim-card-row sim-card-row-top">
-                <div className="simulation-status">
-                  {getStatusIcon(simulation.status)}
-                  <span className="status-text">{getStatusText(simulation.status)}</span>
-                </div>
-                <span className="simulation-id">id {simulation.id}</span>
-              </div>
+        <div className="history-filter-grid">
+          <div className="search-container">
+            <ThemeIcon light="triangle_white_outline.png" dark="triangle_black_outline.png" alt="buscar" className="search-icon" />
+            <input
+              type="text"
+              placeholder={pt ? 'buscar modelo por nome ou descrição…' : 'search model by name or description…'}
+              value={modelFilters.search}
+              onChange={(e) => {
+                setModelPage(1);
+                setModelFilters((prev) => ({ ...prev, search: e.target.value }));
+              }}
+              className="search-input"
+            />
+          </div>
 
-              <div className="simulation-info">
-                <h3 className="simulation-name">{simulation.name}</h3>
-                {simulation.description ? (
-                  <p className="simulation-description">{simulation.description}</p>
-                ) : null}
-                <div className="simulation-meta">
-                  <span className="simulation-date">{simulation.createdDate}</span>
-                  <span className="simulation-duration">{simulation.duration}</span>
-                  {simulation.status === 'running' ? (
-                    <span className="simulation-progress">{simulation.progress}%</span>
-                  ) : null}
-                </div>
-              </div>
+          <select
+            className="history-select"
+            value={modelFilters.packing_method}
+            onChange={(e) => {
+              setModelPage(1);
+              setModelFilters((prev) => ({ ...prev, packing_method: e.target.value }));
+            }}
+          >
+            <option value="">{pt ? 'todos os métodos' : 'all methods'}</option>
+            <option value="spherical_packing">spherical_packing</option>
+            <option value="hexagonal_3d">hexagonal_3d</option>
+            <option value="rigid_body">rigid_body</option>
+          </select>
 
-              <div className="simulation-actions">
-                <button
-                  type="button"
-                  className="action-btn view-btn"
-                  onClick={() => handleViewSimulation(simulation.id)}
-                  title={language === 'pt' ? 'visualizar' : 'view'}
-                  disabled={actionBusyId === simulation.id}
-                >
-                  <ThemeIcon light="viewLight-removebg-preview.png" dark="viewDark-removebg-preview.png" alt="" className="action-icon" />
-                </button>
-                <button
-                  type="button"
-                  className="action-btn download-btn"
-                  onClick={() => handleDownloadResults(simulation.id)}
-                  title={language === 'pt' ? 'baixar' : 'download'}
-                  disabled={actionBusyId === simulation.id}
-                >
-                  <ThemeIcon light="downloadLight-removebg-preview.png" dark="donwloadDark-removebg-preview.png" alt="" className="action-icon" />
-                </button>
-                <button
-                  type="button"
-                  className="action-btn delete-btn"
-                  onClick={() => handleDeleteSimulation(simulation.id)}
-                  title={language === 'pt' ? 'deletar' : 'delete'}
-                  disabled={actionBusyId === simulation.id}
-                >
-                  <ThemeIcon light="cancelLight.png" dark="cancelDark.png" alt="" className="action-icon" />
-                </button>
-                <button
-                  type="button"
-                  className="action-btn rerun-btn"
-                  onClick={() => handleRerunSimulation(simulation.id)}
-                  title={language === 'pt' ? 'reexecutar' : 'rerun'}
-                  disabled={actionBusyId === simulation.id}
-                >
-                  <ThemeIcon light="runLight.png" dark="runDark.png" alt="" className="action-icon" />
-                </button>
-              </div>
-            </div>
-          ))}
+          <select
+            className="history-select"
+            value={modelFilters.has_blend}
+            onChange={(e) => {
+              setModelPage(1);
+              setModelFilters((prev) => ({ ...prev, has_blend: e.target.value }));
+            }}
+          >
+            <option value="">{pt ? 'blend: qualquer' : 'blend: any'}</option>
+            <option value="true">{pt ? 'com .blend' : 'with .blend'}</option>
+            <option value="false">{pt ? 'sem .blend' : 'without .blend'}</option>
+          </select>
+
+          <select
+            className="history-select"
+            value={modelFilters.has_stl}
+            onChange={(e) => {
+              setModelPage(1);
+              setModelFilters((prev) => ({ ...prev, has_stl: e.target.value }));
+            }}
+          >
+            <option value="">{pt ? 'stl: qualquer' : 'stl: any'}</option>
+            <option value="true">{pt ? 'com .stl' : 'with .stl'}</option>
+            <option value="false">{pt ? 'sem .stl' : 'without .stl'}</option>
+          </select>
+
+          <input
+            type="date"
+            className="history-date-input"
+            value={modelFilters.created_from}
+            onChange={(e) => {
+              setModelPage(1);
+              setModelFilters((prev) => ({ ...prev, created_from: e.target.value }));
+            }}
+          />
+          <input
+            type="date"
+            className="history-date-input"
+            value={modelFilters.created_to}
+            onChange={(e) => {
+              setModelPage(1);
+              setModelFilters((prev) => ({ ...prev, created_to: e.target.value }));
+            }}
+          />
+
+          <button
+            type="button"
+            className="history-clear-btn"
+            onClick={() => {
+              setModelPage(1);
+              setModelFilters({
+                search: '',
+                packing_method: '',
+                has_blend: '',
+                has_stl: '',
+                created_from: '',
+                created_to: '',
+              });
+            }}
+          >
+            {pt ? 'limpar filtros' : 'clear filters'}
+          </button>
         </div>
-      )}
+
+        {!loading && modelTotal === 0 ? (
+          <div className="sim-history-empty">
+            <p>{pt ? 'nenhum modelo 3d encontrado com os filtros atuais' : 'no 3d models found for current filters'}</p>
+          </div>
+        ) : (
+          <>
+            <div className="simulations-list">
+              {models3d.map((model) => (
+                <div key={`model-${model.id}`} className="simulation-card">
+                  <div className="sim-card-row sim-card-row-top">
+                    <div className="simulation-status">
+                      <ThemeIcon light="modelLight-removebg-preview.png" dark="modelDark-removebg-preview.png" alt="model" className="status-icon" />
+                      <span className="status-text">{pt ? 'modelo 3d' : '3d model'}</span>
+                    </div>
+                    <span className="simulation-id">id {model.id}</span>
+                  </div>
+
+                  <div className="simulation-info">
+                    <h3 className="simulation-name">{model.name}</h3>
+                    {model.description ? (
+                      <p className="simulation-description">{model.description}</p>
+                    ) : null}
+                    <div className="simulation-meta">
+                      <span className="simulation-date">
+                        {model.created_at
+                          ? new Date(model.created_at).toLocaleString(pt ? 'pt-BR' : 'en-US')
+                          : '—'}
+                      </span>
+                      <span className="simulation-duration">
+                        {model.packing_method || '—'} · {model.blend_file_path ? '.blend ' : ''}{model.stl_file_path ? '.stl' : ''}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="simulation-actions">
+                    <button
+                      type="button"
+                      className="action-btn download-btn"
+                      onClick={() => {
+                        const url = buildGeneratedFileUrl(model.blend_file_path || model.stl_file_path);
+                        if (url) window.open(url, '_blank');
+                      }}
+                      title={pt ? 'baixar modelo' : 'download model'}
+                      disabled={!buildGeneratedFileUrl(model.blend_file_path || model.stl_file_path)}
+                    >
+                      <ThemeIcon light="downloadLight-removebg-preview.png" dark="donwloadDark-removebg-preview.png" alt="" className="action-icon" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <PaginationControls
+              page={modelPage}
+              totalPages={modelTotalPages}
+              total={modelTotal}
+              limit={modelLimit}
+              loading={loading}
+              onPageChange={setModelPage}
+              onLimitChange={(value) => {
+                setModelPage(1);
+                setModelLimit(value);
+              }}
+              label={pt ? 'modelos 3d' : '3d models'}
+              pt={pt}
+            />
+          </>
+        )}
+      </section>
 
       {viewModalId != null && (
         <div

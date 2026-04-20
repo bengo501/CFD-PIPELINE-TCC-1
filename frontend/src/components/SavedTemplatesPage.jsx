@@ -7,6 +7,7 @@ import {
   duplicateTemplate,
 } from '../services/api';
 import BackendConnectionError from './BackendConnectionError';
+import PaginationControls from './PaginationControls';
 import './SavedTemplatesPage.css';
 
 function isConnectionError(err) {
@@ -60,7 +61,15 @@ export default function SavedTemplatesPage() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(8);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({
+    search: '',
+    tag: '',
+    source: '',
+  });
   const [selectedId, setSelectedId] = useState(null);
   const [connectionError, setConnectionError] = useState(null);
   const [opError, setOpError] = useState(null);
@@ -70,8 +79,16 @@ export default function SavedTemplatesPage() {
     setConnectionError(null);
     setOpError(null);
     try {
-      const data = await listTemplates();
-      setItems(Array.isArray(data) ? data : []);
+      const data = await listTemplates({
+        page,
+        limit,
+        search: filters.search,
+        tag: filters.tag || null,
+        source: filters.source || null,
+      });
+      setItems(Array.isArray(data?.items) ? data.items : []);
+      setTotal(data?.total || 0);
+      setTotalPages(data?.total_pages || data?.pages || 1);
     } catch (err) {
       console.error(err);
       if (isConnectionError(err)) {
@@ -83,24 +100,17 @@ export default function SavedTemplatesPage() {
             err.message ||
             (pt ? 'não foi possível carregar os templates' : 'could not load templates')
         );
+        setItems([]);
+        setTotal(0);
       }
     } finally {
       setLoading(false);
     }
-  }, [pt, t]);
+  }, [filters, limit, page, pt, t]);
 
   useEffect(() => {
     loadTemplates();
   }, [loadTemplates]);
-
-  const filtered = items.filter((row) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      (row.name || '').toLowerCase().includes(q) ||
-      (row.tag || '').toLowerCase().includes(q)
-    );
-  });
 
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
@@ -215,11 +225,40 @@ export default function SavedTemplatesPage() {
             <div className="saved-templates-toolbar">
               <input
                 type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={filters.search}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters((prev) => ({ ...prev, search: e.target.value }));
+                }}
                 placeholder={pt ? 'pesquisar por nome ou etiqueta…' : 'search by name or tag…'}
                 aria-label={pt ? 'pesquisar templates' : 'search templates'}
               />
+              <select
+                className="saved-templates-select"
+                value={filters.tag}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters((prev) => ({ ...prev, tag: e.target.value }));
+                }}
+              >
+                <option value="">{pt ? 'todas as etiquetas' : 'all tags'}</option>
+                <option value="bed">bed</option>
+                <option value="preset">preset</option>
+                <option value="cfd">cfd</option>
+              </select>
+              <select
+                className="saved-templates-select"
+                value={filters.source}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters((prev) => ({ ...prev, source: e.target.value }));
+                }}
+              >
+                <option value="">{pt ? 'todas as origens' : 'all sources'}</option>
+                <option value="editor">{pt ? 'editor' : 'editor'}</option>
+                <option value="import">{pt ? 'importação' : 'import'}</option>
+                <option value="duplicate">{pt ? 'duplicado' : 'duplicate'}</option>
+              </select>
               <button
                 type="button"
                 className="saved-templates-refresh"
@@ -228,13 +267,24 @@ export default function SavedTemplatesPage() {
               >
                 {pt ? 'atualizar' : 'refresh'}
               </button>
+              <button
+                type="button"
+                className="saved-templates-refresh"
+                onClick={() => {
+                  setPage(1);
+                  setFilters({ search: '', tag: '', source: '' });
+                }}
+                disabled={loading}
+              >
+                {pt ? 'limpar filtros' : 'clear filters'}
+              </button>
             </div>
 
             {loading ? (
               <p className="saved-templates-status">{pt ? 'a carregar…' : 'loading…'}</p>
-            ) : filtered.length === 0 ? (
+            ) : items.length === 0 ? (
               <p className="saved-templates-status">
-                {items.length === 0
+                {total === 0
                   ? pt
                     ? 'nenhum template na biblioteca. importe um .bed ou guarde a partir do editor.'
                     : 'no templates yet. import a .bed or save from the editor.'
@@ -244,7 +294,7 @@ export default function SavedTemplatesPage() {
               </p>
             ) : (
               <div className="saved-templates-grid">
-                {filtered.map((row) => {
+                {items.map((row) => {
                   const meta = pt
                     ? `atualizado ${formatUpdatedLine(row.updated_at, true)} · origem: ${sourceLabel(row.source, true)}`
                     : `updated ${formatUpdatedLine(row.updated_at, false)} · source: ${sourceLabel(row.source, false)}`;
@@ -268,6 +318,21 @@ export default function SavedTemplatesPage() {
                 })}
               </div>
             )}
+
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              limit={limit}
+              loading={loading}
+              onPageChange={setPage}
+              onLimitChange={(value) => {
+                setPage(1);
+                setLimit(value);
+              }}
+              label={pt ? 'templates .bed' : '.bed templates'}
+              pt={pt}
+            />
 
             <input
               ref={fileRef}

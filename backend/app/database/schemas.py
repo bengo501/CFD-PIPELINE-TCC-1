@@ -170,6 +170,9 @@ class Model3DListResponse(BaseModel):
     """lista paginada de modelos 3d persistidos"""
     total: int
     page: int
+    limit: int
+    total_pages: int
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
     per_page: int
     pages: int
     items: List[Model3DResponse]
@@ -192,6 +195,13 @@ class HistoryEntryResponse(BaseModel):
 
 class HistoryResponse(BaseModel):
     """feed agregado usado pelo historico"""
+    total: int = 0
+    page: int = 1
+    limit: int = 100
+    total_pages: int = 1
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
+    per_page: int = 100
+    pages: int = 1
     simulations: List[SimulationResponse]
     models_3d: List[Model3DResponse]
     items: List[HistoryEntryResponse]
@@ -261,6 +271,9 @@ class BedListResponse(BaseModel):
     """schema de resposta para lista de leitos"""
     total: int
     page: int
+    limit: int
+    total_pages: int
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
     per_page: int
     pages: int
     items: List[BedResponse]
@@ -270,6 +283,9 @@ class SimulationListResponse(BaseModel):
     """schema de resposta para lista de simulacoes"""
     total: int
     page: int
+    limit: int
+    total_pages: int
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
     per_page: int
     pages: int
     items: List[SimulationResponse]
@@ -279,6 +295,9 @@ class ResultListResponse(BaseModel):
     """schema de resposta para lista de resultados"""
     total: int
     page: int
+    limit: int
+    total_pages: int
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
     per_page: int
     pages: int
     items: List[ResultResponse]

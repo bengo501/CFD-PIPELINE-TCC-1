@@ -46,6 +46,51 @@
   gap: 1rem;
 }
 
+.history-section {
+  margin-top: 1.5rem;
+}
+
+.history-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.history-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  text-transform: lowercase;
+}
+
+.history-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.history-select,
+.history-date-input,
+.history-clear-btn {
+  width: 100%;
+  min-height: 42px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.history-clear-btn {
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
 .refresh-btn {
   display: flex;
   align-items: center;

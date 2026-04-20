@@ -51,6 +51,16 @@
   font-size: 0.9rem;
 }
 
+.saved-templates-select {
+  min-width: 160px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
 .saved-templates-refresh {
   padding: 0.5rem 0.85rem;
   border-radius: 8px;

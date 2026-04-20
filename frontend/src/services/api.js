@@ -179,13 +179,24 @@ export const listRecentSimulations = async (limit = 8) => {
 // lista completa com paginacao e filtros bed id e status
 export const listSimulations = async ({
   page = 1,
-  per_page = 100,
+  limit = 20,
+  per_page = null,
   bed_id = null,
-  status = null
+  status = null,
+  search = null,
+  regime = null,
+  solver = null,
+  created_from = null,
+  created_to = null,
 } = {}) => {
-  const params = { page, per_page };
+  const params = { page, limit: per_page ?? limit };
   if (bed_id != null && bed_id !== '') params.bed_id = bed_id;
   if (status != null && status !== '') params.status = status;
+  if (search != null && search !== '') params.search = search;
+  if (regime != null && regime !== '') params.regime = regime;
+  if (solver != null && solver !== '') params.solver = solver;
+  if (created_from != null && created_from !== '') params.created_from = created_from;
+  if (created_to != null && created_to !== '') params.created_to = created_to;
   const response = await api.get('/api/simulations', { params });
   return response.data;
 };
@@ -193,18 +204,52 @@ export const listSimulations = async ({
 // lista unificada de modelos 3d persistidos na tabela beds
 export const listModels3D = async ({
   page = 1,
-  per_page = 100
+  limit = 20,
+  per_page = null,
+  search = null,
+  packing_method = null,
+  has_blend = null,
+  has_stl = null,
+  created_from = null,
+  created_to = null,
 } = {}) => {
   const response = await api.get('/api/models-3d', {
-    params: { page, per_page }
+    params: {
+      page,
+      limit: per_page ?? limit,
+      ...(search ? { search } : {}),
+      ...(packing_method ? { packing_method } : {}),
+      ...(has_blend !== null ? { has_blend } : {}),
+      ...(has_stl !== null ? { has_stl } : {}),
+      ...(created_from ? { created_from } : {}),
+      ...(created_to ? { created_to } : {}),
+    }
   });
   return response.data;
 };
 
 // feed agregado para a pagina de historico
-export const getHistoryFeed = async (limit = 100) => {
+export const getHistoryFeed = async ({
+  page = 1,
+  limit = 20,
+  entry_type = 'all',
+  search = null,
+  status = null,
+  packing_method = null,
+  created_from = null,
+  created_to = null,
+} = {}) => {
   const response = await api.get('/api/history', {
-    params: { limit }
+    params: {
+      page,
+      limit,
+      entry_type,
+      ...(search ? { search } : {}),
+      ...(status ? { status } : {}),
+      ...(packing_method ? { packing_method } : {}),
+      ...(created_from ? { created_from } : {}),
+      ...(created_to ? { created_to } : {}),
+    }
   });
   return response.data;
 };
@@ -228,16 +273,43 @@ export const createSimulationRecord = async (payload) => {
 };
 
 // metricas e ficheiros associados a uma simulacao na base sql
-export const getSimulationResults = async (simulationId, resultType = null) => {
-  const params = {};
+export const getSimulationResults = async (
+  simulationId,
+  {
+    resultType = null,
+    search = null,
+    page = 1,
+    limit = 20,
+  } = {}
+) => {
+  const params = { page, limit };
   if (resultType) params.result_type = resultType;
+  if (search) params.search = search;
   const response = await api.get(`/api/results/simulation/${simulationId}`, { params });
   return response.data;
 };
 
 // templates texto bed guardados na tabela bed templates
-export const listTemplates = async () => {
-  const response = await api.get('/api/templates/list');
+export const listTemplates = async ({
+  page = 1,
+  limit = 20,
+  search = null,
+  tag = null,
+  source = null,
+  created_from = null,
+  created_to = null,
+} = {}) => {
+  const response = await api.get('/api/templates/list', {
+    params: {
+      page,
+      limit,
+      ...(search ? { search } : {}),
+      ...(tag ? { tag } : {}),
+      ...(source ? { source } : {}),
+      ...(created_from ? { created_from } : {}),
+      ...(created_to ? { created_to } : {}),
+    }
+  });
   return response.data;
 };
 
@@ -285,8 +357,24 @@ export const postDatabasePanelEvent = async (eventType, detail = null) => {
 };
 
 // crud simples de relatorios markdown ou texto livre
-export const listReports = async () => {
-  const response = await api.get('/api/reports');
+export const listReports = async ({
+  page = 1,
+  limit = 20,
+  search = null,
+  status = null,
+  created_from = null,
+  created_to = null,
+} = {}) => {
+  const response = await api.get('/api/reports', {
+    params: {
+      page,
+      limit,
+      ...(search ? { search } : {}),
+      ...(status ? { status } : {}),
+      ...(created_from ? { created_from } : {}),
+      ...(created_to ? { created_to } : {}),
+    }
+  });
   return response.data;
 };
 

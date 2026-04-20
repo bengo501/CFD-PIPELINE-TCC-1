@@ -1,4 +1,5 @@
 # funcoes que traduzem operacoes http em comandos sqlalchemy
+from datetime import datetime
 from sqlalchemy.orm import Session
 from typing import List, Optional, Tuple
 from . import models, schemas
@@ -107,6 +108,41 @@ class BedCRUD:
         beds = search_query.order_by(models.Bed.created_at.desc()).offset(skip).limit(limit).all()
         return beds, total
 
+    @staticmethod
+    def list_filtered(
+        db: Session,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        user_id: Optional[int] = None,
+        search: Optional[str] = None,
+        packing_method: Optional[str] = None,
+        created_from: Optional[datetime] = None,
+        created_to: Optional[datetime] = None,
+    ) -> Tuple[List[models.Bed], int]:
+        query = db.query(models.Bed)
+        if user_id is not None:
+            query = query.filter(models.Bed.user_id == user_id)
+        if search:
+            like = f"%{search.strip()}%"
+            query = query.filter(
+                (models.Bed.name.ilike(like)) | (models.Bed.description.ilike(like))
+            )
+        if packing_method:
+            query = query.filter(models.Bed.packing_method == packing_method)
+        if created_from:
+            query = query.filter(models.Bed.created_at >= created_from)
+        if created_to:
+            query = query.filter(models.Bed.created_at <= created_to)
+        total = query.count()
+        beds = (
+            query.order_by(models.Bed.updated_at.desc(), models.Bed.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        return beds, total
+
 
 class SimulationCRUD:
     # crud para tabela simulations
@@ -190,6 +226,51 @@ class SimulationCRUD:
         return simulations, total
 
     @staticmethod
+    def list_filtered(
+        db: Session,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        user_id: Optional[int] = None,
+        bed_id: Optional[int] = None,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        regime: Optional[str] = None,
+        solver: Optional[str] = None,
+        created_from: Optional[datetime] = None,
+        created_to: Optional[datetime] = None,
+    ) -> Tuple[List[models.Simulation], int]:
+        query = db.query(models.Simulation)
+        if user_id is not None:
+            query = query.filter(models.Simulation.user_id == user_id)
+        if bed_id is not None:
+            query = query.filter(models.Simulation.bed_id == bed_id)
+        if status:
+            query = query.filter(models.Simulation.status == status)
+        if regime:
+            query = query.filter(models.Simulation.regime == regime)
+        if solver:
+            query = query.filter(models.Simulation.solver == solver)
+        if search:
+            like = f"%{search.strip()}%"
+            query = query.filter(
+                (models.Simulation.name.ilike(like))
+                | (models.Simulation.description.ilike(like))
+            )
+        if created_from:
+            query = query.filter(models.Simulation.created_at >= created_from)
+        if created_to:
+            query = query.filter(models.Simulation.created_at <= created_to)
+        total = query.count()
+        simulations = (
+            query.order_by(models.Simulation.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        return simulations, total
+
+    @staticmethod
     def update(
         db: Session,
         simulation_id: int,
@@ -261,6 +342,33 @@ class ResultCRUD:
         if result_type:
             query = query.filter(models.Result.result_type == result_type)
         return query.order_by(models.Result.created_at.desc()).all()
+
+    @staticmethod
+    def list_filtered_by_simulation(
+        db: Session,
+        simulation_id: int,
+        *,
+        result_type: Optional[str] = None,
+        search: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[models.Result], int]:
+        query = db.query(models.Result).filter(
+            models.Result.simulation_id == simulation_id
+        )
+        if result_type:
+            query = query.filter(models.Result.result_type == result_type)
+        if search:
+            like = f"%{search.strip()}%"
+            query = query.filter(models.Result.name.ilike(like))
+        total = query.count()
+        results = (
+            query.order_by(models.Result.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        return results, total
 
     @staticmethod
     def delete(db: Session, result_id: int) -> bool:

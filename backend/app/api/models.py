@@ -169,6 +169,17 @@ class TemplateSummary(BaseModel):
     source: str = "editor"
 
 
+class PaginatedTemplateSummary(BaseModel):
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
+    per_page: int
+    pages: int
+    items: List[TemplateSummary]
+
+
 class TemplateResponse(BaseModel):
     """resposta de template com conteúdo completo"""
     id: str
@@ -247,6 +258,17 @@ class ReportSummary(BaseModel):
     created_at: str
     updated_at: str
     attachment_count: int
+
+
+class PaginatedReportSummary(BaseModel):
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+    applied_filters: Dict[str, Any] = Field(default_factory=dict)
+    per_page: int
+    pages: int
+    items: List[ReportSummary]
 
 
 class ReportAttachmentOut(BaseModel):
