@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 // get profile e patch usam o cabecalho x user id atual
-// list users traz os tres perfis demo para o menu
-import { getProfile, patchProfile, listUsers } from '../services/api';
+import { getProfile, patchProfile } from '../services/api';
 import { useActiveUser } from '../context/UserContext';
 import BackendConnectionError from './BackendConnectionError';
 import './ProfilePage.css';
@@ -38,8 +37,9 @@ function roleLabel(role, pt) {
 export default function ProfilePage() {
   const { language, t, setLanguage } = useLanguage();
   const pt = language === 'pt';
-  // active user id vem do contexto e repete no axios
-  const { activeUserId, setActiveUserId } = useActiveUser();
+  // active user id vem do contexto e repete no axios;
+  // a troca e feita pelo botao redondo no header (UserSwitcherModal)
+  const { activeUserId } = useActiveUser();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,8 +53,6 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [preferredLanguage, setPreferredLanguage] = useState('pt');
   const [updatedAt, setUpdatedAt] = useState('');
-  // opcoes do select carregadas uma vez via api users
-  const [userList, setUserList] = useState([]);
 
   // recarrega perfil quando muda o utilizador ativo ou o idioma de traducao
   const loadProfile = useCallback(async () => {
@@ -85,21 +83,6 @@ export default function ProfilePage() {
       setLoading(false);
     }
   }, [pt, t, activeUserId]);
-
-  // pedido inicial para preencher o menu de ids
-  useEffect(() => {
-    let cancelled = false;
-    listUsers()
-      .then((rows) => {
-        if (!cancelled && Array.isArray(rows)) setUserList(rows);
-      })
-      .catch(() => {
-        if (!cancelled) setUserList([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     loadProfile();
@@ -156,8 +139,8 @@ export default function ProfilePage() {
             <h2>{pt ? 'perfil' : 'profile'}</h2>
             <p className="profile-mockup-sub">
               {pt
-                ? 'dados salvos em sqlite (tabela user_profiles). escolha o utilizador ativo para isolar leitos simulações relatórios e templates no mesmo browser.'
-                : 'data stored in sqlite (user_profiles table). pick the active user to isolate beds, simulations, reports and templates in this browser.'}
+                ? 'dados salvos em sqlite (tabela user_profiles). para trocar o utilizador ativo use o botão redondo no canto superior direito do cabeçalho.'
+                : 'data stored in sqlite (user_profiles table). use the round button on the top-right of the header to switch the active user.'}
             </p>
 
             {loading ? (
@@ -183,23 +166,6 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="profile-field-grid">
-                  {/* mudar aqui altera local storage e o cabecalho axios */}
-                  <div className="profile-field">
-                    <label htmlFor="profile-user">{pt ? 'utilizador ativo' : 'active user'}</label>
-                    <select
-                      id="profile-user"
-                      value={activeUserId}
-                      onChange={(e) => setActiveUserId(Number(e.target.value))}
-                    >
-                      {(userList.length ? userList : [{ id: activeUserId, display_name: `#${activeUserId}` }]).map(
-                        (u) => (
-                          <option key={u.id} value={u.id}>
-                            {(u.display_name || '').trim() || `id ${u.id}`} · id {u.id}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
                   <div className="profile-field">
                     <label htmlFor="profile-name">{pt ? 'nome' : 'name'}</label>
                     <input

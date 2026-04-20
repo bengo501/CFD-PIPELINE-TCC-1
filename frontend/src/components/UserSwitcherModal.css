@@ -1,0 +1,217 @@
+/* overlay escuro que cobre a aplicacao toda */
+.user-switcher-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1rem;
+}
+
+.user-switcher-modal {
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary);
+  border-radius: 12px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.user-switcher-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  gap: 1rem;
+}
+
+.user-switcher-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  color: var(--text-primary);
+}
+
+.user-switcher-subtitle {
+  margin: 0.35rem 0 0 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-transform: lowercase;
+  line-height: 1.35;
+}
+
+.user-switcher-close {
+  background: transparent;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0 0.25rem;
+}
+
+.user-switcher-close:hover {
+  color: var(--text-primary);
+}
+
+.user-switcher-body {
+  padding: 1rem 1.25rem;
+  overflow: auto;
+}
+
+.user-switcher-status,
+.user-switcher-error {
+  margin: 0.5rem 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85rem;
+  text-transform: lowercase;
+}
+
+.user-switcher-error {
+  color: #dc3545;
+}
+
+.user-switcher-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-switcher-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-secondary, #fff);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.user-switcher-item:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.user-switcher-item.active {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.user-switcher-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.user-switcher-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-switcher-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  text-transform: lowercase;
+  word-break: break-word;
+}
+
+.user-switcher-role {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-transform: lowercase;
+}
+
+.user-switcher-active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  flex-shrink: 0;
+}
+
+.user-switcher-active-icon {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.user-switcher-footer {
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-switcher-close-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: all 0.2s ease;
+}
+
+.user-switcher-close-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* modo escuro */
+[data-theme="dark"] .user-switcher-modal,
+.dark-mode .user-switcher-modal {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .user-switcher-item,
+.dark-mode .user-switcher-item {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .user-switcher-item.active,
+.dark-mode .user-switcher-item.active {
+  background: rgba(100, 255, 218, 0.08);
+}

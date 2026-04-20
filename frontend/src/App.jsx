@@ -16,11 +16,13 @@ import SettingsPage from './components/SettingsPage'
 import DevModePanel from './components/DevModePanel'
 import ThemeIcon from './components/ThemeIcon'
 import { HelpModal, DocsModal, CreditsModal } from './components/WizardHelpers'
+import UserSwitcherModal from './components/UserSwitcherModal'
 import { getSystemStatus, getSettings } from './services/api'
 import api from './services/api'
 import { useLanguage } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
 import { useAppUi } from './context/AppUiContext'
+import { useActiveUser } from './context/UserContext'
 
 const SIMPLE_MODE_TABS = new Set([
   'dashboard',
@@ -40,6 +42,7 @@ function App() {
   const { language, toggleLanguage, t, setLanguage } = useLanguage();
   const { theme, toggleTheme, setThemeMode } = useTheme();
   const { simpleMode, devMode, applySettingsFromApi, setSimpleMode, setDevMode } = useAppUi();
+  const { activeUserId, setActiveUserId } = useActiveUser();
   const [activeTab, setActiveTab] = useState('dashboard') // dashboard, create, wizard, pipeline, cfd, jobs, results
   const [systemStatus, setSystemStatus] = useState(null)
   const [backendUnreachable, setBackendUnreachable] = useState(false)
@@ -49,6 +52,7 @@ function App() {
   const [showHelp, setShowHelp] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
   const [showCredits, setShowCredits] = useState(false)
+  const [showUserSwitcher, setShowUserSwitcher] = useState(false)
   const [expandedSections, setExpandedSections] = useState({})
   const mainContentRef = useRef(null)
 
@@ -64,6 +68,32 @@ function App() {
     const suffix = language === 'pt' ? 'pipeline cfd' : 'cfd pipeline'
     document.title = `${t('appCreativeTitle')} — ${suffix}`
   }, [language, t])
+
+  // abre o modal de escolha de utilizador apenas na primeirissima
+  // execucao; a flag userSwitcherSeen e gravada apos qualquer interacao
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('userSwitcherSeen')
+      if (!seen) setShowUserSwitcher(true)
+    } catch (_e) {
+      // localStorage indisponivel, ignorar
+    }
+  }, [])
+
+  const handleUserSwitcherSelect = useCallback((id) => {
+    setActiveUserId(id)
+    setShowUserSwitcher(false)
+    try {
+      localStorage.setItem('userSwitcherSeen', '1')
+    } catch (_e) {}
+  }, [setActiveUserId])
+
+  const handleUserSwitcherClose = useCallback(() => {
+    setShowUserSwitcher(false)
+    try {
+      localStorage.setItem('userSwitcherSeen', '1')
+    } catch (_e) {}
+  }, [])
 
   useEffect(() => {
     let cancelled = false;
@@ -294,8 +324,9 @@ function App() {
             </div>
             
             <button 
+              type="button"
               className="theme-toggle" 
-              onClick={toggleTheme} 
+              onClick={(e) => { e.stopPropagation(); toggleTheme(); }} 
               title={theme === 'light' ? (language === 'pt' ? 'modo escuro' : 'dark mode') : (language === 'pt' ? 'modo claro' : 'light mode')}
               aria-label={theme === 'light' ? 'toggle dark mode' : 'toggle light mode'}
             >
@@ -329,8 +360,9 @@ function App() {
               )}
 
               <button 
+                type="button"
                 className="language-toggle" 
-                onClick={toggleLanguage} 
+                onClick={(e) => { e.stopPropagation(); toggleLanguage(); }} 
                 title={language === 'pt' ? 'switch to english' : 'mudar para português'}
                 aria-label={language === 'pt' ? 'mudar idioma' : 'change language'}
               >
@@ -342,6 +374,22 @@ function App() {
                   location="header"
                 />
                 <span className="lang-text">{language === 'pt' ? 'br' : 'us'}</span>
+              </button>
+
+              <button
+                type="button"
+                className="user-switcher-btn"
+                onClick={(e) => { e.stopPropagation(); setShowUserSwitcher(true); }}
+                title={language === 'pt' ? 'trocar utilizador' : 'switch user'}
+                aria-label={language === 'pt' ? 'trocar utilizador' : 'switch user'}
+              >
+                <ThemeIcon
+                  light="profileLight.png"
+                  dark="profileLight.png"
+                  alt=""
+                  className="user-switcher-icon"
+                  location="header"
+                />
               </button>
             </div>
           </div>
@@ -995,6 +1043,15 @@ function App() {
         show={showCredits} 
         onClose={() => setShowCredits(false)} 
       />
+
+      {showUserSwitcher && (
+        <UserSwitcherModal
+          activeUserId={activeUserId}
+          onSelect={handleUserSwitcherSelect}
+          onClose={handleUserSwitcherClose}
+          language={language}
+        />
+      )}
     </div>
   )
 }

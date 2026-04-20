@@ -533,6 +533,40 @@ input, textarea, select {
   display: none; /* esconder textos dos botões */
 }
 
+/* botão redondo de troca de utilizador no header (canto superior direito) */
+.user-switcher-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  color: #fff;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.user-switcher-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.user-switcher-btn .user-switcher-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
 /* aviso de falha de ligação ao backend (ao lado do idioma) */
 .header-backend-warning {
   display: flex;
