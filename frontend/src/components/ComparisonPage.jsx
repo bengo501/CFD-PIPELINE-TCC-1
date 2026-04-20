@@ -32,8 +32,57 @@ function mapApiToCard(item, language) {
     mainResults: {
       pressure,
       efficiency: language === 'pt' ? 'n/d' : 'n/a'
+    },
+    // campos crus para uso no modal de comparacao
+    raw: {
+      id: item.id,
+      name: item.name,
+      description: item.description || '',
+      status: item.status,
+      created_at: item.created_at || null,
+      bed_id: item.bed_id ?? null,
+      regime: item.regime ?? null,
+      inlet_velocity: item.inlet_velocity ?? null,
+      fluid_density: item.fluid_density ?? null,
+      fluid_viscosity: item.fluid_viscosity ?? null,
+      solver: item.solver ?? null,
+      max_iterations: item.max_iterations ?? null,
+      convergence_criteria: item.convergence_criteria ?? null,
+      mesh_cells_count: item.mesh_cells_count ?? null,
+      mesh_quality: item.mesh_quality ?? null,
+      pressure_drop: item.pressure_drop ?? null,
+      average_velocity: item.average_velocity ?? null,
+      reynolds_number: item.reynolds_number ?? null,
+      execution_time: item.execution_time ?? null,
+      case_directory: item.case_directory ?? null,
+      progress: item.progress ?? null
     }
   };
+}
+
+function formatValue(value, unit = '', language = 'pt', fractionDigits = null) {
+  if (value === null || value === undefined || value === '') {
+    return language === 'pt' ? 'n/d' : 'n/a';
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const formatted = fractionDigits != null ? value.toFixed(fractionDigits) : String(value);
+    return unit ? `${formatted} ${unit}` : formatted;
+  }
+  if (typeof value === 'string') {
+    return unit ? `${value} ${unit}` : value;
+  }
+  return String(value);
+}
+
+function areValuesDifferent(a, b) {
+  if (a === null || a === undefined) a = null;
+  if (b === null || b === undefined) b = null;
+  if (a === null && b === null) return false;
+  if (a === null || b === null) return true;
+  if (typeof a === 'number' && typeof b === 'number') {
+    return Math.abs(a - b) > 1e-9;
+  }
+  return String(a) !== String(b);
 }
 
 function ComparisonPage() {
@@ -44,6 +93,8 @@ function ComparisonPage() {
   const [simulations, setSimulations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [showCompareModal, setShowCompareModal] = useState(false);
+  const [compareItems, setCompareItems] = useState([]);
 
   const loadSimulations = useCallback(async () => {
     setLoading(true);
@@ -75,6 +126,31 @@ function ComparisonPage() {
   useEffect(() => {
     loadSimulations();
   }, [loadSimulations]);
+
+  const openCompareModal = useCallback(() => {
+    if (selectedSimulations.length !== 2) return;
+    const items = selectedSimulations
+      .map((id) => simulations.find((sim) => sim.id === id))
+      .filter(Boolean);
+    if (items.length !== 2) return;
+    setCompareItems(items);
+    setShowCompareModal(true);
+  }, [selectedSimulations, simulations]);
+
+  const closeCompareModal = useCallback(() => {
+    setShowCompareModal(false);
+  }, []);
+
+  useEffect(() => {
+    if (!showCompareModal) return undefined;
+    const handleKey = (event) => {
+      if (event.key === 'Escape') {
+        setShowCompareModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [showCompareModal]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -166,6 +242,25 @@ function ComparisonPage() {
         <button type="button" className="comparison-refresh-btn" onClick={loadSimulations} disabled={loading}>
           <ThemeIcon light="refreshLigh.png" dark="refreshDark.png" alt="" className="comparison-refresh-icon" />
           {language === 'pt' ? 'atualizar' : 'refresh'}
+        </button>
+        <button
+          type="button"
+          className="comparison-compare-btn"
+          onClick={openCompareModal}
+          disabled={selectedSimulations.length !== 2}
+          title={
+            selectedSimulations.length !== 2
+              ? language === 'pt'
+                ? 'selecione duas simulações para comparar'
+                : 'select two simulations to compare'
+              : ''
+          }
+        >
+          <ThemeIcon light="compareLight.png" dark="compareDark.png" alt="" className="comparison-refresh-icon" />
+          {language === 'pt' ? 'comparar' : 'compare'}
+          {selectedSimulations.length > 0 && (
+            <span className="compare-count">({selectedSimulations.length}/2)</span>
+          )}
         </button>
       </div>
 
@@ -287,6 +382,249 @@ function ComparisonPage() {
             )}
           </>
         )}
+      </div>
+
+      {showCompareModal && compareItems.length === 2 && (
+        <CompareModal
+          leftItem={compareItems[0]}
+          rightItem={compareItems[1]}
+          onClose={closeCompareModal}
+          language={language}
+          getStatusText={getStatusText}
+          getStatusClass={getStatusClass}
+        />
+      )}
+    </div>
+  );
+}
+
+function CompareModal({ leftItem, rightItem, onClose, language, getStatusText, getStatusClass }) {
+  const left = leftItem.raw;
+  const right = rightItem.raw;
+
+  const formatDate = (iso) => {
+    if (!iso) return language === 'pt' ? 'n/d' : 'n/a';
+    try {
+      return new Date(iso).toLocaleString(language === 'pt' ? 'pt-BR' : 'en-US');
+    } catch (_e) {
+      return iso;
+    }
+  };
+
+  const rows = [
+    {
+      key: 'name',
+      label: language === 'pt' ? 'nome' : 'name',
+      leftRaw: left.name,
+      rightRaw: right.name,
+      leftDisplay: left.name,
+      rightDisplay: right.name
+    },
+    {
+      key: 'status',
+      label: language === 'pt' ? 'estado' : 'status',
+      leftRaw: left.status,
+      rightRaw: right.status,
+      leftDisplay: getStatusText(left.status),
+      rightDisplay: getStatusText(right.status),
+      leftClass: `status-pill ${getStatusClass(left.status)}`,
+      rightClass: `status-pill ${getStatusClass(right.status)}`
+    },
+    {
+      key: 'created_at',
+      label: language === 'pt' ? 'criada em' : 'created at',
+      leftRaw: left.created_at,
+      rightRaw: right.created_at,
+      leftDisplay: formatDate(left.created_at),
+      rightDisplay: formatDate(right.created_at)
+    },
+    {
+      key: 'regime',
+      label: language === 'pt' ? 'regime' : 'regime',
+      leftRaw: left.regime,
+      rightRaw: right.regime,
+      leftDisplay: formatValue(left.regime, '', language),
+      rightDisplay: formatValue(right.regime, '', language)
+    },
+    {
+      key: 'solver',
+      label: 'solver',
+      leftRaw: left.solver,
+      rightRaw: right.solver,
+      leftDisplay: formatValue(left.solver, '', language),
+      rightDisplay: formatValue(right.solver, '', language)
+    },
+    {
+      key: 'inlet_velocity',
+      label: language === 'pt' ? 'velocidade de entrada' : 'inlet velocity',
+      leftRaw: left.inlet_velocity,
+      rightRaw: right.inlet_velocity,
+      leftDisplay: formatValue(left.inlet_velocity, 'm/s', language, 3),
+      rightDisplay: formatValue(right.inlet_velocity, 'm/s', language, 3)
+    },
+    {
+      key: 'fluid_density',
+      label: language === 'pt' ? 'densidade do fluido' : 'fluid density',
+      leftRaw: left.fluid_density,
+      rightRaw: right.fluid_density,
+      leftDisplay: formatValue(left.fluid_density, 'kg/m³', language, 2),
+      rightDisplay: formatValue(right.fluid_density, 'kg/m³', language, 2)
+    },
+    {
+      key: 'fluid_viscosity',
+      label: language === 'pt' ? 'viscosidade do fluido' : 'fluid viscosity',
+      leftRaw: left.fluid_viscosity,
+      rightRaw: right.fluid_viscosity,
+      leftDisplay: formatValue(left.fluid_viscosity, 'pa·s', language, 6),
+      rightDisplay: formatValue(right.fluid_viscosity, 'pa·s', language, 6)
+    },
+    {
+      key: 'max_iterations',
+      label: language === 'pt' ? 'iterações máximas' : 'max iterations',
+      leftRaw: left.max_iterations,
+      rightRaw: right.max_iterations,
+      leftDisplay: formatValue(left.max_iterations, '', language),
+      rightDisplay: formatValue(right.max_iterations, '', language)
+    },
+    {
+      key: 'convergence_criteria',
+      label: language === 'pt' ? 'critério de convergência' : 'convergence criteria',
+      leftRaw: left.convergence_criteria,
+      rightRaw: right.convergence_criteria,
+      leftDisplay: formatValue(left.convergence_criteria, '', language),
+      rightDisplay: formatValue(right.convergence_criteria, '', language)
+    },
+    {
+      key: 'mesh_cells_count',
+      label: language === 'pt' ? 'células da malha' : 'mesh cells',
+      leftRaw: left.mesh_cells_count,
+      rightRaw: right.mesh_cells_count,
+      leftDisplay: formatValue(left.mesh_cells_count, '', language),
+      rightDisplay: formatValue(right.mesh_cells_count, '', language)
+    },
+    {
+      key: 'mesh_quality',
+      label: language === 'pt' ? 'qualidade da malha' : 'mesh quality',
+      leftRaw: left.mesh_quality,
+      rightRaw: right.mesh_quality,
+      leftDisplay: formatValue(left.mesh_quality, '', language, 3),
+      rightDisplay: formatValue(right.mesh_quality, '', language, 3)
+    },
+    {
+      key: 'pressure_drop',
+      label: language === 'pt' ? 'queda de pressão' : 'pressure drop',
+      leftRaw: left.pressure_drop,
+      rightRaw: right.pressure_drop,
+      leftDisplay: formatValue(left.pressure_drop, 'pa', language, 2),
+      rightDisplay: formatValue(right.pressure_drop, 'pa', language, 2)
+    },
+    {
+      key: 'average_velocity',
+      label: language === 'pt' ? 'velocidade média' : 'average velocity',
+      leftRaw: left.average_velocity,
+      rightRaw: right.average_velocity,
+      leftDisplay: formatValue(left.average_velocity, 'm/s', language, 3),
+      rightDisplay: formatValue(right.average_velocity, 'm/s', language, 3)
+    },
+    {
+      key: 'reynolds_number',
+      label: language === 'pt' ? 'número de reynolds' : 'reynolds number',
+      leftRaw: left.reynolds_number,
+      rightRaw: right.reynolds_number,
+      leftDisplay: formatValue(left.reynolds_number, '', language, 1),
+      rightDisplay: formatValue(right.reynolds_number, '', language, 1)
+    },
+    {
+      key: 'execution_time',
+      label: language === 'pt' ? 'tempo de execução' : 'execution time',
+      leftRaw: left.execution_time,
+      rightRaw: right.execution_time,
+      leftDisplay: formatValue(left.execution_time, 's', language, 1),
+      rightDisplay: formatValue(right.execution_time, 's', language, 1)
+    },
+    {
+      key: 'case_directory',
+      label: language === 'pt' ? 'diretório do caso' : 'case directory',
+      leftRaw: left.case_directory,
+      rightRaw: right.case_directory,
+      leftDisplay: formatValue(left.case_directory, '', language),
+      rightDisplay: formatValue(right.case_directory, '', language)
+    }
+  ];
+
+  const diffCount = rows.filter((r) => areValuesDifferent(r.leftRaw, r.rightRaw)).length;
+
+  const handleOverlayClick = (event) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div className="compare-modal-overlay" onClick={handleOverlayClick} role="dialog" aria-modal="true">
+      <div className="compare-modal">
+        <div className="compare-modal-header">
+          <div>
+            <h2>{language === 'pt' ? 'comparar simulações' : 'compare simulations'}</h2>
+            <p className="compare-modal-subtitle">
+              {language === 'pt'
+                ? `${diffCount} ${diffCount === 1 ? 'diferença encontrada' : 'diferenças encontradas'}`
+                : `${diffCount} ${diffCount === 1 ? 'difference found' : 'differences found'}`}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="compare-modal-close"
+            onClick={onClose}
+            aria-label={language === 'pt' ? 'fechar' : 'close'}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="compare-modal-body">
+          <table className="compare-table">
+            <thead>
+              <tr>
+                <th className="compare-field-col">{language === 'pt' ? 'campo' : 'field'}</th>
+                <th>
+                  <div className="compare-sim-header">
+                    <span className="compare-sim-label">{language === 'pt' ? 'simulação a' : 'simulation a'}</span>
+                    <span className="compare-sim-name">{left.name}</span>
+                  </div>
+                </th>
+                <th>
+                  <div className="compare-sim-header">
+                    <span className="compare-sim-label">{language === 'pt' ? 'simulação b' : 'simulation b'}</span>
+                    <span className="compare-sim-name">{right.name}</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const different = areValuesDifferent(row.leftRaw, row.rightRaw);
+                return (
+                  <tr key={row.key} className={different ? 'compare-row diff-row' : 'compare-row'}>
+                    <td className="compare-field-col">{row.label}</td>
+                    <td className={different ? 'diff-cell' : ''}>
+                      <span className={row.leftClass || ''}>{row.leftDisplay}</span>
+                    </td>
+                    <td className={different ? 'diff-cell' : ''}>
+                      <span className={row.rightClass || ''}>{row.rightDisplay}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="compare-modal-footer">
+          <button type="button" className="compare-modal-close-btn" onClick={onClose}>
+            {language === 'pt' ? 'fechar' : 'close'}
+          </button>
+        </div>
       </div>
     </div>
   );

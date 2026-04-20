@@ -260,7 +260,6 @@ function App() {
           </div>
           
           <div className="header-right">
-<<<<<<< Updated upstream
             <button
               type="button"
               className="new-simulation-btn"
@@ -268,14 +267,6 @@ function App() {
             >
               <ThemeIcon light="runLight.png" dark="runLight.png" alt={t('headerStartButton')} className="btn-icon" />
               {t('headerStartButton')}
-=======
-            <button 
-              className="new-simulation-btn"
-              onClick={() => setActiveTab('wizard')}
-            >
-              <ThemeIcon light="runLight.png" dark="runLight.png" alt="nova simulação" className="btn-icon" />
-              {language === 'pt' ? '+ Nova Simulação' : '+ New Simulation'}
->>>>>>> Stashed changes
             </button>
             <div className="system-status">
               {systemStatus && (
